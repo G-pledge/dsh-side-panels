@@ -41604,10 +41604,12 @@ window.__ModuleLoader__.load({ id: "dsh-side-panels", factory: (require) => {
 			},
 			filesTabs: {
 				display: "flex",
-				alignItems: "stretch",
+				alignItems: "center",
 				minWidth: 0,
+				minHeight: 0,
 				flex: 1,
-				overflowX: "auto"
+				overflowX: "auto",
+				overflowY: "hidden"
 			},
 			tree: {
 				display: "flex",
@@ -41662,15 +41664,20 @@ window.__ModuleLoader__.load({ id: "dsh-side-panels", factory: (require) => {
 				alignItems: "center",
 				gap: 6,
 				border: "none",
-				borderRight: "1px solid var(--dsw-alias-border, #ececec)",
 				background: "transparent",
 				color: "inherit",
-				padding: "0 8px 0 12px",
+				padding: "0 8px 0 10px",
 				fontSize: 13,
-				maxWidth: 200,
-				height: 34
+				height: 26,
+				margin: "0 2px",
+				borderRadius: 8,
+				opacity: .72,
+				flex: "0 0 auto"
 			},
-			tabActive: { background: "var(--dsw-alias-bg-base, #fff)" },
+			tabActive: {
+				background: "rgb(0 122 204 / 14%)",
+				opacity: 1
+			},
 			tabName: {
 				border: "none",
 				background: "transparent",
@@ -41678,10 +41685,8 @@ window.__ModuleLoader__.load({ id: "dsh-side-panels", factory: (require) => {
 				cursor: "pointer",
 				padding: 0,
 				fontSize: 13,
-				overflow: "hidden",
-				textOverflow: "ellipsis",
 				whiteSpace: "nowrap",
-				maxWidth: 150
+				flex: "0 0 auto"
 			},
 			tabClose: {
 				width: 18,
@@ -42111,6 +42116,34 @@ html[data-dsh-side-panels-dragging] [data-dsh-grip] {
 }
 [data-dsh-side-panels] button[data-dsh-pane-pill]:hover:not(:disabled) {
   background: rgb(127 127 127 / 10%) !important;
+  opacity: 1;
+}
+[data-dsh-side-panels] [data-dsh-files-tabs] {
+  overflow-x: auto;
+  overflow-y: hidden;
+  scrollbar-width: thin;
+  scrollbar-color: rgb(0 0 0 / 28%) transparent;
+}
+[data-dsh-side-panels] [data-dsh-files-tabs]::-webkit-scrollbar {
+  height: 3px;
+}
+[data-dsh-side-panels] [data-dsh-files-tabs]::-webkit-scrollbar-track {
+  background: transparent;
+}
+[data-dsh-side-panels] [data-dsh-files-tabs]::-webkit-scrollbar-thumb {
+  background: rgb(0 0 0 / 28%);
+  border-radius: 99px;
+}
+[data-dsh-side-panels] [data-dsh-file-tab]:hover {
+  background: rgb(127 127 127 / 10%);
+  opacity: 1;
+}
+[data-dsh-side-panels] [data-dsh-file-tab] button,
+[data-dsh-side-panels] [data-dsh-file-tab] button:hover:not(:disabled) {
+  background: transparent !important;
+}
+[data-dsh-side-panels] [data-dsh-file-tab-active] {
+  background: rgb(0 122 204 / 14%) !important;
   opacity: 1;
 }
 [data-dsh-side-panels] button[data-dsh-files-pill] {
@@ -42962,6 +42995,78 @@ html[data-dsh-side-panels-dragging] [data-dsh-grip] {
 				})
 			});
 		}
+		function TabMenuItem({ disabled, onPick, children }) {
+			return /* @__PURE__ */ (0, react_jsx_runtime.jsx)("button", {
+				type: "button",
+				role: "menuitem",
+				disabled,
+				style: S.menuItem,
+				onClick: () => {
+					if (disabled) return;
+					onPick();
+				},
+				children: /* @__PURE__ */ (0, react_jsx_runtime.jsx)("span", {
+					style: S.menuLabel,
+					children
+				})
+			});
+		}
+		function TabContextMenu({ x, y, onClose, canOthers, canLeft, canRight, canAll, onCloseOthers, onCloseLeft, onCloseRight, onCloseAll }) {
+			const boxRef = (0, react.useRef)(null);
+			useDismiss(true, boxRef, onClose, { ignoreRightClick: true });
+			const left = Math.max(8, Math.min(x, window.innerWidth - 188));
+			const top = Math.max(8, Math.min(y, window.innerHeight - 180));
+			return /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", {
+				ref: boxRef,
+				role: "menu",
+				style: {
+					...S.menu,
+					minWidth: 168,
+					position: "fixed",
+					top,
+					left,
+					right: "auto",
+					marginTop: 0,
+					zIndex: 120
+				},
+				onContextMenu: (event) => event.preventDefault(),
+				children: [
+					/* @__PURE__ */ (0, react_jsx_runtime.jsx)(TabMenuItem, {
+						disabled: !canOthers,
+						onPick: () => {
+							onClose();
+							onCloseOthers();
+						},
+						children: "关闭其他"
+					}),
+					/* @__PURE__ */ (0, react_jsx_runtime.jsx)(TabMenuItem, {
+						disabled: !canLeft,
+						onPick: () => {
+							onClose();
+							onCloseLeft();
+						},
+						children: "关闭左侧"
+					}),
+					/* @__PURE__ */ (0, react_jsx_runtime.jsx)(TabMenuItem, {
+						disabled: !canRight,
+						onPick: () => {
+							onClose();
+							onCloseRight();
+						},
+						children: "关闭右侧"
+					}),
+					/* @__PURE__ */ (0, react_jsx_runtime.jsx)("div", { style: S.menuSep }),
+					/* @__PURE__ */ (0, react_jsx_runtime.jsx)(TabMenuItem, {
+						disabled: !canAll,
+						onPick: () => {
+							onClose();
+							onCloseAll();
+						},
+						children: "关闭所有"
+					})
+				]
+			});
+		}
 		function SearchGlyph() {
 			return /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("svg", {
 				viewBox: "0 0 16 16",
@@ -43765,6 +43870,7 @@ html[data-dsh-side-panels-dragging] [data-dsh-grip] {
 			const [renaming, setRenaming] = (0, react.useState)();
 			const [renameDraft, setRenameDraft] = (0, react.useState)("");
 			const [ctxMenu, setCtxMenu] = (0, react.useState)();
+			const [tabMenu, setTabMenu] = (0, react.useState)();
 			const [git, setGit] = (0, react.useState)({});
 			const [filter, setFilter] = (0, react.useState)("");
 			const [searchOpen, setSearchOpen] = (0, react.useState)(false);
@@ -43821,6 +43927,7 @@ html[data-dsh-side-panels-dragging] [data-dsh-grip] {
 				setCreating(void 0);
 				setRenaming(void 0);
 				setCtxMenu(void 0);
+				setTabMenu(void 0);
 				setError(void 0);
 				setGit({});
 				setFilter("");
@@ -44011,6 +44118,36 @@ html[data-dsh-side-panels-dragging] [data-dsh-grip] {
 					hexMode: false
 				});
 			};
+			const closeTabsAround = (path, mode) => {
+				const paneId = activePaneIdRef.current;
+				const pane = panesRef.current.find((item) => item.id === paneId);
+				if (!pane || pane.kind !== "file") return;
+				const index = pane.tabs.indexOf(path);
+				if (mode !== "all" && index < 0) return;
+				let doomed = [];
+				if (mode === "all") doomed = pane.tabs;
+				else if (mode === "others") doomed = pane.tabs.filter((item) => item !== path);
+				else if (mode === "left") doomed = pane.tabs.slice(0, index);
+				else if (mode === "right") doomed = pane.tabs.slice(index + 1);
+				if (doomed.length === 0) return;
+				const drop = new Set(doomed);
+				const nextTabs = pane.tabs.filter((item) => !drop.has(item));
+				let nextActive = pane.active;
+				if (mode === "all") nextActive = void 0;
+				else if (!nextTabs.includes(pane.active)) nextActive = nextTabs.includes(path) ? path : nextTabs[0] ?? void 0;
+				const contents = new Map(pane.contents);
+				for (const item of doomed) {
+					revokePreview(contents.get(item));
+					contents.delete(item);
+				}
+				patchPane(paneId, (current) => current.kind !== "file" ? current : {
+					...current,
+					tabs: nextTabs,
+					active: nextActive,
+					contents,
+					hexMode: false
+				});
+			};
 			const updateDraft = (path, text) => {
 				patchPane(activePaneIdRef.current, (current) => {
 					const file = current.contents.get(path);
@@ -44186,9 +44323,20 @@ html[data-dsh-side-panels-dragging] [data-dsh-grip] {
 			};
 			const openTreeMenu = (event, entry) => {
 				setSelected(entry.path);
+				setTabMenu(void 0);
 				setCtxMenu({
 					path: entry.path,
 					directory: entry.directory === true,
+					x: event.clientX,
+					y: event.clientY
+				});
+			};
+			const openTabMenu = (event, path) => {
+				event.preventDefault();
+				event.stopPropagation();
+				setCtxMenu(void 0);
+				setTabMenu({
+					path,
 					x: event.clientX,
 					y: event.clientY
 				});
@@ -44348,13 +44496,17 @@ html[data-dsh-side-panels-dragging] [data-dsh-grip] {
 										})]
 									}),
 									/* @__PURE__ */ (0, react_jsx_runtime.jsx)("div", {
+										"data-dsh-files-tabs": "",
 										style: S.filesTabs,
 										children: tabs.map((path) => /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", {
+											"data-dsh-file-tab": "",
+											"data-dsh-file-tab-active": active === path ? "" : void 0,
 											style: {
 												...S.tab,
 												...active === path ? S.tabActive : {}
 											},
 											title: path,
+											onContextMenu: (event) => openTabMenu(event, path),
 											children: [
 												isDirty(contents.get(path)) ? /* @__PURE__ */ (0, react_jsx_runtime.jsx)("span", {
 													style: S.dirtyDot,
@@ -44642,6 +44794,28 @@ html[data-dsh-side-panels-dragging] [data-dsh-grip] {
 							copyContentLabel: isImagePath(ctxMenu.path) ? "复制图片" : "复制内容",
 							onRefresh: () => void refreshAll()
 						}, `${ctxMenu.path}:${ctxMenu.x}:${ctxMenu.y}`)
+					}) : null,
+					tabMenu ? /* @__PURE__ */ (0, react_jsx_runtime.jsx)("div", {
+						style: {
+							gridColumn: 1,
+							gridRow: 1,
+							width: 0,
+							height: 0,
+							overflow: "visible"
+						},
+						children: /* @__PURE__ */ (0, react_jsx_runtime.jsx)(TabContextMenu, {
+							x: tabMenu.x,
+							y: tabMenu.y,
+							canOthers: tabs.length > 1,
+							canLeft: tabs.indexOf(tabMenu.path) > 0,
+							canRight: tabs.indexOf(tabMenu.path) >= 0 && tabs.indexOf(tabMenu.path) < tabs.length - 1,
+							canAll: tabs.length > 0,
+							onClose: () => setTabMenu(void 0),
+							onCloseOthers: () => closeTabsAround(tabMenu.path, "others"),
+							onCloseLeft: () => closeTabsAround(tabMenu.path, "left"),
+							onCloseRight: () => closeTabsAround(tabMenu.path, "right"),
+							onCloseAll: () => closeTabsAround(tabMenu.path, "all")
+						}, `${tabMenu.path}:${tabMenu.x}:${tabMenu.y}`)
 					}) : null,
 					/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("nav", {
 						"data-dsh-rail": "",

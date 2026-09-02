@@ -4,7 +4,7 @@ import { CodeEditor } from './CodeEditor.jsx'
 import { TerminalView } from './TerminalView.jsx'
 import { base64ToBytes, copyImageBytes, formatHexDump, formatSize } from './hex.js'
 import { FileKindIcon, FilesActivityIcon, gitColor, TerminalActivityIcon, WorkbenchToggleIcon } from './icons.jsx'
-import { AddPaneMenu, FileContextMenu, MoreMenu, PANE_META } from './MoreMenu.jsx'
+import { AddPaneMenu, FileContextMenu, MoreMenu, PANE_META, TabContextMenu } from './MoreMenu.jsx'
 import { S } from './styles.js'
 import { isCollapsed, subscribeVisibility, toggleCollapsed } from './visibility.js'
 import { getPrefs, subscribePrefs } from './prefs.js'
@@ -358,6 +358,7 @@ export function Workbench({ sessions }) {
   const [renaming, setRenaming] = useState()
   const [renameDraft, setRenameDraft] = useState('')
   const [ctxMenu, setCtxMenu] = useState()
+  const [tabMenu, setTabMenu] = useState()
   const [git, setGit] = useState({})
   const [filter, setFilter] = useState('')
   const [searchOpen, setSearchOpen] = useState(false)
@@ -422,6 +423,7 @@ export function Workbench({ sessions }) {
     setCreating(undefined)
     setRenaming(undefined)
     setCtxMenu(undefined)
+    setTabMenu(undefined)
     setError(undefined)
     setGit({})
     setFilter('')
@@ -618,6 +620,33 @@ export function Workbench({ sessions }) {
     ))
   }
 
+  const closeTabsAround = (path, mode) => {
+    const paneId = activePaneIdRef.current
+    const pane = panesRef.current.find((item) => item.id === paneId)
+    if (!pane || pane.kind !== 'file') return
+    const index = pane.tabs.indexOf(path)
+    if (mode !== 'all' && index < 0) return
+    let doomed = []
+    if (mode === 'all') doomed = pane.tabs
+    else if (mode === 'others') doomed = pane.tabs.filter((item) => item !== path)
+    else if (mode === 'left') doomed = pane.tabs.slice(0, index)
+    else if (mode === 'right') doomed = pane.tabs.slice(index + 1)
+    if (doomed.length === 0) return
+    const drop = new Set(doomed)
+    const nextTabs = pane.tabs.filter((item) => !drop.has(item))
+    let nextActive = pane.active
+    if (mode === 'all') nextActive = undefined
+    else if (!nextTabs.includes(pane.active)) nextActive = nextTabs.includes(path) ? path : (nextTabs[0] ?? undefined)
+    const contents = new Map(pane.contents)
+    for (const item of doomed) {
+      revokePreview(contents.get(item))
+      contents.delete(item)
+    }
+    patchPane(paneId, (current) => (
+      current.kind !== 'file' ? current : { ...current, tabs: nextTabs, active: nextActive, contents, hexMode: false }
+    ))
+  }
+
   const updateDraft = (path, text) => {
     patchPane(activePaneIdRef.current, (current) => {
       const file = current.contents.get(path)
@@ -798,9 +827,21 @@ export function Workbench({ sessions }) {
 
   const openTreeMenu = (event, entry) => {
     setSelected(entry.path)
+    setTabMenu(undefined)
     setCtxMenu({
       path: entry.path,
       directory: entry.directory === true,
+      x: event.clientX,
+      y: event.clientY,
+    })
+  }
+
+  const openTabMenu = (event, path) => {
+    event.preventDefault()
+    event.stopPropagation()
+    setCtxMenu(undefined)
+    setTabMenu({
+      path,
       x: event.clientX,
       y: event.clientY,
     })
@@ -924,9 +965,16 @@ export function Workbench({ sessions }) {
               <ChromeIcon title="前进" d="M5.5 3.5 10.5 8l-5 4.5" />
             </button>
           </div>
-          <div style={S.filesTabs}>
+          <div data-dsh-files-tabs="" style={S.filesTabs}>
             {tabs.map((path) => (
-              <div key={path} style={{ ...S.tab, ...(active === path ? S.tabActive : {}) }} title={path}>
+              <div
+                key={path}
+                data-dsh-file-tab=""
+                data-dsh-file-tab-active={active === path ? '' : undefined}
+                style={{ ...S.tab, ...(active === path ? S.tabActive : {}) }}
+                title={path}
+                onContextMenu={(event) => openTabMenu(event, path)}
+              >
                 {isDirty(contents.get(path)) ? <span style={S.dirtyDot} title="未保存" /> : null}
                 <FileKindIcon name={basename(path)} />
                 <button type="button" style={S.tabName} onClick={() => void openPath(path)}>
@@ -1131,6 +1179,25 @@ export function Workbench({ sessions }) {
           onCopyContent={() => void copyContent(ctxMenu.path)}
           copyContentLabel={isImagePath(ctxMenu.path) ? '复制图片' : '复制内容'}
           onRefresh={() => void refreshAll()}
+        />
+        </div>
+      ) : null}
+
+      {tabMenu ? (
+        <div style={{ gridColumn: 1, gridRow: 1, width: 0, height: 0, overflow: 'visible' }}>
+        <TabContextMenu
+          key={`${tabMenu.path}:${tabMenu.x}:${tabMenu.y}`}
+          x={tabMenu.x}
+          y={tabMenu.y}
+          canOthers={tabs.length > 1}
+          canLeft={tabs.indexOf(tabMenu.path) > 0}
+          canRight={tabs.indexOf(tabMenu.path) >= 0 && tabs.indexOf(tabMenu.path) < tabs.length - 1}
+          canAll={tabs.length > 0}
+          onClose={() => setTabMenu(undefined)}
+          onCloseOthers={() => closeTabsAround(tabMenu.path, 'others')}
+          onCloseLeft={() => closeTabsAround(tabMenu.path, 'left')}
+          onCloseRight={() => closeTabsAround(tabMenu.path, 'right')}
+          onCloseAll={() => closeTabsAround(tabMenu.path, 'all')}
         />
         </div>
       ) : null}

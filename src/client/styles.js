@@ -123,10 +123,12 @@ export const S = {
   },
   filesTabs: {
     display: 'flex',
-    alignItems: 'stretch',
+    alignItems: 'center',
     minWidth: 0,
+    minHeight: 0,
     flex: 1,
     overflowX: 'auto',
+    overflowY: 'hidden',
   },
   tree: {
     display: 'flex',
@@ -181,16 +183,19 @@ export const S = {
     alignItems: 'center',
     gap: 6,
     border: 'none',
-    borderRight: '1px solid var(--dsw-alias-border, #ececec)',
     background: 'transparent',
     color: 'inherit',
-    padding: '0 8px 0 12px',
+    padding: '0 8px 0 10px',
     fontSize: 13,
-    maxWidth: 200,
-    height: 34,
+    height: 26,
+    margin: '0 2px',
+    borderRadius: 8,
+    opacity: 0.72,
+    flex: '0 0 auto',
   },
   tabActive: {
-    background: 'var(--dsw-alias-bg-base, #fff)',
+    background: 'rgb(0 122 204 / 14%)',
+    opacity: 1,
   },
   tabName: {
     border: 'none',
@@ -199,10 +204,8 @@ export const S = {
     cursor: 'pointer',
     padding: 0,
     fontSize: 13,
-    overflow: 'hidden',
-    textOverflow: 'ellipsis',
     whiteSpace: 'nowrap',
-    maxWidth: 150,
+    flex: '0 0 auto',
   },
   tabClose: {
     width: 18,
@@ -635,6 +638,34 @@ html[data-dsh-side-panels-dragging] [data-dsh-grip] {
 }
 [data-dsh-side-panels] button[data-dsh-pane-pill]:hover:not(:disabled) {
   background: rgb(127 127 127 / 10%) !important;
+  opacity: 1;
+}
+[data-dsh-side-panels] [data-dsh-files-tabs] {
+  overflow-x: auto;
+  overflow-y: hidden;
+  scrollbar-width: thin;
+  scrollbar-color: rgb(0 0 0 / 28%) transparent;
+}
+[data-dsh-side-panels] [data-dsh-files-tabs]::-webkit-scrollbar {
+  height: 3px;
+}
+[data-dsh-side-panels] [data-dsh-files-tabs]::-webkit-scrollbar-track {
+  background: transparent;
+}
+[data-dsh-side-panels] [data-dsh-files-tabs]::-webkit-scrollbar-thumb {
+  background: rgb(0 0 0 / 28%);
+  border-radius: 99px;
+}
+[data-dsh-side-panels] [data-dsh-file-tab]:hover {
+  background: rgb(127 127 127 / 10%);
+  opacity: 1;
+}
+[data-dsh-side-panels] [data-dsh-file-tab] button,
+[data-dsh-side-panels] [data-dsh-file-tab] button:hover:not(:disabled) {
+  background: transparent !important;
+}
+[data-dsh-side-panels] [data-dsh-file-tab-active] {
+  background: rgb(0 122 204 / 14%) !important;
   opacity: 1;
 }
 [data-dsh-side-panels] button[data-dsh-files-pill] {

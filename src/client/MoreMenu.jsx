@@ -199,6 +199,57 @@ export function FileContextMenu({ x, y, onClose, ...props }) {
   )
 }
 
+function TabMenuItem({ disabled, onPick, children }) {
+  return (
+    <button
+      type="button"
+      role="menuitem"
+      disabled={disabled}
+      style={S.menuItem}
+      onClick={() => {
+        if (disabled) return
+        onPick()
+      }}
+    >
+      <span style={S.menuLabel}>{children}</span>
+    </button>
+  )
+}
+
+export function TabContextMenu({
+  x,
+  y,
+  onClose,
+  canOthers,
+  canLeft,
+  canRight,
+  canAll,
+  onCloseOthers,
+  onCloseLeft,
+  onCloseRight,
+  onCloseAll,
+}) {
+  const boxRef = useRef(null)
+  useDismiss(true, boxRef, onClose, { ignoreRightClick: true })
+  const left = Math.max(8, Math.min(x, window.innerWidth - 188))
+  const top = Math.max(8, Math.min(y, window.innerHeight - 180))
+
+  return (
+    <div
+      ref={boxRef}
+      role="menu"
+      style={{ ...S.menu, minWidth: 168, position: 'fixed', top, left, right: 'auto', marginTop: 0, zIndex: 120 }}
+      onContextMenu={(event) => event.preventDefault()}
+    >
+      <TabMenuItem disabled={!canOthers} onPick={() => { onClose(); onCloseOthers() }}>关闭其他</TabMenuItem>
+      <TabMenuItem disabled={!canLeft} onPick={() => { onClose(); onCloseLeft() }}>关闭左侧</TabMenuItem>
+      <TabMenuItem disabled={!canRight} onPick={() => { onClose(); onCloseRight() }}>关闭右侧</TabMenuItem>
+      <div style={S.menuSep} />
+      <TabMenuItem disabled={!canAll} onPick={() => { onClose(); onCloseAll() }}>关闭所有</TabMenuItem>
+    </div>
+  )
+}
+
 function SearchGlyph() {
   return (
     <svg viewBox="0 0 16 16" width="14" height="14" fill="none" stroke="currentColor" strokeWidth="1.4" aria-hidden="true" style={{ opacity: 0.45, flex: '0 0 14px' }}>
