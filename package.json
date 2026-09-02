@@ -67,6 +67,7 @@
     "@xterm/xterm": "^6.0.0",
     "iconv-lite": "^0.6.3",
     "node-pty": "1.2.0-beta.15",
+    "playwright-core": "^1.62.1",
     "schemastery": "^3.18.0",
     "ws": "^8.18.3"
   }

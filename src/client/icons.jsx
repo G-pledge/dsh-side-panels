@@ -86,6 +86,16 @@ export function TerminalActivityIcon() {
   )
 }
 
+/** 右侧活动栏：浏览器。 */
+export function BrowserActivityIcon() {
+  return (
+    <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" strokeWidth="1.6" aria-hidden="true">
+      <circle cx="12" cy="12" r="8.2" />
+      <path d="M3.8 12h16.4 M12 3.8c2.2 2.4 3.4 4.9 3.4 8.2S14.2 17.8 12 20.2C9.8 17.8 8.6 15.3 8.6 12S9.8 6.2 12 3.8z" />
+    </svg>
+  )
+}
+
 /** Files 药丸上的单页图标。 */
 export function FilesDocIcon() {
   return (

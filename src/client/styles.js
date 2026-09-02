@@ -317,6 +317,60 @@ export const S = {
     inset: '8px 10px',
     overflow: 'hidden',
   },
+  browserWrap: {
+    flex: 1,
+    minHeight: 0,
+    display: 'flex',
+    flexDirection: 'column',
+    background: 'var(--dsw-alias-bg-base, #fff)',
+  },
+  browserUrlForm: {
+    flex: 1,
+    minWidth: 0,
+    display: 'flex',
+    alignItems: 'center',
+    padding: '0 4px',
+  },
+  browserUrl: {
+    width: '100%',
+    height: 24,
+    border: '1px solid var(--dsw-alias-border, #e0e0e0)',
+    borderRadius: 6,
+    padding: '0 10px',
+    fontSize: 12,
+    background: 'var(--dsw-alias-bg-subtle, #f3f3f3)',
+    color: 'inherit',
+    outline: 'none',
+  },
+  browserStage: {
+    flex: 1,
+    minHeight: 0,
+    position: 'relative',
+    overflow: 'hidden',
+    background: '#fff',
+    outline: 'none',
+  },
+  browserFrame: {
+    position: 'absolute',
+    inset: 0,
+    width: '100%',
+    height: '100%',
+    objectFit: 'fill',
+    pointerEvents: 'none',
+    userSelect: 'none',
+  },
+  browserError: {
+    position: 'absolute',
+    left: 12,
+    right: 12,
+    bottom: 12,
+    padding: '8px 10px',
+    borderRadius: 8,
+    background: 'rgb(0 0 0 / 72%)',
+    color: '#fff',
+    fontSize: 12,
+    zIndex: 2,
+  },
   previewBar: {
     display: 'flex',
     alignItems: 'center',
@@ -693,6 +747,10 @@ html[data-dsh-side-panels-dragging] [data-dsh-grip] {
 }
 [data-dsh-side-panels] [role="menu"] button:hover:not(:disabled) {
   background: rgb(127 127 127 / 10%) !important;
+}
+[data-dsh-side-panels] [data-dsh-browser-url]:focus {
+  border-color: rgb(0 122 204 / 45%);
+  background: var(--dsw-alias-bg-base, #fff);
 }
 [data-dsh-cm],
 [data-dsh-cm] .cm-editor {

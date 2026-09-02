@@ -1,9 +1,10 @@
 import React, { useEffect, useMemo, useRef, useState, useSyncExternalStore } from 'react'
 import { fileApi } from './api.js'
+import { BrowserView } from './BrowserView.jsx'
 import { CodeEditor } from './CodeEditor.jsx'
 import { TerminalView } from './TerminalView.jsx'
 import { base64ToBytes, copyImageBytes, formatHexDump, formatSize } from './hex.js'
-import { FileKindIcon, FilesActivityIcon, gitColor, TerminalActivityIcon, WorkbenchToggleIcon } from './icons.jsx'
+import { BrowserActivityIcon, FileKindIcon, FilesActivityIcon, gitColor, TerminalActivityIcon, WorkbenchToggleIcon } from './icons.jsx'
 import { AddPaneMenu, FileContextMenu, MoreMenu, PANE_META, TabContextMenu } from './MoreMenu.jsx'
 import { S } from './styles.js'
 import { isCollapsed, subscribeVisibility, toggleCollapsed } from './visibility.js'
@@ -1072,7 +1073,7 @@ export function Workbench({ sessions }) {
           </div>
         ) : isFiles ? (
           <div style={S.empty}>正在打开…</div>
-        ) : activePane?.kind === 'terminal' ? null : (
+        ) : activePane?.kind === 'terminal' || activePane?.kind === 'browser' ? null : (
           <div style={S.empty}>
             <div style={S.emptyTitle}>{(PANE_META[activePane?.kind]?.label ?? '这个面板')}还没做</div>
           </div>
@@ -1091,6 +1092,22 @@ export function Workbench({ sessions }) {
             <TerminalView cwd={root} paneId={pane.id} active={activePane?.id === pane.id} />
           </div>
         )) : null}
+        {session.id ? panes.filter((pane) => pane.kind === 'browser').map((pane) => (
+          <div
+            key={pane.id}
+            style={{
+              display: activePane?.id === pane.id ? 'flex' : 'none',
+              flex: 1,
+              minHeight: 0,
+              flexDirection: 'column',
+              background: 'var(--dsw-alias-bg-base, #fff)',
+            }}
+          >
+            <BrowserView sessionId={session.id} paneId={pane.id} active={activePane?.id === pane.id} />
+          </div>
+        )) : activePane?.kind === 'browser' ? (
+          <div style={S.empty}>这条对话还没有编号，开不了浏览器</div>
+        ) : null}
       </section>
 
       {showTree ? (
@@ -1222,6 +1239,16 @@ export function Workbench({ sessions }) {
           onClick={() => focusOrAddPane('terminal')}
         >
           <TerminalActivityIcon />
+        </button>
+        <button
+          type="button"
+          title="浏览器"
+          aria-label="浏览器"
+          aria-pressed={activePane?.kind === 'browser'}
+          style={{ ...S.railBtn, ...(activePane?.kind === 'browser' ? S.railBtnActive : {}) }}
+          onClick={() => focusOrAddPane('browser')}
+        >
+          <BrowserActivityIcon />
         </button>
       </nav>
       {creating ? (

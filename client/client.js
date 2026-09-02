@@ -156,6 +156,1207 @@ window.__ModuleLoader__.load({ id: "dsh-side-panels", factory: (require) => {
 			}
 		};
 		//#endregion
+		//#region src/client/styles.js
+		const S$1 = {
+			panel: {
+				position: "absolute",
+				insetBlock: 0,
+				insetInlineEnd: 0,
+				zIndex: 40,
+				display: "grid",
+				gridTemplateRows: "35px minmax(0, 1fr)",
+				background: "var(--dsw-alias-bg-base, #fff)",
+				color: "var(--dsw-alias-fg-default, #3c3c3c)",
+				borderInlineStart: "1px solid var(--dsw-alias-border, #e5e5e5)",
+				fontSize: 13,
+				lineHeight: 1.4,
+				fontFamily: "system-ui, -apple-system, \"Segoe UI\", sans-serif"
+			},
+			pane: {
+				minWidth: 0,
+				minHeight: 0,
+				display: "flex",
+				flexDirection: "column",
+				background: "var(--dsw-alias-bg-base, #fff)"
+			},
+			chrome: {
+				display: "flex",
+				alignItems: "stretch",
+				justifyContent: "space-between",
+				minHeight: 35,
+				padding: "0 8px 0 4px",
+				borderBottom: "1px solid var(--dsw-alias-border, #ececec)",
+				flex: "0 0 35px",
+				position: "relative",
+				zIndex: 8,
+				gap: 4,
+				minWidth: 0
+			},
+			chromeGroup: {
+				display: "flex",
+				alignItems: "center",
+				gap: 2,
+				flex: "0 0 auto"
+			},
+			filesBar: {
+				display: "flex",
+				alignItems: "stretch",
+				minWidth: 0,
+				minHeight: 35,
+				borderBottom: "1px solid var(--dsw-alias-border, #ececec)",
+				background: "var(--dsw-alias-bg-subtle, #f3f3f3)",
+				overflow: "visible",
+				zIndex: 20
+			},
+			filesBarMain: {
+				display: "flex",
+				alignItems: "center",
+				justifyContent: "space-between",
+				minWidth: 0,
+				flex: 1,
+				padding: "0 6px 0 8px",
+				gap: 4
+			},
+			filesBarLeft: {
+				display: "flex",
+				alignItems: "center",
+				minWidth: 0,
+				flex: 1,
+				gap: 4,
+				overflow: "visible"
+			},
+			filesPills: {
+				display: "flex",
+				alignItems: "center",
+				minWidth: 0,
+				flex: 1,
+				gap: 4,
+				overflowX: "auto"
+			},
+			filesPill: {
+				display: "inline-flex",
+				alignItems: "center",
+				gap: 6,
+				border: "none",
+				background: "rgb(0 0 0 / 7%)",
+				color: "inherit",
+				borderRadius: 999,
+				padding: "4px 6px 4px 10px",
+				fontSize: 12,
+				fontWeight: 600,
+				cursor: "pointer",
+				flex: "0 0 auto",
+				lineHeight: 1.2,
+				opacity: 1
+			},
+			filesPillIdle: {
+				display: "inline-flex",
+				alignItems: "center",
+				gap: 6,
+				border: "none",
+				background: "transparent",
+				color: "inherit",
+				borderRadius: 999,
+				padding: "4px 6px 4px 10px",
+				fontSize: 12,
+				fontWeight: 600,
+				cursor: "pointer",
+				flex: "0 0 auto",
+				lineHeight: 1.2,
+				opacity: .72
+			},
+			paneClose: {
+				width: 16,
+				height: 16,
+				border: "none",
+				background: "transparent",
+				color: "inherit",
+				cursor: "pointer",
+				borderRadius: 8,
+				display: "inline-flex",
+				alignItems: "center",
+				justifyContent: "center",
+				padding: 0,
+				opacity: .5,
+				flex: "0 0 16px"
+			},
+			filesTabs: {
+				display: "flex",
+				alignItems: "center",
+				minWidth: 0,
+				minHeight: 0,
+				flex: 1,
+				overflowX: "auto",
+				overflowY: "hidden"
+			},
+			tree: {
+				display: "flex",
+				flexDirection: "column",
+				minWidth: 0,
+				minHeight: 0,
+				background: "var(--dsw-alias-bg-subtle, #f3f3f3)",
+				borderInlineStart: "1px solid var(--dsw-alias-border, #e8e8e8)"
+			},
+			rail: {
+				width: "100%",
+				minHeight: 0,
+				display: "flex",
+				flexDirection: "column",
+				alignItems: "center",
+				padding: "8px 0",
+				gap: 4,
+				background: "var(--dsw-alias-bg-muted, #ececec)",
+				borderInlineStart: "1px solid var(--dsw-alias-border, #e0e0e0)",
+				color: "var(--dsw-alias-fg-muted, #5a5a5a)"
+			},
+			railBtn: {
+				width: 40,
+				height: 40,
+				border: "none",
+				background: "transparent",
+				color: "inherit",
+				cursor: "pointer",
+				borderRadius: 8,
+				display: "inline-flex",
+				alignItems: "center",
+				justifyContent: "center",
+				padding: 0,
+				opacity: .72
+			},
+			railBtnActive: {
+				background: "rgb(90 90 90 / 18%)",
+				color: "var(--dsw-alias-fg-default, #2f2f2f)",
+				opacity: 1
+			},
+			tabs: {
+				display: "flex",
+				alignItems: "stretch",
+				gap: 0,
+				minHeight: 35,
+				borderBottom: "1px solid var(--dsw-alias-border, #ececec)",
+				background: "var(--dsw-alias-bg-subtle, #f3f3f3)",
+				overflowX: "auto"
+			},
+			tab: {
+				display: "inline-flex",
+				alignItems: "center",
+				gap: 6,
+				border: "none",
+				background: "transparent",
+				color: "inherit",
+				padding: "0 8px 0 10px",
+				fontSize: 13,
+				height: 26,
+				margin: "0 2px",
+				borderRadius: 8,
+				opacity: .72,
+				flex: "0 0 auto"
+			},
+			tabActive: {
+				background: "rgb(0 122 204 / 14%)",
+				opacity: 1
+			},
+			tabName: {
+				border: "none",
+				background: "transparent",
+				color: "inherit",
+				cursor: "pointer",
+				padding: 0,
+				fontSize: 13,
+				whiteSpace: "nowrap",
+				flex: "0 0 auto"
+			},
+			tabClose: {
+				width: 18,
+				height: 18,
+				border: "none",
+				background: "transparent",
+				color: "inherit",
+				cursor: "pointer",
+				borderRadius: 3,
+				display: "inline-flex",
+				alignItems: "center",
+				justifyContent: "center",
+				opacity: .55,
+				flex: "0 0 18px",
+				padding: 0
+			},
+			dirtyDot: {
+				width: 7,
+				height: 7,
+				borderRadius: 99,
+				background: "currentColor",
+				opacity: .55,
+				flex: "0 0 7px"
+			},
+			grip: {
+				position: "absolute",
+				insetBlock: 0,
+				width: 4,
+				zIndex: 6,
+				cursor: "ew-resize",
+				background: "transparent",
+				border: "none",
+				padding: 0
+			},
+			header: {
+				display: "flex",
+				alignItems: "center",
+				justifyContent: "space-between",
+				padding: "10px 8px 8px 16px",
+				fontWeight: 600,
+				fontSize: 11,
+				letterSpacing: "0.04em",
+				textTransform: "none"
+			},
+			iconBtn: {
+				width: 26,
+				height: 26,
+				border: "none",
+				background: "transparent",
+				color: "inherit",
+				cursor: "pointer",
+				borderRadius: 4,
+				display: "inline-flex",
+				alignItems: "center",
+				justifyContent: "center",
+				opacity: .7
+			},
+			empty: {
+				margin: "auto",
+				textAlign: "center",
+				color: "var(--dsw-alias-fg-muted, #6f6f6f)",
+				padding: 24
+			},
+			emptyTitle: {
+				fontSize: 13,
+				marginBottom: 14,
+				opacity: .9
+			},
+			newFile: {
+				border: "1px solid var(--dsw-alias-border, #d0d0d0)",
+				background: "var(--dsw-alias-bg-base, #fff)",
+				color: "inherit",
+				borderRadius: 6,
+				padding: "6px 14px",
+				fontSize: 13,
+				cursor: "pointer"
+			},
+			previewWrap: {
+				flex: 1,
+				minHeight: 0,
+				overflow: "auto",
+				display: "flex",
+				alignItems: "center",
+				justifyContent: "center",
+				padding: 16,
+				background: "var(--dsw-alias-bg-subtle, #f6f6f6)"
+			},
+			previewImage: {
+				maxWidth: "100%",
+				maxHeight: "100%",
+				objectFit: "contain",
+				boxShadow: "0 4px 18px rgb(0 0 0 / 12%)"
+			},
+			mediaPane: {
+				flex: 1,
+				minHeight: 0,
+				display: "flex",
+				flexDirection: "column"
+			},
+			termWrap: {
+				flex: 1,
+				minHeight: 0,
+				position: "relative",
+				overflow: "hidden",
+				background: "var(--dsw-alias-bg-base, #fff)"
+			},
+			termHost: {
+				position: "absolute",
+				inset: "8px 10px",
+				overflow: "hidden"
+			},
+			browserWrap: {
+				flex: 1,
+				minHeight: 0,
+				display: "flex",
+				flexDirection: "column",
+				background: "var(--dsw-alias-bg-base, #fff)"
+			},
+			browserUrlForm: {
+				flex: 1,
+				minWidth: 0,
+				display: "flex",
+				alignItems: "center",
+				padding: "0 4px"
+			},
+			browserUrl: {
+				width: "100%",
+				height: 24,
+				border: "1px solid var(--dsw-alias-border, #e0e0e0)",
+				borderRadius: 6,
+				padding: "0 10px",
+				fontSize: 12,
+				background: "var(--dsw-alias-bg-subtle, #f3f3f3)",
+				color: "inherit",
+				outline: "none"
+			},
+			browserStage: {
+				flex: 1,
+				minHeight: 0,
+				position: "relative",
+				overflow: "hidden",
+				background: "#fff",
+				outline: "none"
+			},
+			browserFrame: {
+				position: "absolute",
+				inset: 0,
+				width: "100%",
+				height: "100%",
+				objectFit: "fill",
+				pointerEvents: "none",
+				userSelect: "none"
+			},
+			browserError: {
+				position: "absolute",
+				left: 12,
+				right: 12,
+				bottom: 12,
+				padding: "8px 10px",
+				borderRadius: 8,
+				background: "rgb(0 0 0 / 72%)",
+				color: "#fff",
+				fontSize: 12,
+				zIndex: 2
+			},
+			previewBar: {
+				display: "flex",
+				alignItems: "center",
+				gap: 8,
+				padding: "6px 10px",
+				borderBottom: "1px solid var(--dsw-alias-border, #ececec)",
+				flex: "0 0 auto"
+			},
+			modeBtn: {
+				border: "1px solid var(--dsw-alias-border, #d0d0d0)",
+				background: "var(--dsw-alias-bg-base, #fff)",
+				color: "inherit",
+				borderRadius: 6,
+				padding: "4px 10px",
+				fontSize: 12,
+				cursor: "pointer"
+			},
+			banner: {
+				padding: "6px 12px",
+				fontSize: 12,
+				color: "var(--dsw-alias-fg-muted, #6f6f6f)",
+				background: "var(--dsw-alias-bg-subtle, #f6f6f6)",
+				borderBottom: "1px solid var(--dsw-alias-border, #ececec)"
+			},
+			hex: {
+				margin: 0,
+				padding: "12px 16px",
+				overflow: "auto",
+				flex: 1,
+				fontFamily: "ui-monospace, SFMono-Regular, Menlo, Consolas, monospace",
+				fontSize: 12,
+				lineHeight: 1.45,
+				whiteSpace: "pre"
+			},
+			pre: {
+				margin: 0,
+				padding: "12px 16px",
+				overflow: "auto",
+				flex: 1,
+				fontFamily: "ui-monospace, SFMono-Regular, Menlo, Consolas, monospace",
+				fontSize: 13,
+				whiteSpace: "pre-wrap",
+				wordBreak: "break-word"
+			},
+			row: {
+				display: "flex",
+				alignItems: "center",
+				gap: 6,
+				width: "100%",
+				border: "none",
+				background: "transparent",
+				color: "inherit",
+				textAlign: "start",
+				padding: "3px 10px 3px 2px",
+				cursor: "pointer",
+				fontSize: 13,
+				borderRadius: 0,
+				minHeight: 22
+			},
+			git: {
+				marginLeft: "auto",
+				fontSize: 11,
+				fontWeight: 700,
+				width: 14,
+				textAlign: "center",
+				flex: "0 0 14px"
+			},
+			search: {
+				margin: "0 8px 8px",
+				fontSize: 12,
+				padding: "4px 8px",
+				border: "1px solid var(--dsw-alias-border, #d0d0d0)",
+				borderRadius: 4,
+				background: "var(--dsw-alias-bg-base, #fff)",
+				color: "inherit",
+				outline: "none"
+			},
+			notice: {
+				padding: "8px 12px",
+				fontSize: 12,
+				color: "var(--dsw-alias-fg-danger, #b42318)"
+			},
+			createRow: {
+				display: "flex",
+				gap: 4,
+				padding: "4px 8px 8px"
+			},
+			input: {
+				flex: 1,
+				minWidth: 0,
+				fontSize: 12,
+				padding: "3px 6px",
+				border: "1px solid var(--dsw-alias-border, #ccc)",
+				borderRadius: 4,
+				background: "var(--dsw-alias-bg-base, #fff)",
+				color: "inherit"
+			},
+			menu: {
+				position: "absolute",
+				top: "100%",
+				right: 0,
+				zIndex: 80,
+				minWidth: 220,
+				padding: "6px 0",
+				marginTop: 4,
+				background: "var(--dsw-alias-bg-base, #fff)",
+				color: "var(--dsw-alias-fg-default, #3c3c3c)",
+				border: "1px solid var(--dsw-alias-border, #e5e5e5)",
+				borderRadius: 10,
+				boxShadow: "0 8px 28px rgb(0 0 0 / 14%)"
+			},
+			submenu: {
+				position: "absolute",
+				right: "100%",
+				top: 0,
+				zIndex: 81,
+				minWidth: 168,
+				marginRight: 6,
+				padding: "6px 0",
+				background: "var(--dsw-alias-bg-base, #fff)",
+				border: "1px solid var(--dsw-alias-border, #e5e5e5)",
+				borderRadius: 10,
+				boxShadow: "0 8px 28px rgb(0 0 0 / 14%)"
+			},
+			menuItem: {
+				display: "flex",
+				alignItems: "center",
+				gap: 10,
+				width: "100%",
+				border: "none",
+				background: "transparent",
+				color: "inherit",
+				textAlign: "start",
+				padding: "8px 14px",
+				fontSize: 13,
+				cursor: "pointer",
+				borderRadius: 0
+			},
+			menuLabel: { flex: 1 },
+			menuChevron: {
+				marginLeft: "auto",
+				opacity: .4,
+				fontSize: 16,
+				lineHeight: 1
+			},
+			menuSep: {
+				height: 1,
+				background: "var(--dsw-alias-border, #ececec)",
+				margin: "4px 8px"
+			},
+			addMenu: {
+				position: "absolute",
+				top: "100%",
+				left: 0,
+				right: "auto",
+				zIndex: 90,
+				width: 280,
+				padding: "8px 0 6px",
+				marginTop: 4,
+				background: "var(--dsw-alias-bg-base, #fff)",
+				color: "var(--dsw-alias-fg-default, #3c3c3c)",
+				border: "1px solid var(--dsw-alias-border, #e5e5e5)",
+				borderRadius: 10,
+				boxShadow: "0 8px 28px rgb(0 0 0 / 14%)"
+			},
+			addMenuSearch: {
+				display: "flex",
+				alignItems: "center",
+				gap: 8,
+				margin: "0 10px 6px",
+				padding: "6px 8px",
+				border: "1px solid var(--dsw-alias-border, #e5e5e5)",
+				borderRadius: 8,
+				background: "var(--dsw-alias-bg-subtle, #f7f7f7)"
+			},
+			addMenuSearchInput: {
+				flex: 1,
+				minWidth: 0,
+				border: "none",
+				background: "transparent",
+				color: "inherit",
+				fontSize: 13,
+				outline: "none",
+				padding: 0
+			},
+			addMenuKbd: {
+				marginLeft: "auto",
+				fontSize: 11,
+				opacity: .45,
+				fontFamily: "ui-sans-serif, system-ui, sans-serif",
+				flex: "0 0 auto"
+			},
+			overlay: {
+				position: "absolute",
+				inset: 0,
+				gridColumn: "1 / -1",
+				gridRow: "1 / -1",
+				zIndex: 110,
+				display: "flex",
+				alignItems: "center",
+				justifyContent: "center",
+				padding: 20,
+				background: "rgb(0 0 0 / 28%)"
+			},
+			dialog: {
+				width: 320,
+				maxWidth: "100%",
+				padding: "16px 18px 14px",
+				background: "var(--dsw-alias-bg-base, #fff)",
+				color: "var(--dsw-alias-fg-default, #3c3c3c)",
+				border: "1px solid var(--dsw-alias-border, #e5e5e5)",
+				borderRadius: 12,
+				boxShadow: "0 12px 40px rgb(0 0 0 / 18%)"
+			},
+			dialogTitle: {
+				fontSize: 14,
+				fontWeight: 600,
+				marginBottom: 6
+			},
+			dialogHint: {
+				fontSize: 12,
+				opacity: .6,
+				marginBottom: 12
+			},
+			dialogInput: {
+				display: "block",
+				width: "100%",
+				boxSizing: "border-box",
+				fontSize: 13,
+				padding: "8px 10px",
+				border: "1px solid var(--dsw-alias-border, #ccc)",
+				borderRadius: 8,
+				background: "var(--dsw-alias-bg-base, #fff)",
+				color: "inherit",
+				outline: "none"
+			},
+			dialogError: {
+				marginTop: 8,
+				fontSize: 12,
+				color: "var(--dsw-alias-fg-danger, #b42318)"
+			},
+			dialogActions: {
+				display: "flex",
+				justifyContent: "flex-end",
+				gap: 8,
+				marginTop: 14
+			},
+			dialogBtn: {
+				border: "1px solid var(--dsw-alias-border, #d0d0d0)",
+				background: "transparent",
+				color: "inherit",
+				borderRadius: 8,
+				padding: "6px 12px",
+				fontSize: 13,
+				cursor: "pointer"
+			},
+			dialogBtnPrimary: {
+				border: "none",
+				background: "var(--dsw-alias-interactive-bg, #0d6efd)",
+				color: "#fff",
+				borderRadius: 8,
+				padding: "6px 14px",
+				fontSize: 13,
+				cursor: "pointer"
+			}
+		};
+		const OPEN_STYLE = `
+[data-pane="conversation"],
+[class*="centerCol"] {
+  position: relative;
+}
+html[data-dsh-side-panels-open] [data-pane="conversation"],
+html[data-dsh-side-panels-open] [class*="centerCol"] {
+  padding-inline-end: var(--dsh-side-panels-width, 808px);
+}
+html[data-dsh-side-panels-dragging] {
+  cursor: ew-resize !important;
+  user-select: none !important;
+}
+html[data-dsh-side-panels-dragging] * {
+  cursor: ew-resize !important;
+  user-select: none !important;
+}
+[data-dsh-side-panels] [data-dsh-grip]:hover,
+html[data-dsh-side-panels-dragging] [data-dsh-grip] {
+  background: rgb(0 122 204 / 45%) !important;
+}
+[data-dsh-side-panels-toggle] {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  flex: none;
+  border: 1px solid var(--dsw-alias-border, #e5e5e5);
+  background: var(--dsw-alias-bg-base, #fff);
+  color: var(--dsw-alias-fg-default, #3c3c3c);
+  cursor: pointer;
+  border-radius: 6px;
+}
+[data-dsh-side-panels-toggle]:hover {
+  background: var(--dsw-alias-bg-subtle, #f3f3f3);
+}
+[data-dsh-side-panels] button:hover:not(:disabled) {
+  background: rgb(127 127 127 / 12%) !important;
+}
+[data-dsh-side-panels] [data-dsh-dialog] button:hover:not(:disabled) {
+  background: rgb(127 127 127 / 10%) !important;
+}
+[data-dsh-side-panels] [data-dsh-dialog-ok]:hover:not(:disabled) {
+  background: #0b5ed7 !important;
+  color: #fff !important;
+}
+[data-dsh-side-panels] button[data-dsh-pane-pill] {
+  background: transparent !important;
+}
+[data-dsh-side-panels] button[data-dsh-pane-pill]:hover:not(:disabled) {
+  background: rgb(127 127 127 / 10%) !important;
+  opacity: 1;
+}
+[data-dsh-side-panels] [data-dsh-files-tabs] {
+  overflow-x: auto;
+  overflow-y: hidden;
+  scrollbar-width: thin;
+  scrollbar-color: rgb(0 0 0 / 28%) transparent;
+}
+[data-dsh-side-panels] [data-dsh-files-tabs]::-webkit-scrollbar {
+  height: 3px;
+}
+[data-dsh-side-panels] [data-dsh-files-tabs]::-webkit-scrollbar-track {
+  background: transparent;
+}
+[data-dsh-side-panels] [data-dsh-files-tabs]::-webkit-scrollbar-thumb {
+  background: rgb(0 0 0 / 28%);
+  border-radius: 99px;
+}
+[data-dsh-side-panels] [data-dsh-file-tab]:hover {
+  background: rgb(127 127 127 / 10%);
+  opacity: 1;
+}
+[data-dsh-side-panels] [data-dsh-file-tab] button,
+[data-dsh-side-panels] [data-dsh-file-tab] button:hover:not(:disabled) {
+  background: transparent !important;
+}
+[data-dsh-side-panels] [data-dsh-file-tab-active] {
+  background: rgb(0 122 204 / 14%) !important;
+  opacity: 1;
+}
+[data-dsh-side-panels] button[data-dsh-files-pill] {
+  background: rgb(0 0 0 / 7%) !important;
+  opacity: 1;
+}
+[data-dsh-side-panels] button[data-dsh-files-pill]:hover:not(:disabled) {
+  background: rgb(0 0 0 / 12%) !important;
+}
+[data-dsh-side-panels] button:disabled {
+  opacity: 0.28;
+  cursor: default;
+}
+[data-dsh-side-panels] [data-dsh-rail] button {
+  opacity: 0.72;
+}
+[data-dsh-side-panels] [data-dsh-rail] button:hover:not(:disabled) {
+  background: rgb(90 90 90 / 14%) !important;
+  opacity: 1;
+}
+[data-dsh-side-panels] [data-dsh-rail] button[aria-pressed="true"] {
+  background: rgb(90 90 90 / 18%) !important;
+  opacity: 1;
+  color: var(--dsw-alias-fg-default, #2f2f2f);
+}
+[data-dsh-side-panels] [role="menu"] button:hover:not(:disabled) {
+  background: rgb(127 127 127 / 10%) !important;
+}
+[data-dsh-side-panels] [data-dsh-browser-url]:focus {
+  border-color: rgb(0 122 204 / 45%);
+  background: var(--dsw-alias-bg-base, #fff);
+}
+[data-dsh-cm],
+[data-dsh-cm] .cm-editor {
+  height: 100%;
+}
+[data-dsh-cm] .cm-editor.cm-focused {
+  outline: none;
+}
+`;
+		const SETTINGS_STYLE = `
+[data-dsh-settings-page] {
+  max-width: 640px;
+  color: var(--dsw-alias-label-primary);
+}
+[data-dsh-settings-page] .dsh-sp-lede {
+  margin: 0 0 4px;
+  font-size: 13px;
+  line-height: 20px;
+  color: var(--dsw-alias-label-tertiary);
+}
+[data-dsh-settings-page] .dsh-sp-row,
+[data-dsh-settings-page] .dsh-sp-group {
+  display: flex;
+  gap: 8px;
+  padding: 16px 0;
+  border-bottom: 1px solid var(--dsw-alias-border-l2);
+}
+[data-dsh-settings-page] .dsh-sp-row {
+  align-items: center;
+}
+[data-dsh-settings-page] .dsh-sp-group {
+  flex-direction: column;
+}
+[data-dsh-settings-page] .dsh-sp-copy {
+  min-width: 0;
+  flex: 1;
+}
+[data-dsh-settings-page] .dsh-sp-title {
+  color: var(--dsw-alias-label-primary);
+  font-size: 14px;
+  font-weight: 400;
+  line-height: 22px;
+}
+[data-dsh-settings-page] .dsh-sp-hint {
+  margin-top: 2px;
+  color: var(--dsw-alias-label-tertiary);
+  font-size: 12px;
+  line-height: 18px;
+}
+[data-dsh-settings-page] .dsh-sp-switch {
+  appearance: none;
+  -webkit-appearance: none;
+  flex: none;
+  width: 40px;
+  height: 22px;
+  margin: 0;
+  padding: 0;
+  border: none;
+  border-radius: 99px;
+  background: var(--dsw-alias-fill-secondary, #d0d0d0);
+  box-shadow: inset 0 0 0 1px rgb(0 0 0 / 6%);
+  cursor: pointer;
+  position: relative;
+}
+[data-dsh-settings-page] .dsh-sp-switch::after {
+  content: "";
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 18px;
+  height: 18px;
+  border-radius: 99px;
+  background: #fff;
+  box-shadow: 0 1px 2px rgb(0 0 0 / 18%);
+  transition: transform .16s ease;
+}
+[data-dsh-settings-page] .dsh-sp-switch[data-on="true"] {
+  background: var(--dsw-alias-brand-primary, #1677ff);
+}
+[data-dsh-settings-page] .dsh-sp-switch[data-on="true"]::after {
+  transform: translateX(18px);
+}
+[data-dsh-settings-page] .dsh-sp-select {
+  appearance: none;
+  -webkit-appearance: none;
+  flex: none;
+  width: 168px;
+  height: 32px;
+  padding: 0 28px 0 12px;
+  border: 1px solid var(--dsw-alias-border-l2);
+  border-radius: 8px;
+  background-color: var(--dsw-alias-bg-layer-2, #fff);
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'><path fill='%23888' d='M3 4.5 6 8l3-3.5'/></svg>");
+  background-repeat: no-repeat;
+  background-position: right 10px center;
+  color: var(--dsw-alias-label-primary);
+  font: inherit;
+  font-size: 13px;
+  line-height: 32px;
+  outline: none;
+  cursor: pointer;
+}
+[data-dsh-settings-page] .dsh-sp-select:hover,
+[data-dsh-settings-page] .dsh-sp-path:hover {
+  border-color: var(--dsw-alias-label-dimmed, #bbb);
+}
+[data-dsh-settings-page] .dsh-sp-path {
+  display: block;
+  width: 100%;
+  box-sizing: border-box;
+  height: 32px;
+  margin-top: 8px;
+  padding: 0 12px;
+  border: 1px solid var(--dsw-alias-border-l2);
+  border-radius: 8px;
+  background: var(--dsw-alias-bg-layer-2, #fff);
+  color: inherit;
+  font: inherit;
+  font-size: 13px;
+  outline: none;
+}
+[data-dsh-settings-page] .dsh-sp-cubes {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+[data-dsh-settings-page] .dsh-sp-cube {
+  appearance: none;
+  -webkit-appearance: none;
+  box-sizing: border-box;
+  flex: 1 1 160px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  gap: 4px;
+  padding: 18px 16px;
+  border: 1px solid var(--dsw-alias-border-l2);
+  border-radius: 16px;
+  background: transparent;
+  color: var(--dsw-alias-label-primary);
+  font: inherit;
+  font-size: 14px;
+  line-height: 22px;
+  cursor: pointer;
+  outline: none;
+  box-shadow: none;
+}
+[data-dsh-settings-page] .dsh-sp-cube:hover:not([aria-checked="true"]) {
+  background: var(--dsw-alias-interactive-bg-hover);
+}
+[data-dsh-settings-page] .dsh-sp-cube[aria-checked="true"] {
+  background: var(--dsw-alias-bg-module-platform);
+  border-color: var(--dsw-static-neutral-bluish-400, #8aa4c8);
+}
+[data-dsh-settings-page] .dsh-sp-cube small {
+  font-size: 12px;
+  line-height: 18px;
+  color: var(--dsw-alias-label-tertiary);
+  font-weight: 400;
+}
+`;
+		//#endregion
+		//#region src/client/BrowserView.jsx
+		function socketUrl$1(session, width, height) {
+			return `${window.location.protocol === "https:" ? "wss:" : "ws:"}//${window.location.host || "127.0.0.1"}/dsh-side-panels/browser?${new URLSearchParams({
+				session: session ?? "",
+				width: String(width || 900),
+				height: String(height || 640)
+			})}`;
+		}
+		function pointIn(node, event) {
+			const box = node.getBoundingClientRect();
+			if (box.width < 8 || box.height < 8) return {
+				x: 0,
+				y: 0
+			};
+			return {
+				x: Math.max(0, (event.clientX - box.left) * (node.clientWidth / box.width)),
+				y: Math.max(0, (event.clientY - box.top) * (node.clientHeight / box.height))
+			};
+		}
+		function BrowserView({ sessionId, paneId, active }) {
+			const stageRef = (0, react.useRef)(null);
+			const socketRef = (0, react.useRef)(null);
+			const urlRef = (0, react.useRef)(null);
+			const [draft, setDraft] = (0, react.useState)("");
+			const [url, setUrl] = (0, react.useState)("about:blank");
+			const [canGoBack, setCanGoBack] = (0, react.useState)(false);
+			const [canGoForward, setCanGoForward] = (0, react.useState)(false);
+			const [loading, setLoading] = (0, react.useState)(false);
+			const [frame, setFrame] = (0, react.useState)();
+			const [error, setError] = (0, react.useState)();
+			const editing = (0, react.useRef)(false);
+			(0, react.useEffect)(() => {
+				const stage = stageRef.current;
+				if (!stage || !sessionId) return void 0;
+				let closed = false;
+				let socket;
+				const send = (payload) => {
+					if (socket?.readyState === WebSocket.OPEN) socket.send(JSON.stringify(payload));
+				};
+				const measure = () => ({
+					width: Math.max(320, stage.clientWidth || 900),
+					height: Math.max(240, stage.clientHeight || 640)
+				});
+				const connect = () => {
+					if (closed) return;
+					const size = measure();
+					socket = new WebSocket(socketUrl$1(sessionId, size.width, size.height));
+					socketRef.current = socket;
+					socket.onmessage = (event) => {
+						let next;
+						try {
+							next = JSON.parse(String(event.data));
+						} catch {
+							return;
+						}
+						if (next.type === "error") {
+							setError(next.message || "浏览器开不了");
+							return;
+						}
+						if (next.type === "frame" && typeof next.data === "string") {
+							setFrame(`data:image/jpeg;base64,${next.data}`);
+							setError(void 0);
+						}
+						if (next.type === "state" || next.type === "ready") {
+							if (typeof next.url === "string") {
+								setUrl(next.url);
+								if (!editing.current) setDraft(next.url === "about:blank" ? "" : next.url);
+							}
+							if (typeof next.canGoBack === "boolean") setCanGoBack(next.canGoBack);
+							if (typeof next.canGoForward === "boolean") setCanGoForward(next.canGoForward);
+							if (typeof next.loading === "boolean") setLoading(next.loading);
+						}
+					};
+					socket.onerror = () => {
+						if (!closed) setError("连不上浏览器，请重启桌面端后再试。");
+					};
+					socket.onopen = () => {
+						send({
+							type: "resize",
+							...measure()
+						});
+					};
+				};
+				const start = window.requestAnimationFrame(() => connect());
+				const observer = typeof ResizeObserver === "undefined" ? void 0 : new ResizeObserver(() => {
+					send({
+						type: "resize",
+						...measure()
+					});
+				});
+				observer?.observe(stage);
+				const onWheel = (event) => {
+					event.preventDefault();
+					send({
+						type: "wheel",
+						dx: event.deltaX,
+						dy: event.deltaY
+					});
+				};
+				stage.addEventListener("wheel", onWheel, { passive: false });
+				return () => {
+					closed = true;
+					window.cancelAnimationFrame(start);
+					observer?.disconnect();
+					stage.removeEventListener("wheel", onWheel);
+					socketRef.current = null;
+					try {
+						socket?.close();
+					} catch {}
+				};
+			}, [sessionId, paneId]);
+			(0, react.useEffect)(() => {
+				if (!active) return void 0;
+				const id = window.requestAnimationFrame(() => {
+					const stage = stageRef.current;
+					if (!stage) return;
+					const socket = socketRef.current;
+					if (socket?.readyState === WebSocket.OPEN) socket.send(JSON.stringify({
+						type: "resize",
+						width: Math.max(320, stage.clientWidth || 900),
+						height: Math.max(240, stage.clientHeight || 640)
+					}));
+					stage.focus();
+				});
+				return () => window.cancelAnimationFrame(id);
+			}, [active]);
+			const send = (payload) => {
+				const socket = socketRef.current;
+				if (socket?.readyState === WebSocket.OPEN) socket.send(JSON.stringify(payload));
+			};
+			const go = (target) => {
+				editing.current = false;
+				send({
+					type: "navigate",
+					url: target
+				});
+			};
+			const onPointer = (event, kind) => {
+				const stage = stageRef.current;
+				if (!stage) return;
+				if (kind !== "move") {
+					event.preventDefault();
+					stage.focus();
+				}
+				const point = pointIn(stage, event);
+				send({
+					type: "pointer",
+					event: kind,
+					x: point.x,
+					y: point.y,
+					button: event.button,
+					clickCount: event.detail || 1
+				});
+			};
+			if (!sessionId) return /* @__PURE__ */ (0, react_jsx_runtime.jsx)("div", {
+				style: S$1.empty,
+				children: "这条对话还没有编号，开不了浏览器"
+			});
+			return /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", {
+				style: S$1.browserWrap,
+				children: [/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", {
+					style: S$1.chrome,
+					children: [/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", {
+						style: S$1.chromeGroup,
+						children: [
+							/* @__PURE__ */ (0, react_jsx_runtime.jsx)("button", {
+								type: "button",
+								style: S$1.iconBtn,
+								title: "后退",
+								disabled: !canGoBack,
+								onClick: () => send({ type: "back" }),
+								children: /* @__PURE__ */ (0, react_jsx_runtime.jsx)(NavIcon, { d: "M10.5 3.5 5.5 8l5 4.5" })
+							}),
+							/* @__PURE__ */ (0, react_jsx_runtime.jsx)("button", {
+								type: "button",
+								style: S$1.iconBtn,
+								title: "前进",
+								disabled: !canGoForward,
+								onClick: () => send({ type: "forward" }),
+								children: /* @__PURE__ */ (0, react_jsx_runtime.jsx)(NavIcon, { d: "M5.5 3.5 10.5 8l-5 4.5" })
+							}),
+							/* @__PURE__ */ (0, react_jsx_runtime.jsx)("button", {
+								type: "button",
+								style: S$1.iconBtn,
+								title: "刷新",
+								onClick: () => send({ type: "reload" }),
+								children: /* @__PURE__ */ (0, react_jsx_runtime.jsx)(NavIcon, { d: "M3 8a5 5 0 0 1 9-2.5 M13 3.5v3h-3 M13 8a5 5 0 0 1-9 2.5 M3 12.5v-3h3" })
+							})
+						]
+					}), /* @__PURE__ */ (0, react_jsx_runtime.jsx)("form", {
+						style: S$1.browserUrlForm,
+						onSubmit: (event) => {
+							event.preventDefault();
+							go(draft);
+						},
+						children: /* @__PURE__ */ (0, react_jsx_runtime.jsx)("input", {
+							ref: urlRef,
+							"data-dsh-browser-url": "",
+							style: S$1.browserUrl,
+							value: draft,
+							spellCheck: false,
+							placeholder: "输入网址",
+							onFocus: () => {
+								editing.current = true;
+							},
+							onBlur: () => {
+								editing.current = false;
+								setDraft(url === "about:blank" ? "" : url);
+							},
+							onChange: (event) => setDraft(event.target.value),
+							onKeyDown: (event) => {
+								if (event.key === "Escape") {
+									editing.current = false;
+									setDraft(url === "about:blank" ? "" : url);
+									stageRef.current?.focus();
+								}
+							}
+						})
+					})]
+				}), /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", {
+					ref: stageRef,
+					tabIndex: 0,
+					"data-dsh-browser-stage": "",
+					style: S$1.browserStage,
+					onPointerDown: (event) => {
+						event.currentTarget.setPointerCapture?.(event.pointerId);
+						onPointer(event, "down");
+					},
+					onPointerMove: (event) => {
+						if (event.buttons) onPointer(event, "move");
+					},
+					onPointerUp: (event) => onPointer(event, "up"),
+					onContextMenu: (event) => event.preventDefault(),
+					onKeyDown: (event) => {
+						if (event.target !== stageRef.current) return;
+						if (event.ctrlKey && event.key.toLowerCase() === "l") {
+							event.preventDefault();
+							urlRef.current?.focus();
+							urlRef.current?.select();
+							return;
+						}
+						event.preventDefault();
+						send({
+							type: "key",
+							event: "down",
+							key: event.key,
+							code: event.code
+						});
+					},
+					onKeyUp: (event) => {
+						if (event.target !== stageRef.current) return;
+						event.preventDefault();
+						send({
+							type: "key",
+							event: "up",
+							key: event.key,
+							code: event.code
+						});
+					},
+					children: [frame ? /* @__PURE__ */ (0, react_jsx_runtime.jsx)("img", {
+						alt: "",
+						draggable: false,
+						src: frame,
+						style: S$1.browserFrame
+					}) : /* @__PURE__ */ (0, react_jsx_runtime.jsx)("div", {
+						style: S$1.empty,
+						children: loading ? "正在打开…" : "输入网址后回车"
+					}), error ? /* @__PURE__ */ (0, react_jsx_runtime.jsx)("div", {
+						style: S$1.browserError,
+						children: error
+					}) : null]
+				})]
+			});
+		}
+		function NavIcon({ d }) {
+			return /* @__PURE__ */ (0, react_jsx_runtime.jsx)("svg", {
+				viewBox: "0 0 16 16",
+				width: "14",
+				height: "14",
+				fill: "none",
+				stroke: "currentColor",
+				strokeWidth: "1.5",
+				"aria-hidden": "true",
+				children: /* @__PURE__ */ (0, react_jsx_runtime.jsx)("path", { d })
+			});
+		}
+		//#endregion
 		//#region node_modules/@marijn/find-cluster-break/src/index.js
 		let rangeFrom = [];
 		let rangeTo = [];
@@ -23084,7 +24285,7 @@ window.__ModuleLoader__.load({ id: "dsh-side-panels", factory: (require) => {
 			"text/plain"
 		];
 		const Bool = ["true", "false"];
-		const S$1 = {};
+		const S = {};
 		const Tags = {
 			a: { attrs: {
 				href: null,
@@ -23094,8 +24295,8 @@ window.__ModuleLoader__.load({ id: "dsh-side-panels", factory: (require) => {
 				target: Targets,
 				hreflang: null
 			} },
-			abbr: S$1,
-			address: S$1,
+			abbr: S,
+			address: S,
 			area: { attrs: {
 				alt: null,
 				coords: null,
@@ -23112,8 +24313,8 @@ window.__ModuleLoader__.load({ id: "dsh-side-panels", factory: (require) => {
 					"poly"
 				]
 			} },
-			article: S$1,
-			aside: S$1,
+			article: S,
+			aside: S,
 			audio: { attrs: {
 				src: null,
 				mediagroup: null,
@@ -23127,16 +24328,16 @@ window.__ModuleLoader__.load({ id: "dsh-side-panels", factory: (require) => {
 				loop: ["loop"],
 				controls: ["controls"]
 			} },
-			b: S$1,
+			b: S,
 			base: { attrs: {
 				href: null,
 				target: Targets
 			} },
-			bdi: S$1,
-			bdo: S$1,
+			bdi: S,
+			bdo: S,
 			blockquote: { attrs: { cite: null } },
-			body: S$1,
-			br: S$1,
+			body: S,
+			br: S,
 			button: { attrs: {
 				form: null,
 				formaction: null,
@@ -23158,10 +24359,10 @@ window.__ModuleLoader__.load({ id: "dsh-side-panels", factory: (require) => {
 				width: null,
 				height: null
 			} },
-			caption: S$1,
-			center: S$1,
-			cite: S$1,
-			code: S$1,
+			caption: S,
+			center: S,
+			cite: S,
+			code: S,
 			col: { attrs: { span: null } },
 			colgroup: { attrs: { span: null } },
 			command: { attrs: {
@@ -23184,17 +24385,17 @@ window.__ModuleLoader__.load({ id: "dsh-side-panels", factory: (require) => {
 				multiple: ["multiple"]
 			} },
 			datalist: { attrs: { data: null } },
-			dd: S$1,
+			dd: S,
 			del: { attrs: {
 				cite: null,
 				datetime: null
 			} },
 			details: { attrs: { open: ["open"] } },
-			dfn: S$1,
-			div: S$1,
-			dl: S$1,
-			dt: S$1,
-			em: S$1,
+			dfn: S,
+			div: S,
+			dl: S,
+			dt: S,
+			em: S,
 			embed: { attrs: {
 				src: null,
 				type: null,
@@ -23207,9 +24408,9 @@ window.__ModuleLoader__.load({ id: "dsh-side-panels", factory: (require) => {
 				form: null,
 				name: null
 			} },
-			figcaption: S$1,
-			figure: S$1,
-			footer: S$1,
+			figcaption: S,
+			figure: S,
+			footer: S,
 			form: { attrs: {
 				action: null,
 				name: null,
@@ -23220,12 +24421,12 @@ window.__ModuleLoader__.load({ id: "dsh-side-panels", factory: (require) => {
 				novalidate: ["novalidate"],
 				target: Targets
 			} },
-			h1: S$1,
-			h2: S$1,
-			h3: S$1,
-			h4: S$1,
-			h5: S$1,
-			h6: S$1,
+			h1: S,
+			h2: S,
+			h3: S,
+			h4: S,
+			h5: S,
+			h6: S,
 			head: { children: [
 				"title",
 				"base",
@@ -23236,11 +24437,11 @@ window.__ModuleLoader__.load({ id: "dsh-side-panels", factory: (require) => {
 				"noscript",
 				"command"
 			] },
-			header: S$1,
-			hgroup: S$1,
-			hr: S$1,
+			header: S,
+			hgroup: S,
+			hr: S,
 			html: { attrs: { manifest: null } },
-			i: S$1,
+			i: S,
 			iframe: { attrs: {
 				src: null,
 				srcdoc: null,
@@ -23328,7 +24529,7 @@ window.__ModuleLoader__.load({ id: "dsh-side-panels", factory: (require) => {
 				cite: null,
 				datetime: null
 			} },
-			kbd: S$1,
+			kbd: S,
 			keygen: { attrs: {
 				challenge: null,
 				form: null,
@@ -23341,7 +24542,7 @@ window.__ModuleLoader__.load({ id: "dsh-side-panels", factory: (require) => {
 				for: null,
 				form: null
 			} },
-			legend: S$1,
+			legend: S,
 			li: { attrs: { value: null } },
 			link: { attrs: {
 				href: null,
@@ -23356,7 +24557,7 @@ window.__ModuleLoader__.load({ id: "dsh-side-panels", factory: (require) => {
 				]
 			} },
 			map: { attrs: { name: null } },
-			mark: S$1,
+			mark: S,
 			menu: { attrs: {
 				label: null,
 				type: [
@@ -23391,8 +24592,8 @@ window.__ModuleLoader__.load({ id: "dsh-side-panels", factory: (require) => {
 				max: null,
 				optimum: null
 			} },
-			nav: S$1,
-			noscript: S$1,
+			nav: S,
+			noscript: S,
 			object: { attrs: {
 				data: null,
 				type: null,
@@ -23438,21 +24639,21 @@ window.__ModuleLoader__.load({ id: "dsh-side-panels", factory: (require) => {
 				form: null,
 				name: null
 			} },
-			p: S$1,
+			p: S,
 			param: { attrs: {
 				name: null,
 				value: null
 			} },
-			pre: S$1,
+			pre: S,
 			progress: { attrs: {
 				value: null,
 				max: null
 			} },
 			q: { attrs: { cite: null } },
-			rp: S$1,
-			rt: S$1,
-			ruby: S$1,
-			samp: S$1,
+			rp: S,
+			rt: S,
+			ruby: S,
+			samp: S,
 			script: { attrs: {
 				type: ["text/javascript"],
 				src: null,
@@ -23460,7 +24661,7 @@ window.__ModuleLoader__.load({ id: "dsh-side-panels", factory: (require) => {
 				defer: ["defer"],
 				charset: Charsets
 			} },
-			section: S$1,
+			section: S,
 			select: { attrs: {
 				form: null,
 				name: null,
@@ -23470,30 +24671,30 @@ window.__ModuleLoader__.load({ id: "dsh-side-panels", factory: (require) => {
 				multiple: ["multiple"]
 			} },
 			slot: { attrs: { name: null } },
-			small: S$1,
+			small: S,
 			source: { attrs: {
 				src: null,
 				type: null,
 				media: null
 			} },
-			span: S$1,
-			strong: S$1,
+			span: S,
+			strong: S,
 			style: { attrs: {
 				type: ["text/css"],
 				media: null,
 				scoped: null
 			} },
-			sub: S$1,
-			summary: S$1,
-			sup: S$1,
-			table: S$1,
-			tbody: S$1,
+			sub: S,
+			summary: S,
+			sup: S,
+			table: S,
+			tbody: S,
 			td: { attrs: {
 				colspan: null,
 				rowspan: null,
 				headers: null
 			} },
-			template: S$1,
+			template: S,
 			textarea: { attrs: {
 				dirname: null,
 				form: null,
@@ -23508,7 +24709,7 @@ window.__ModuleLoader__.load({ id: "dsh-side-panels", factory: (require) => {
 				required: ["required"],
 				wrap: ["soft", "hard"]
 			} },
-			tfoot: S$1,
+			tfoot: S,
 			th: { attrs: {
 				colspan: null,
 				rowspan: null,
@@ -23520,10 +24721,10 @@ window.__ModuleLoader__.load({ id: "dsh-side-panels", factory: (require) => {
 					"colgroup"
 				]
 			} },
-			thead: S$1,
+			thead: S,
 			time: { attrs: { datetime: null } },
-			title: S$1,
-			tr: S$1,
+			title: S,
+			tr: S,
 			track: { attrs: {
 				src: null,
 				label: null,
@@ -23544,7 +24745,7 @@ window.__ModuleLoader__.load({ id: "dsh-side-panels", factory: (require) => {
 				"ul",
 				"ol"
 			] },
-			var: S$1,
+			var: S,
 			video: { attrs: {
 				src: null,
 				poster: null,
@@ -23561,7 +24762,7 @@ window.__ModuleLoader__.load({ id: "dsh-side-panels", factory: (require) => {
 				muted: ["muted"],
 				controls: ["controls"]
 			} },
-			wbr: S$1
+			wbr: S
 		};
 		const GlobalAttrs = {
 			accesskey: null,
@@ -28313,6 +29514,23 @@ window.__ModuleLoader__.load({ id: "dsh-side-panels", factory: (require) => {
 					height: "14",
 					rx: "2"
 				}), /* @__PURE__ */ (0, react_jsx_runtime.jsx)("path", { d: "M7 10.5 10 13 7 15.5 M12.5 15.5H17" })]
+			});
+		}
+		/** 右侧活动栏：浏览器。 */
+		function BrowserActivityIcon() {
+			return /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("svg", {
+				viewBox: "0 0 24 24",
+				width: "22",
+				height: "22",
+				fill: "none",
+				stroke: "currentColor",
+				strokeWidth: "1.6",
+				"aria-hidden": "true",
+				children: [/* @__PURE__ */ (0, react_jsx_runtime.jsx)("circle", {
+					cx: "12",
+					cy: "12",
+					r: "8.2"
+				}), /* @__PURE__ */ (0, react_jsx_runtime.jsx)("path", { d: "M3.8 12h16.4 M12 3.8c2.2 2.4 3.4 4.9 3.4 8.2S14.2 17.8 12 20.2C9.8 17.8 8.6 15.3 8.6 12S9.8 6.2 12 3.8z" })]
 			});
 		}
 		function WorkbenchToggleIcon() {
@@ -41476,865 +42694,9 @@ window.__ModuleLoader__.load({ id: "dsh-side-panels", factory: (require) => {
 			})()));
 		}));
 		//#endregion
-		//#region src/client/styles.js
+		//#region src/client/prefs.js
 		var import_xterm = require_xterm();
 		var import_addon_fit = require_addon_fit();
-		const S = {
-			panel: {
-				position: "absolute",
-				insetBlock: 0,
-				insetInlineEnd: 0,
-				zIndex: 40,
-				display: "grid",
-				gridTemplateRows: "35px minmax(0, 1fr)",
-				background: "var(--dsw-alias-bg-base, #fff)",
-				color: "var(--dsw-alias-fg-default, #3c3c3c)",
-				borderInlineStart: "1px solid var(--dsw-alias-border, #e5e5e5)",
-				fontSize: 13,
-				lineHeight: 1.4,
-				fontFamily: "system-ui, -apple-system, \"Segoe UI\", sans-serif"
-			},
-			pane: {
-				minWidth: 0,
-				minHeight: 0,
-				display: "flex",
-				flexDirection: "column",
-				background: "var(--dsw-alias-bg-base, #fff)"
-			},
-			chrome: {
-				display: "flex",
-				alignItems: "stretch",
-				justifyContent: "space-between",
-				minHeight: 35,
-				padding: "0 8px 0 4px",
-				borderBottom: "1px solid var(--dsw-alias-border, #ececec)",
-				flex: "0 0 35px",
-				position: "relative",
-				zIndex: 8,
-				gap: 4,
-				minWidth: 0
-			},
-			chromeGroup: {
-				display: "flex",
-				alignItems: "center",
-				gap: 2,
-				flex: "0 0 auto"
-			},
-			filesBar: {
-				display: "flex",
-				alignItems: "stretch",
-				minWidth: 0,
-				minHeight: 35,
-				borderBottom: "1px solid var(--dsw-alias-border, #ececec)",
-				background: "var(--dsw-alias-bg-subtle, #f3f3f3)",
-				overflow: "visible",
-				zIndex: 20
-			},
-			filesBarMain: {
-				display: "flex",
-				alignItems: "center",
-				justifyContent: "space-between",
-				minWidth: 0,
-				flex: 1,
-				padding: "0 6px 0 8px",
-				gap: 4
-			},
-			filesBarLeft: {
-				display: "flex",
-				alignItems: "center",
-				minWidth: 0,
-				flex: 1,
-				gap: 4,
-				overflow: "visible"
-			},
-			filesPills: {
-				display: "flex",
-				alignItems: "center",
-				minWidth: 0,
-				flex: 1,
-				gap: 4,
-				overflowX: "auto"
-			},
-			filesPill: {
-				display: "inline-flex",
-				alignItems: "center",
-				gap: 6,
-				border: "none",
-				background: "rgb(0 0 0 / 7%)",
-				color: "inherit",
-				borderRadius: 999,
-				padding: "4px 6px 4px 10px",
-				fontSize: 12,
-				fontWeight: 600,
-				cursor: "pointer",
-				flex: "0 0 auto",
-				lineHeight: 1.2,
-				opacity: 1
-			},
-			filesPillIdle: {
-				display: "inline-flex",
-				alignItems: "center",
-				gap: 6,
-				border: "none",
-				background: "transparent",
-				color: "inherit",
-				borderRadius: 999,
-				padding: "4px 6px 4px 10px",
-				fontSize: 12,
-				fontWeight: 600,
-				cursor: "pointer",
-				flex: "0 0 auto",
-				lineHeight: 1.2,
-				opacity: .72
-			},
-			paneClose: {
-				width: 16,
-				height: 16,
-				border: "none",
-				background: "transparent",
-				color: "inherit",
-				cursor: "pointer",
-				borderRadius: 8,
-				display: "inline-flex",
-				alignItems: "center",
-				justifyContent: "center",
-				padding: 0,
-				opacity: .5,
-				flex: "0 0 16px"
-			},
-			filesTabs: {
-				display: "flex",
-				alignItems: "center",
-				minWidth: 0,
-				minHeight: 0,
-				flex: 1,
-				overflowX: "auto",
-				overflowY: "hidden"
-			},
-			tree: {
-				display: "flex",
-				flexDirection: "column",
-				minWidth: 0,
-				minHeight: 0,
-				background: "var(--dsw-alias-bg-subtle, #f3f3f3)",
-				borderInlineStart: "1px solid var(--dsw-alias-border, #e8e8e8)"
-			},
-			rail: {
-				width: "100%",
-				minHeight: 0,
-				display: "flex",
-				flexDirection: "column",
-				alignItems: "center",
-				padding: "8px 0",
-				gap: 4,
-				background: "var(--dsw-alias-bg-muted, #ececec)",
-				borderInlineStart: "1px solid var(--dsw-alias-border, #e0e0e0)",
-				color: "var(--dsw-alias-fg-muted, #5a5a5a)"
-			},
-			railBtn: {
-				width: 40,
-				height: 40,
-				border: "none",
-				background: "transparent",
-				color: "inherit",
-				cursor: "pointer",
-				borderRadius: 8,
-				display: "inline-flex",
-				alignItems: "center",
-				justifyContent: "center",
-				padding: 0,
-				opacity: .72
-			},
-			railBtnActive: {
-				background: "rgb(90 90 90 / 18%)",
-				color: "var(--dsw-alias-fg-default, #2f2f2f)",
-				opacity: 1
-			},
-			tabs: {
-				display: "flex",
-				alignItems: "stretch",
-				gap: 0,
-				minHeight: 35,
-				borderBottom: "1px solid var(--dsw-alias-border, #ececec)",
-				background: "var(--dsw-alias-bg-subtle, #f3f3f3)",
-				overflowX: "auto"
-			},
-			tab: {
-				display: "inline-flex",
-				alignItems: "center",
-				gap: 6,
-				border: "none",
-				background: "transparent",
-				color: "inherit",
-				padding: "0 8px 0 10px",
-				fontSize: 13,
-				height: 26,
-				margin: "0 2px",
-				borderRadius: 8,
-				opacity: .72,
-				flex: "0 0 auto"
-			},
-			tabActive: {
-				background: "rgb(0 122 204 / 14%)",
-				opacity: 1
-			},
-			tabName: {
-				border: "none",
-				background: "transparent",
-				color: "inherit",
-				cursor: "pointer",
-				padding: 0,
-				fontSize: 13,
-				whiteSpace: "nowrap",
-				flex: "0 0 auto"
-			},
-			tabClose: {
-				width: 18,
-				height: 18,
-				border: "none",
-				background: "transparent",
-				color: "inherit",
-				cursor: "pointer",
-				borderRadius: 3,
-				display: "inline-flex",
-				alignItems: "center",
-				justifyContent: "center",
-				opacity: .55,
-				flex: "0 0 18px",
-				padding: 0
-			},
-			dirtyDot: {
-				width: 7,
-				height: 7,
-				borderRadius: 99,
-				background: "currentColor",
-				opacity: .55,
-				flex: "0 0 7px"
-			},
-			grip: {
-				position: "absolute",
-				insetBlock: 0,
-				width: 4,
-				zIndex: 6,
-				cursor: "ew-resize",
-				background: "transparent",
-				border: "none",
-				padding: 0
-			},
-			header: {
-				display: "flex",
-				alignItems: "center",
-				justifyContent: "space-between",
-				padding: "10px 8px 8px 16px",
-				fontWeight: 600,
-				fontSize: 11,
-				letterSpacing: "0.04em",
-				textTransform: "none"
-			},
-			iconBtn: {
-				width: 26,
-				height: 26,
-				border: "none",
-				background: "transparent",
-				color: "inherit",
-				cursor: "pointer",
-				borderRadius: 4,
-				display: "inline-flex",
-				alignItems: "center",
-				justifyContent: "center",
-				opacity: .7
-			},
-			empty: {
-				margin: "auto",
-				textAlign: "center",
-				color: "var(--dsw-alias-fg-muted, #6f6f6f)",
-				padding: 24
-			},
-			emptyTitle: {
-				fontSize: 13,
-				marginBottom: 14,
-				opacity: .9
-			},
-			newFile: {
-				border: "1px solid var(--dsw-alias-border, #d0d0d0)",
-				background: "var(--dsw-alias-bg-base, #fff)",
-				color: "inherit",
-				borderRadius: 6,
-				padding: "6px 14px",
-				fontSize: 13,
-				cursor: "pointer"
-			},
-			previewWrap: {
-				flex: 1,
-				minHeight: 0,
-				overflow: "auto",
-				display: "flex",
-				alignItems: "center",
-				justifyContent: "center",
-				padding: 16,
-				background: "var(--dsw-alias-bg-subtle, #f6f6f6)"
-			},
-			previewImage: {
-				maxWidth: "100%",
-				maxHeight: "100%",
-				objectFit: "contain",
-				boxShadow: "0 4px 18px rgb(0 0 0 / 12%)"
-			},
-			mediaPane: {
-				flex: 1,
-				minHeight: 0,
-				display: "flex",
-				flexDirection: "column"
-			},
-			termWrap: {
-				flex: 1,
-				minHeight: 0,
-				position: "relative",
-				overflow: "hidden",
-				background: "var(--dsw-alias-bg-base, #fff)"
-			},
-			termHost: {
-				position: "absolute",
-				inset: "8px 10px",
-				overflow: "hidden"
-			},
-			previewBar: {
-				display: "flex",
-				alignItems: "center",
-				gap: 8,
-				padding: "6px 10px",
-				borderBottom: "1px solid var(--dsw-alias-border, #ececec)",
-				flex: "0 0 auto"
-			},
-			modeBtn: {
-				border: "1px solid var(--dsw-alias-border, #d0d0d0)",
-				background: "var(--dsw-alias-bg-base, #fff)",
-				color: "inherit",
-				borderRadius: 6,
-				padding: "4px 10px",
-				fontSize: 12,
-				cursor: "pointer"
-			},
-			banner: {
-				padding: "6px 12px",
-				fontSize: 12,
-				color: "var(--dsw-alias-fg-muted, #6f6f6f)",
-				background: "var(--dsw-alias-bg-subtle, #f6f6f6)",
-				borderBottom: "1px solid var(--dsw-alias-border, #ececec)"
-			},
-			hex: {
-				margin: 0,
-				padding: "12px 16px",
-				overflow: "auto",
-				flex: 1,
-				fontFamily: "ui-monospace, SFMono-Regular, Menlo, Consolas, monospace",
-				fontSize: 12,
-				lineHeight: 1.45,
-				whiteSpace: "pre"
-			},
-			pre: {
-				margin: 0,
-				padding: "12px 16px",
-				overflow: "auto",
-				flex: 1,
-				fontFamily: "ui-monospace, SFMono-Regular, Menlo, Consolas, monospace",
-				fontSize: 13,
-				whiteSpace: "pre-wrap",
-				wordBreak: "break-word"
-			},
-			row: {
-				display: "flex",
-				alignItems: "center",
-				gap: 6,
-				width: "100%",
-				border: "none",
-				background: "transparent",
-				color: "inherit",
-				textAlign: "start",
-				padding: "3px 10px 3px 2px",
-				cursor: "pointer",
-				fontSize: 13,
-				borderRadius: 0,
-				minHeight: 22
-			},
-			git: {
-				marginLeft: "auto",
-				fontSize: 11,
-				fontWeight: 700,
-				width: 14,
-				textAlign: "center",
-				flex: "0 0 14px"
-			},
-			search: {
-				margin: "0 8px 8px",
-				fontSize: 12,
-				padding: "4px 8px",
-				border: "1px solid var(--dsw-alias-border, #d0d0d0)",
-				borderRadius: 4,
-				background: "var(--dsw-alias-bg-base, #fff)",
-				color: "inherit",
-				outline: "none"
-			},
-			notice: {
-				padding: "8px 12px",
-				fontSize: 12,
-				color: "var(--dsw-alias-fg-danger, #b42318)"
-			},
-			createRow: {
-				display: "flex",
-				gap: 4,
-				padding: "4px 8px 8px"
-			},
-			input: {
-				flex: 1,
-				minWidth: 0,
-				fontSize: 12,
-				padding: "3px 6px",
-				border: "1px solid var(--dsw-alias-border, #ccc)",
-				borderRadius: 4,
-				background: "var(--dsw-alias-bg-base, #fff)",
-				color: "inherit"
-			},
-			menu: {
-				position: "absolute",
-				top: "100%",
-				right: 0,
-				zIndex: 80,
-				minWidth: 220,
-				padding: "6px 0",
-				marginTop: 4,
-				background: "var(--dsw-alias-bg-base, #fff)",
-				color: "var(--dsw-alias-fg-default, #3c3c3c)",
-				border: "1px solid var(--dsw-alias-border, #e5e5e5)",
-				borderRadius: 10,
-				boxShadow: "0 8px 28px rgb(0 0 0 / 14%)"
-			},
-			submenu: {
-				position: "absolute",
-				right: "100%",
-				top: 0,
-				zIndex: 81,
-				minWidth: 168,
-				marginRight: 6,
-				padding: "6px 0",
-				background: "var(--dsw-alias-bg-base, #fff)",
-				border: "1px solid var(--dsw-alias-border, #e5e5e5)",
-				borderRadius: 10,
-				boxShadow: "0 8px 28px rgb(0 0 0 / 14%)"
-			},
-			menuItem: {
-				display: "flex",
-				alignItems: "center",
-				gap: 10,
-				width: "100%",
-				border: "none",
-				background: "transparent",
-				color: "inherit",
-				textAlign: "start",
-				padding: "8px 14px",
-				fontSize: 13,
-				cursor: "pointer",
-				borderRadius: 0
-			},
-			menuLabel: { flex: 1 },
-			menuChevron: {
-				marginLeft: "auto",
-				opacity: .4,
-				fontSize: 16,
-				lineHeight: 1
-			},
-			menuSep: {
-				height: 1,
-				background: "var(--dsw-alias-border, #ececec)",
-				margin: "4px 8px"
-			},
-			addMenu: {
-				position: "absolute",
-				top: "100%",
-				left: 0,
-				right: "auto",
-				zIndex: 90,
-				width: 280,
-				padding: "8px 0 6px",
-				marginTop: 4,
-				background: "var(--dsw-alias-bg-base, #fff)",
-				color: "var(--dsw-alias-fg-default, #3c3c3c)",
-				border: "1px solid var(--dsw-alias-border, #e5e5e5)",
-				borderRadius: 10,
-				boxShadow: "0 8px 28px rgb(0 0 0 / 14%)"
-			},
-			addMenuSearch: {
-				display: "flex",
-				alignItems: "center",
-				gap: 8,
-				margin: "0 10px 6px",
-				padding: "6px 8px",
-				border: "1px solid var(--dsw-alias-border, #e5e5e5)",
-				borderRadius: 8,
-				background: "var(--dsw-alias-bg-subtle, #f7f7f7)"
-			},
-			addMenuSearchInput: {
-				flex: 1,
-				minWidth: 0,
-				border: "none",
-				background: "transparent",
-				color: "inherit",
-				fontSize: 13,
-				outline: "none",
-				padding: 0
-			},
-			addMenuKbd: {
-				marginLeft: "auto",
-				fontSize: 11,
-				opacity: .45,
-				fontFamily: "ui-sans-serif, system-ui, sans-serif",
-				flex: "0 0 auto"
-			},
-			overlay: {
-				position: "absolute",
-				inset: 0,
-				gridColumn: "1 / -1",
-				gridRow: "1 / -1",
-				zIndex: 110,
-				display: "flex",
-				alignItems: "center",
-				justifyContent: "center",
-				padding: 20,
-				background: "rgb(0 0 0 / 28%)"
-			},
-			dialog: {
-				width: 320,
-				maxWidth: "100%",
-				padding: "16px 18px 14px",
-				background: "var(--dsw-alias-bg-base, #fff)",
-				color: "var(--dsw-alias-fg-default, #3c3c3c)",
-				border: "1px solid var(--dsw-alias-border, #e5e5e5)",
-				borderRadius: 12,
-				boxShadow: "0 12px 40px rgb(0 0 0 / 18%)"
-			},
-			dialogTitle: {
-				fontSize: 14,
-				fontWeight: 600,
-				marginBottom: 6
-			},
-			dialogHint: {
-				fontSize: 12,
-				opacity: .6,
-				marginBottom: 12
-			},
-			dialogInput: {
-				display: "block",
-				width: "100%",
-				boxSizing: "border-box",
-				fontSize: 13,
-				padding: "8px 10px",
-				border: "1px solid var(--dsw-alias-border, #ccc)",
-				borderRadius: 8,
-				background: "var(--dsw-alias-bg-base, #fff)",
-				color: "inherit",
-				outline: "none"
-			},
-			dialogError: {
-				marginTop: 8,
-				fontSize: 12,
-				color: "var(--dsw-alias-fg-danger, #b42318)"
-			},
-			dialogActions: {
-				display: "flex",
-				justifyContent: "flex-end",
-				gap: 8,
-				marginTop: 14
-			},
-			dialogBtn: {
-				border: "1px solid var(--dsw-alias-border, #d0d0d0)",
-				background: "transparent",
-				color: "inherit",
-				borderRadius: 8,
-				padding: "6px 12px",
-				fontSize: 13,
-				cursor: "pointer"
-			},
-			dialogBtnPrimary: {
-				border: "none",
-				background: "var(--dsw-alias-interactive-bg, #0d6efd)",
-				color: "#fff",
-				borderRadius: 8,
-				padding: "6px 14px",
-				fontSize: 13,
-				cursor: "pointer"
-			}
-		};
-		const OPEN_STYLE = `
-[data-pane="conversation"],
-[class*="centerCol"] {
-  position: relative;
-}
-html[data-dsh-side-panels-open] [data-pane="conversation"],
-html[data-dsh-side-panels-open] [class*="centerCol"] {
-  padding-inline-end: var(--dsh-side-panels-width, 808px);
-}
-html[data-dsh-side-panels-dragging] {
-  cursor: ew-resize !important;
-  user-select: none !important;
-}
-html[data-dsh-side-panels-dragging] * {
-  cursor: ew-resize !important;
-  user-select: none !important;
-}
-[data-dsh-side-panels] [data-dsh-grip]:hover,
-html[data-dsh-side-panels-dragging] [data-dsh-grip] {
-  background: rgb(0 122 204 / 45%) !important;
-}
-[data-dsh-side-panels-toggle] {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 28px;
-  height: 28px;
-  flex: none;
-  border: 1px solid var(--dsw-alias-border, #e5e5e5);
-  background: var(--dsw-alias-bg-base, #fff);
-  color: var(--dsw-alias-fg-default, #3c3c3c);
-  cursor: pointer;
-  border-radius: 6px;
-}
-[data-dsh-side-panels-toggle]:hover {
-  background: var(--dsw-alias-bg-subtle, #f3f3f3);
-}
-[data-dsh-side-panels] button:hover:not(:disabled) {
-  background: rgb(127 127 127 / 12%) !important;
-}
-[data-dsh-side-panels] [data-dsh-dialog] button:hover:not(:disabled) {
-  background: rgb(127 127 127 / 10%) !important;
-}
-[data-dsh-side-panels] [data-dsh-dialog-ok]:hover:not(:disabled) {
-  background: #0b5ed7 !important;
-  color: #fff !important;
-}
-[data-dsh-side-panels] button[data-dsh-pane-pill] {
-  background: transparent !important;
-}
-[data-dsh-side-panels] button[data-dsh-pane-pill]:hover:not(:disabled) {
-  background: rgb(127 127 127 / 10%) !important;
-  opacity: 1;
-}
-[data-dsh-side-panels] [data-dsh-files-tabs] {
-  overflow-x: auto;
-  overflow-y: hidden;
-  scrollbar-width: thin;
-  scrollbar-color: rgb(0 0 0 / 28%) transparent;
-}
-[data-dsh-side-panels] [data-dsh-files-tabs]::-webkit-scrollbar {
-  height: 3px;
-}
-[data-dsh-side-panels] [data-dsh-files-tabs]::-webkit-scrollbar-track {
-  background: transparent;
-}
-[data-dsh-side-panels] [data-dsh-files-tabs]::-webkit-scrollbar-thumb {
-  background: rgb(0 0 0 / 28%);
-  border-radius: 99px;
-}
-[data-dsh-side-panels] [data-dsh-file-tab]:hover {
-  background: rgb(127 127 127 / 10%);
-  opacity: 1;
-}
-[data-dsh-side-panels] [data-dsh-file-tab] button,
-[data-dsh-side-panels] [data-dsh-file-tab] button:hover:not(:disabled) {
-  background: transparent !important;
-}
-[data-dsh-side-panels] [data-dsh-file-tab-active] {
-  background: rgb(0 122 204 / 14%) !important;
-  opacity: 1;
-}
-[data-dsh-side-panels] button[data-dsh-files-pill] {
-  background: rgb(0 0 0 / 7%) !important;
-  opacity: 1;
-}
-[data-dsh-side-panels] button[data-dsh-files-pill]:hover:not(:disabled) {
-  background: rgb(0 0 0 / 12%) !important;
-}
-[data-dsh-side-panels] button:disabled {
-  opacity: 0.28;
-  cursor: default;
-}
-[data-dsh-side-panels] [data-dsh-rail] button {
-  opacity: 0.72;
-}
-[data-dsh-side-panels] [data-dsh-rail] button:hover:not(:disabled) {
-  background: rgb(90 90 90 / 14%) !important;
-  opacity: 1;
-}
-[data-dsh-side-panels] [data-dsh-rail] button[aria-pressed="true"] {
-  background: rgb(90 90 90 / 18%) !important;
-  opacity: 1;
-  color: var(--dsw-alias-fg-default, #2f2f2f);
-}
-[data-dsh-side-panels] [role="menu"] button:hover:not(:disabled) {
-  background: rgb(127 127 127 / 10%) !important;
-}
-[data-dsh-cm],
-[data-dsh-cm] .cm-editor {
-  height: 100%;
-}
-[data-dsh-cm] .cm-editor.cm-focused {
-  outline: none;
-}
-`;
-		const SETTINGS_STYLE = `
-[data-dsh-settings-page] {
-  max-width: 640px;
-  color: var(--dsw-alias-label-primary);
-}
-[data-dsh-settings-page] .dsh-sp-lede {
-  margin: 0 0 4px;
-  font-size: 13px;
-  line-height: 20px;
-  color: var(--dsw-alias-label-tertiary);
-}
-[data-dsh-settings-page] .dsh-sp-row,
-[data-dsh-settings-page] .dsh-sp-group {
-  display: flex;
-  gap: 8px;
-  padding: 16px 0;
-  border-bottom: 1px solid var(--dsw-alias-border-l2);
-}
-[data-dsh-settings-page] .dsh-sp-row {
-  align-items: center;
-}
-[data-dsh-settings-page] .dsh-sp-group {
-  flex-direction: column;
-}
-[data-dsh-settings-page] .dsh-sp-copy {
-  min-width: 0;
-  flex: 1;
-}
-[data-dsh-settings-page] .dsh-sp-title {
-  color: var(--dsw-alias-label-primary);
-  font-size: 14px;
-  font-weight: 400;
-  line-height: 22px;
-}
-[data-dsh-settings-page] .dsh-sp-hint {
-  margin-top: 2px;
-  color: var(--dsw-alias-label-tertiary);
-  font-size: 12px;
-  line-height: 18px;
-}
-[data-dsh-settings-page] .dsh-sp-switch {
-  appearance: none;
-  -webkit-appearance: none;
-  flex: none;
-  width: 40px;
-  height: 22px;
-  margin: 0;
-  padding: 0;
-  border: none;
-  border-radius: 99px;
-  background: var(--dsw-alias-fill-secondary, #d0d0d0);
-  box-shadow: inset 0 0 0 1px rgb(0 0 0 / 6%);
-  cursor: pointer;
-  position: relative;
-}
-[data-dsh-settings-page] .dsh-sp-switch::after {
-  content: "";
-  position: absolute;
-  top: 2px;
-  left: 2px;
-  width: 18px;
-  height: 18px;
-  border-radius: 99px;
-  background: #fff;
-  box-shadow: 0 1px 2px rgb(0 0 0 / 18%);
-  transition: transform .16s ease;
-}
-[data-dsh-settings-page] .dsh-sp-switch[data-on="true"] {
-  background: var(--dsw-alias-brand-primary, #1677ff);
-}
-[data-dsh-settings-page] .dsh-sp-switch[data-on="true"]::after {
-  transform: translateX(18px);
-}
-[data-dsh-settings-page] .dsh-sp-select {
-  appearance: none;
-  -webkit-appearance: none;
-  flex: none;
-  width: 168px;
-  height: 32px;
-  padding: 0 28px 0 12px;
-  border: 1px solid var(--dsw-alias-border-l2);
-  border-radius: 8px;
-  background-color: var(--dsw-alias-bg-layer-2, #fff);
-  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'><path fill='%23888' d='M3 4.5 6 8l3-3.5'/></svg>");
-  background-repeat: no-repeat;
-  background-position: right 10px center;
-  color: var(--dsw-alias-label-primary);
-  font: inherit;
-  font-size: 13px;
-  line-height: 32px;
-  outline: none;
-  cursor: pointer;
-}
-[data-dsh-settings-page] .dsh-sp-select:hover,
-[data-dsh-settings-page] .dsh-sp-path:hover {
-  border-color: var(--dsw-alias-label-dimmed, #bbb);
-}
-[data-dsh-settings-page] .dsh-sp-path {
-  display: block;
-  width: 100%;
-  box-sizing: border-box;
-  height: 32px;
-  margin-top: 8px;
-  padding: 0 12px;
-  border: 1px solid var(--dsw-alias-border-l2);
-  border-radius: 8px;
-  background: var(--dsw-alias-bg-layer-2, #fff);
-  color: inherit;
-  font: inherit;
-  font-size: 13px;
-  outline: none;
-}
-[data-dsh-settings-page] .dsh-sp-cubes {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-}
-[data-dsh-settings-page] .dsh-sp-cube {
-  appearance: none;
-  -webkit-appearance: none;
-  box-sizing: border-box;
-  flex: 1 1 160px;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  align-items: center;
-  gap: 4px;
-  padding: 18px 16px;
-  border: 1px solid var(--dsw-alias-border-l2);
-  border-radius: 16px;
-  background: transparent;
-  color: var(--dsw-alias-label-primary);
-  font: inherit;
-  font-size: 14px;
-  line-height: 22px;
-  cursor: pointer;
-  outline: none;
-  box-shadow: none;
-}
-[data-dsh-settings-page] .dsh-sp-cube:hover:not([aria-checked="true"]) {
-  background: var(--dsw-alias-interactive-bg-hover);
-}
-[data-dsh-settings-page] .dsh-sp-cube[aria-checked="true"] {
-  background: var(--dsw-alias-bg-module-platform);
-  border-color: var(--dsw-static-neutral-bluish-400, #8aa4c8);
-}
-[data-dsh-settings-page] .dsh-sp-cube small {
-  font-size: 12px;
-  line-height: 18px;
-  color: var(--dsw-alias-label-tertiary);
-  font-weight: 400;
-}
-`;
-		//#endregion
-		//#region src/client/prefs.js
 		const SETTINGS_NS = "dsh-side-panels";
 		const DEFAULT_PREFS = {
 			enabled: true,
@@ -42649,15 +43011,15 @@ html[data-dsh-side-panels-dragging] [data-dsh-grip] {
 				return () => window.cancelAnimationFrame(id);
 			}, [active]);
 			if (!cwd) return /* @__PURE__ */ (0, react_jsx_runtime.jsx)("div", {
-				style: S.empty,
+				style: S$1.empty,
 				children: "这条对话还没有工作目录，开不了终端"
 			});
 			return /* @__PURE__ */ (0, react_jsx_runtime.jsx)("div", {
-				style: S.termWrap,
+				style: S$1.termWrap,
 				onMouseDown: () => termRef.current?.focus(),
 				children: /* @__PURE__ */ (0, react_jsx_runtime.jsx)("div", {
 					ref: hostRef,
-					style: S.termHost
+					style: S$1.termHost
 				})
 			});
 		}
@@ -42809,13 +43171,13 @@ html[data-dsh-side-panels-dragging] [data-dsh-grip] {
 					type: "button",
 					role: "menuitem",
 					disabled: !canRename,
-					style: S.menuItem,
+					style: S$1.menuItem,
 					onClick: () => {
 						onClose();
 						onRename();
 					},
 					children: [/* @__PURE__ */ (0, react_jsx_runtime.jsx)(PencilIcon, {}), /* @__PURE__ */ (0, react_jsx_runtime.jsx)("span", {
-						style: S.menuLabel,
+						style: S$1.menuLabel,
 						children: "重命名"
 					})]
 				}),
@@ -42829,61 +43191,61 @@ html[data-dsh-side-panels-dragging] [data-dsh-grip] {
 						type: "button",
 						role: "menuitem",
 						disabled: !canCopy,
-						style: S.menuItem,
+						style: S$1.menuItem,
 						onClick: () => {
 							if (canCopy) setCopyOpen((value) => !value);
 						},
 						children: [
 							/* @__PURE__ */ (0, react_jsx_runtime.jsx)(CopyIcon, {}),
 							/* @__PURE__ */ (0, react_jsx_runtime.jsx)("span", {
-								style: S.menuLabel,
+								style: S$1.menuLabel,
 								children: "复制"
 							}),
 							/* @__PURE__ */ (0, react_jsx_runtime.jsx)("span", {
-								style: S.menuChevron,
+								style: S$1.menuChevron,
 								children: "›"
 							})
 						]
 					}), copyOpen && canCopy ? /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", {
-						style: S.submenu,
+						style: S$1.submenu,
 						role: "menu",
 						children: [
 							/* @__PURE__ */ (0, react_jsx_runtime.jsx)("button", {
 								type: "button",
 								role: "menuitem",
-								style: S.menuItem,
+								style: S$1.menuItem,
 								onClick: () => {
 									onClose();
 									onCopyRelative();
 								},
 								children: /* @__PURE__ */ (0, react_jsx_runtime.jsx)("span", {
-									style: S.menuLabel,
+									style: S$1.menuLabel,
 									children: "复制相对路径"
 								})
 							}),
 							/* @__PURE__ */ (0, react_jsx_runtime.jsx)("button", {
 								type: "button",
 								role: "menuitem",
-								style: S.menuItem,
+								style: S$1.menuItem,
 								onClick: () => {
 									onClose();
 									onCopyFull();
 								},
 								children: /* @__PURE__ */ (0, react_jsx_runtime.jsx)("span", {
-									style: S.menuLabel,
+									style: S$1.menuLabel,
 									children: "复制完整路径"
 								})
 							}),
 							/* @__PURE__ */ (0, react_jsx_runtime.jsx)("button", {
 								type: "button",
 								role: "menuitem",
-								style: S.menuItem,
+								style: S$1.menuItem,
 								onClick: () => {
 									onClose();
 									onCopyName();
 								},
 								children: /* @__PURE__ */ (0, react_jsx_runtime.jsx)("span", {
-									style: S.menuLabel,
+									style: S$1.menuLabel,
 									children: "复制名称"
 								})
 							}),
@@ -42891,32 +43253,32 @@ html[data-dsh-side-panels-dragging] [data-dsh-grip] {
 								type: "button",
 								role: "menuitem",
 								disabled: !canCopyContent,
-								style: S.menuItem,
+								style: S$1.menuItem,
 								onClick: () => {
 									if (!canCopyContent) return;
 									onClose();
 									onCopyContent();
 								},
 								children: /* @__PURE__ */ (0, react_jsx_runtime.jsx)("span", {
-									style: S.menuLabel,
+									style: S$1.menuLabel,
 									children: copyContentLabel ?? "复制内容"
 								})
 							})
 						]
 					}) : null]
 				}),
-				/* @__PURE__ */ (0, react_jsx_runtime.jsx)("div", { style: S.menuSep }),
+				/* @__PURE__ */ (0, react_jsx_runtime.jsx)("div", { style: S$1.menuSep }),
 				/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("button", {
 					type: "button",
 					role: "menuitem",
 					disabled: busy,
-					style: S.menuItem,
+					style: S$1.menuItem,
 					onClick: () => {
 						onClose();
 						onRefresh();
 					},
 					children: [/* @__PURE__ */ (0, react_jsx_runtime.jsx)(RefreshMini, {}), /* @__PURE__ */ (0, react_jsx_runtime.jsx)("span", {
-						style: S.menuLabel,
+						style: S$1.menuLabel,
 						children: "刷新"
 					})]
 				})
@@ -42956,14 +43318,14 @@ html[data-dsh-side-panels-dragging] [data-dsh-grip] {
 				style: { position: "relative" },
 				children: [/* @__PURE__ */ (0, react_jsx_runtime.jsx)("button", {
 					type: "button",
-					style: S.iconBtn,
+					style: S$1.iconBtn,
 					title: "更多",
 					"aria-label": "更多",
 					"aria-expanded": open,
 					onClick: () => setOpen((value) => !value),
 					children: /* @__PURE__ */ (0, react_jsx_runtime.jsx)(DotsIcon, {})
 				}), open ? /* @__PURE__ */ (0, react_jsx_runtime.jsx)("div", {
-					style: S.menu,
+					style: S$1.menu,
 					role: "menu",
 					children: /* @__PURE__ */ (0, react_jsx_runtime.jsx)(FileActionMenu, {
 						...props,
@@ -42981,7 +43343,7 @@ html[data-dsh-side-panels-dragging] [data-dsh-grip] {
 				ref: boxRef,
 				role: "menu",
 				style: {
-					...S.menu,
+					...S$1.menu,
 					position: "fixed",
 					top,
 					left,
@@ -43000,13 +43362,13 @@ html[data-dsh-side-panels-dragging] [data-dsh-grip] {
 				type: "button",
 				role: "menuitem",
 				disabled,
-				style: S.menuItem,
+				style: S$1.menuItem,
 				onClick: () => {
 					if (disabled) return;
 					onPick();
 				},
 				children: /* @__PURE__ */ (0, react_jsx_runtime.jsx)("span", {
-					style: S.menuLabel,
+					style: S$1.menuLabel,
 					children
 				})
 			});
@@ -43020,7 +43382,7 @@ html[data-dsh-side-panels-dragging] [data-dsh-grip] {
 				ref: boxRef,
 				role: "menu",
 				style: {
-					...S.menu,
+					...S$1.menu,
 					minWidth: 168,
 					position: "fixed",
 					top,
@@ -43055,7 +43417,7 @@ html[data-dsh-side-panels-dragging] [data-dsh-grip] {
 						},
 						children: "关闭右侧"
 					}),
-					/* @__PURE__ */ (0, react_jsx_runtime.jsx)("div", { style: S.menuSep }),
+					/* @__PURE__ */ (0, react_jsx_runtime.jsx)("div", { style: S$1.menuSep }),
 					/* @__PURE__ */ (0, react_jsx_runtime.jsx)(TabMenuItem, {
 						disabled: !canAll,
 						onPick: () => {
@@ -43305,7 +43667,7 @@ html[data-dsh-side-panels-dragging] [data-dsh-grip] {
 				children: [/* @__PURE__ */ (0, react_jsx_runtime.jsx)("button", {
 					ref: btnRef,
 					type: "button",
-					style: S.iconBtn,
+					style: S$1.iconBtn,
 					title: "打开",
 					"aria-label": "打开",
 					"aria-expanded": open,
@@ -43331,7 +43693,7 @@ html[data-dsh-side-panels-dragging] [data-dsh-grip] {
 					ref: menuRef,
 					role: "menu",
 					style: {
-						...S.addMenu,
+						...S$1.addMenu,
 						position: "fixed",
 						top: menuPos.top,
 						left: menuPos.left,
@@ -43341,10 +43703,10 @@ html[data-dsh-side-panels-dragging] [data-dsh-grip] {
 					},
 					children: [
 						/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", {
-							style: S.addMenuSearch,
+							style: S$1.addMenuSearch,
 							children: [/* @__PURE__ */ (0, react_jsx_runtime.jsx)(SearchGlyph, {}), /* @__PURE__ */ (0, react_jsx_runtime.jsx)("input", {
 								autoFocus: true,
-								style: S.addMenuSearchInput,
+								style: S$1.addMenuSearchInput,
 								placeholder: "打开文件、网址…",
 								value: query,
 								onChange: (event) => setQuery(event.target.value),
@@ -43361,33 +43723,33 @@ html[data-dsh-side-panels-dragging] [data-dsh-grip] {
 						hits.map((item) => /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("button", {
 							type: "button",
 							role: "menuitem",
-							style: S.menuItem,
+							style: S$1.menuItem,
 							title: item.path,
 							onClick: () => {
 								close();
 								onOpenFile?.(item.path);
 							},
 							children: [/* @__PURE__ */ (0, react_jsx_runtime.jsx)(FileKindIcon, { name: item.name ?? fileBase(item.path) }), /* @__PURE__ */ (0, react_jsx_runtime.jsx)("span", {
-								style: S.menuLabel,
+								style: S$1.menuLabel,
 								children: item.name ?? fileBase(item.path)
 							})]
 						}, item.path)),
-						hits.length > 0 && panes.length > 0 ? /* @__PURE__ */ (0, react_jsx_runtime.jsx)("div", { style: S.menuSep }) : null,
+						hits.length > 0 && panes.length > 0 ? /* @__PURE__ */ (0, react_jsx_runtime.jsx)("div", { style: S$1.menuSep }) : null,
 						panes.map((item) => {
 							const Icon = item.Icon;
 							return /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("button", {
 								type: "button",
 								role: "menuitem",
-								style: S.menuItem,
+								style: S$1.menuItem,
 								onClick: () => pick(item),
 								children: [
 									/* @__PURE__ */ (0, react_jsx_runtime.jsx)(Icon, {}),
 									/* @__PURE__ */ (0, react_jsx_runtime.jsx)("span", {
-										style: S.menuLabel,
+										style: S$1.menuLabel,
 										children: item.label
 									}),
 									/* @__PURE__ */ (0, react_jsx_runtime.jsx)("span", {
-										style: S.addMenuKbd,
+										style: S$1.addMenuKbd,
 										children: item.shortcut
 									})
 								]
@@ -43395,7 +43757,7 @@ html[data-dsh-side-panels-dragging] [data-dsh-grip] {
 						}),
 						hits.length === 0 && panes.length === 0 ? /* @__PURE__ */ (0, react_jsx_runtime.jsx)("div", {
 							style: {
-								...S.menuItem,
+								...S$1.menuItem,
 								cursor: "default",
 								opacity: .55
 							},
@@ -43616,12 +43978,12 @@ html[data-dsh-side-panels-dragging] [data-dsh-grip] {
 		function CreateDialog({ kind, folderLabel, name, error, onName, onSubmit, onClose }) {
 			const folder = kind === "folder";
 			return /* @__PURE__ */ (0, react_jsx_runtime.jsx)("div", {
-				style: S.overlay,
+				style: S$1.overlay,
 				onPointerDown: (event) => {
 					if (event.target === event.currentTarget) onClose();
 				},
 				children: /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("form", {
-					style: S.dialog,
+					style: S$1.dialog,
 					"data-dsh-dialog": "",
 					onSubmit: (event) => {
 						event.preventDefault();
@@ -43630,11 +43992,11 @@ html[data-dsh-side-panels-dragging] [data-dsh-grip] {
 					onPointerDown: (event) => event.stopPropagation(),
 					children: [
 						/* @__PURE__ */ (0, react_jsx_runtime.jsx)("div", {
-							style: S.dialogTitle,
+							style: S$1.dialogTitle,
 							children: folder ? "新建文件夹" : "新建文件"
 						}),
 						/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", {
-							style: S.dialogHint,
+							style: S$1.dialogHint,
 							children: [
 								"会建在「",
 								folderLabel,
@@ -43643,7 +44005,7 @@ html[data-dsh-side-panels-dragging] [data-dsh-grip] {
 						}),
 						/* @__PURE__ */ (0, react_jsx_runtime.jsx)("input", {
 							autoFocus: true,
-							style: S.dialogInput,
+							style: S$1.dialogInput,
 							placeholder: folder ? "文件夹名" : "文件名",
 							value: name,
 							onChange: (event) => onName(event.target.value),
@@ -43655,20 +44017,20 @@ html[data-dsh-side-panels-dragging] [data-dsh-grip] {
 							}
 						}),
 						error ? /* @__PURE__ */ (0, react_jsx_runtime.jsx)("div", {
-							style: S.dialogError,
+							style: S$1.dialogError,
 							children: error
 						}) : null,
 						/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", {
-							style: S.dialogActions,
+							style: S$1.dialogActions,
 							children: [/* @__PURE__ */ (0, react_jsx_runtime.jsx)("button", {
 								type: "button",
-								style: S.dialogBtn,
+								style: S$1.dialogBtn,
 								onClick: onClose,
 								children: "取消"
 							}), /* @__PURE__ */ (0, react_jsx_runtime.jsx)("button", {
 								type: "submit",
 								"data-dsh-dialog-ok": "",
-								style: S.dialogBtnPrimary,
+								style: S$1.dialogBtnPrimary,
 								disabled: name.trim() === "",
 								children: "确定"
 							})]
@@ -43705,7 +44067,7 @@ html[data-dsh-side-panels-dragging] [data-dsh-grip] {
 		function TruncationNote({ file }) {
 			if (!file?.truncated) return null;
 			return /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", {
-				style: S.banner,
+				style: S$1.banner,
 				children: [
 					"文件共 ",
 					formatSize(file.size),
@@ -43738,7 +44100,7 @@ html[data-dsh-side-panels-dragging] [data-dsh-grip] {
 					onContextMenu?.(event, entry);
 				};
 				const nameSlot = renaming ? /* @__PURE__ */ (0, react_jsx_runtime.jsx)("input", {
-					style: S.input,
+					style: S$1.input,
 					autoFocus: true,
 					value: rename.draft,
 					onChange: (event) => rename.onDraft(event.target.value),
@@ -43774,15 +44136,15 @@ html[data-dsh-side-panels-dragging] [data-dsh-grip] {
 						nameSlot,
 						letter && !renaming ? /* @__PURE__ */ (0, react_jsx_runtime.jsx)("span", {
 							style: {
-								...S.git,
+								...S$1.git,
 								color: gitColor(letter)
 							},
 							children: letter
-						}) : /* @__PURE__ */ (0, react_jsx_runtime.jsx)("span", { style: S.git })
+						}) : /* @__PURE__ */ (0, react_jsx_runtime.jsx)("span", { style: S$1.git })
 					] });
 					return /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", { children: [renaming ? /* @__PURE__ */ (0, react_jsx_runtime.jsx)("div", {
 						style: {
-							...S.row,
+							...S$1.row,
 							paddingLeft: pad,
 							background: selected === entry.path ? "rgb(0 122 204 / 14%)" : "transparent"
 						},
@@ -43790,7 +44152,7 @@ html[data-dsh-side-panels-dragging] [data-dsh-grip] {
 					}) : /* @__PURE__ */ (0, react_jsx_runtime.jsx)("button", {
 						type: "button",
 						style: {
-							...S.row,
+							...S$1.row,
 							paddingLeft: pad,
 							background: selected === entry.path ? "rgb(0 122 204 / 14%)" : "transparent"
 						},
@@ -43817,15 +44179,15 @@ html[data-dsh-side-panels-dragging] [data-dsh-grip] {
 					nameSlot,
 					letter && !renaming ? /* @__PURE__ */ (0, react_jsx_runtime.jsx)("span", {
 						style: {
-							...S.git,
+							...S$1.git,
 							color: gitColor(letter)
 						},
 						children: letter
-					}) : /* @__PURE__ */ (0, react_jsx_runtime.jsx)("span", { style: S.git })
+					}) : /* @__PURE__ */ (0, react_jsx_runtime.jsx)("span", { style: S$1.git })
 				] });
 				if (renaming) return /* @__PURE__ */ (0, react_jsx_runtime.jsx)("div", {
 					style: {
-						...S.row,
+						...S$1.row,
 						paddingLeft: pad + 16,
 						background: selected === entry.path ? "rgb(0 122 204 / 14%)" : "transparent"
 					},
@@ -43834,7 +44196,7 @@ html[data-dsh-side-panels-dragging] [data-dsh-grip] {
 				return /* @__PURE__ */ (0, react_jsx_runtime.jsx)("button", {
 					type: "button",
 					style: {
-						...S.row,
+						...S$1.row,
 						paddingLeft: pad + 16,
 						background: selected === entry.path ? "rgb(0 122 204 / 14%)" : "transparent"
 					},
@@ -44384,7 +44746,7 @@ html[data-dsh-side-panels-dragging] [data-dsh-grip] {
 				ref: panelRef,
 				"data-dsh-side-panels": "",
 				style: {
-					...S.panel,
+					...S$1.panel,
 					width: panelWidth,
 					gridTemplateColumns: gridColumns
 				},
@@ -44394,7 +44756,7 @@ html[data-dsh-side-panels-dragging] [data-dsh-grip] {
 						"data-dsh-grip": "panel",
 						title: "左右拖动调整宽度",
 						style: {
-							...S.grip,
+							...S$1.grip,
 							insetInlineStart: 0,
 							gridColumn: 1,
 							gridRow: "1 / -1",
@@ -44404,16 +44766,16 @@ html[data-dsh-side-panels-dragging] [data-dsh-grip] {
 					}),
 					/* @__PURE__ */ (0, react_jsx_runtime.jsx)("div", {
 						style: {
-							...S.filesBar,
+							...S$1.filesBar,
 							gridColumn: "1 / -1",
 							gridRow: 1
 						},
 						children: /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", {
-							style: S.filesBarMain,
+							style: S$1.filesBarMain,
 							children: [/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", {
-								style: S.filesBarLeft,
+								style: S$1.filesBarLeft,
 								children: [/* @__PURE__ */ (0, react_jsx_runtime.jsx)("div", {
-									style: S.filesPills,
+									style: S$1.filesPills,
 									children: panes.map((pane) => {
 										const meta = PANE_META[pane.kind] ?? PANE_META.file;
 										const Icon = meta.Icon;
@@ -44421,7 +44783,7 @@ html[data-dsh-side-panels-dragging] [data-dsh-grip] {
 										return /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("button", {
 											type: "button",
 											...selected ? { "data-dsh-files-pill": "" } : { "data-dsh-pane-pill": "" },
-											style: selected ? S.filesPill : S.filesPillIdle,
+											style: selected ? S$1.filesPill : S$1.filesPillIdle,
 											title: meta.label,
 											onClick: () => {
 												setActivePaneId(pane.id);
@@ -44431,7 +44793,7 @@ html[data-dsh-side-panels-dragging] [data-dsh-grip] {
 												/* @__PURE__ */ (0, react_jsx_runtime.jsx)(Icon, {}),
 												meta.label,
 												/* @__PURE__ */ (0, react_jsx_runtime.jsx)("span", {
-													style: S.paneClose,
+													style: S$1.paneClose,
 													title: "关闭",
 													"aria-label": `关闭 ${meta.label}`,
 													onClick: (event) => {
@@ -44450,10 +44812,10 @@ html[data-dsh-side-panels-dragging] [data-dsh-grip] {
 									onAddPane: addPane
 								})]
 							}), /* @__PURE__ */ (0, react_jsx_runtime.jsx)("div", {
-								style: S.chromeGroup,
+								style: S$1.chromeGroup,
 								children: /* @__PURE__ */ (0, react_jsx_runtime.jsx)("button", {
 									type: "button",
-									style: S.iconBtn,
+									style: S$1.iconBtn,
 									title: "收起工作台",
 									onClick: () => toggleCollapsed(),
 									children: /* @__PURE__ */ (0, react_jsx_runtime.jsx)(WorkbenchToggleIcon, {})
@@ -44463,19 +44825,19 @@ html[data-dsh-side-panels-dragging] [data-dsh-grip] {
 					}),
 					/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("section", {
 						style: {
-							...S.pane,
+							...S$1.pane,
 							gridColumn: 1,
 							gridRow: 2
 						},
 						children: [
 							showEditorChrome ? /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", {
-								style: S.chrome,
+								style: S$1.chrome,
 								children: [
 									/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", {
-										style: S.chromeGroup,
+										style: S$1.chromeGroup,
 										children: [/* @__PURE__ */ (0, react_jsx_runtime.jsx)("button", {
 											type: "button",
-											style: S.iconBtn,
+											style: S$1.iconBtn,
 											title: "后退",
 											disabled: histIndex <= 0,
 											onClick: () => goHistory(-1),
@@ -44485,7 +44847,7 @@ html[data-dsh-side-panels-dragging] [data-dsh-grip] {
 											})
 										}), /* @__PURE__ */ (0, react_jsx_runtime.jsx)("button", {
 											type: "button",
-											style: S.iconBtn,
+											style: S$1.iconBtn,
 											title: "前进",
 											disabled: histIndex < 0 || histIndex >= histStack.length - 1,
 											onClick: () => goHistory(1),
@@ -44497,31 +44859,31 @@ html[data-dsh-side-panels-dragging] [data-dsh-grip] {
 									}),
 									/* @__PURE__ */ (0, react_jsx_runtime.jsx)("div", {
 										"data-dsh-files-tabs": "",
-										style: S.filesTabs,
+										style: S$1.filesTabs,
 										children: tabs.map((path) => /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", {
 											"data-dsh-file-tab": "",
 											"data-dsh-file-tab-active": active === path ? "" : void 0,
 											style: {
-												...S.tab,
-												...active === path ? S.tabActive : {}
+												...S$1.tab,
+												...active === path ? S$1.tabActive : {}
 											},
 											title: path,
 											onContextMenu: (event) => openTabMenu(event, path),
 											children: [
 												isDirty(contents.get(path)) ? /* @__PURE__ */ (0, react_jsx_runtime.jsx)("span", {
-													style: S.dirtyDot,
+													style: S$1.dirtyDot,
 													title: "未保存"
 												}) : null,
 												/* @__PURE__ */ (0, react_jsx_runtime.jsx)(FileKindIcon, { name: basename(path) }),
 												/* @__PURE__ */ (0, react_jsx_runtime.jsx)("button", {
 													type: "button",
-													style: S.tabName,
+													style: S$1.tabName,
 													onClick: () => void openPath(path),
 													children: basename(path)
 												}),
 												/* @__PURE__ */ (0, react_jsx_runtime.jsx)("button", {
 													type: "button",
-													style: S.tabClose,
+													style: S$1.tabClose,
 													title: "关闭",
 													"aria-label": `关闭 ${basename(path)}`,
 													onClick: (event) => {
@@ -44534,7 +44896,7 @@ html[data-dsh-side-panels-dragging] [data-dsh-grip] {
 										}, path))
 									}),
 									/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", {
-										style: S.chromeGroup,
+										style: S$1.chromeGroup,
 										children: [/* @__PURE__ */ (0, react_jsx_runtime.jsx)(MoreMenu, {
 											canRename: Boolean(selected || active),
 											canCopy: Boolean(selected || active),
@@ -44549,7 +44911,7 @@ html[data-dsh-side-panels-dragging] [data-dsh-grip] {
 											onRefresh: () => void refreshAll()
 										}), /* @__PURE__ */ (0, react_jsx_runtime.jsx)("button", {
 											type: "button",
-											style: S.iconBtn,
+											style: S$1.iconBtn,
 											title: "搜索文件",
 											onClick: () => {
 												setTreeHidden(false);
@@ -44564,19 +44926,19 @@ html[data-dsh-side-panels-dragging] [data-dsh-grip] {
 								]
 							}) : null,
 							!root ? /* @__PURE__ */ (0, react_jsx_runtime.jsx)("div", {
-								style: S.empty,
+								style: S$1.empty,
 								children: "这条对话还没有工作目录"
 							}) : isFiles && !active ? /* @__PURE__ */ (0, react_jsx_runtime.jsx)("div", { style: {
 								flex: 1,
 								minHeight: 0
 							} }) : isFiles && viewing?.image ? /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", {
-								style: S.mediaPane,
+								style: S$1.mediaPane,
 								children: [
 									/* @__PURE__ */ (0, react_jsx_runtime.jsx)("div", {
-										style: S.previewBar,
+										style: S$1.previewBar,
 										children: /* @__PURE__ */ (0, react_jsx_runtime.jsx)("button", {
 											type: "button",
-											style: S.modeBtn,
+											style: S$1.modeBtn,
 											onClick: () => patchPane(activePane.id, (current) => ({
 												...current,
 												hexMode: !current.hexMode
@@ -44586,34 +44948,34 @@ html[data-dsh-side-panels-dragging] [data-dsh-grip] {
 									}),
 									/* @__PURE__ */ (0, react_jsx_runtime.jsx)(TruncationNote, { file: viewing }),
 									hexMode ? /* @__PURE__ */ (0, react_jsx_runtime.jsx)("pre", {
-										style: S.hex,
+										style: S$1.hex,
 										children: formatHexDump(viewing.bytes)
 									}) : viewing.dataUrl ? /* @__PURE__ */ (0, react_jsx_runtime.jsx)("div", {
-										style: S.previewWrap,
+										style: S$1.previewWrap,
 										children: /* @__PURE__ */ (0, react_jsx_runtime.jsx)("img", {
 											alt: "",
 											src: viewing.dataUrl,
-											style: S.previewImage,
+											style: S$1.previewImage,
 											onCopy: (event) => {
 												event.preventDefault();
 												copyContent(active);
 											}
 										})
 									}) : /* @__PURE__ */ (0, react_jsx_runtime.jsx)("div", {
-										style: S.empty,
+										style: S$1.empty,
 										children: "正在打开…"
 									})
 								]
 							}) : viewing?.binary ? /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", {
-								style: S.mediaPane,
+								style: S$1.mediaPane,
 								children: [/* @__PURE__ */ (0, react_jsx_runtime.jsx)(TruncationNote, { file: viewing }), /* @__PURE__ */ (0, react_jsx_runtime.jsx)("pre", {
-									style: S.hex,
+									style: S$1.hex,
 									children: formatHexDump(viewing.bytes)
 								})]
 							}) : viewing?.text !== void 0 ? /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", {
-								style: S.mediaPane,
+								style: S$1.mediaPane,
 								children: [/* @__PURE__ */ (0, react_jsx_runtime.jsx)(TruncationNote, { file: viewing }), viewing.truncated ? /* @__PURE__ */ (0, react_jsx_runtime.jsx)("pre", {
-									style: S.pre,
+									style: S$1.pre,
 									children: viewing.text
 								}) : /* @__PURE__ */ (0, react_jsx_runtime.jsx)(CodeEditor, {
 									path: active,
@@ -44622,12 +44984,12 @@ html[data-dsh-side-panels-dragging] [data-dsh-grip] {
 									onSave: () => void savePath(active)
 								}, activePane.id)]
 							}) : isFiles ? /* @__PURE__ */ (0, react_jsx_runtime.jsx)("div", {
-								style: S.empty,
+								style: S$1.empty,
 								children: "正在打开…"
-							}) : activePane?.kind === "terminal" ? null : /* @__PURE__ */ (0, react_jsx_runtime.jsx)("div", {
-								style: S.empty,
+							}) : activePane?.kind === "terminal" || activePane?.kind === "browser" ? null : /* @__PURE__ */ (0, react_jsx_runtime.jsx)("div", {
+								style: S$1.empty,
 								children: /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", {
-									style: S.emptyTitle,
+									style: S$1.emptyTitle,
 									children: [PANE_META[activePane?.kind]?.label ?? "这个面板", "还没做"]
 								})
 							}),
@@ -44644,7 +45006,24 @@ html[data-dsh-side-panels-dragging] [data-dsh-grip] {
 									paneId: pane.id,
 									active: activePane?.id === pane.id
 								})
-							}, pane.id)) : null
+							}, pane.id)) : null,
+							session.id ? panes.filter((pane) => pane.kind === "browser").map((pane) => /* @__PURE__ */ (0, react_jsx_runtime.jsx)("div", {
+								style: {
+									display: activePane?.id === pane.id ? "flex" : "none",
+									flex: 1,
+									minHeight: 0,
+									flexDirection: "column",
+									background: "var(--dsw-alias-bg-base, #fff)"
+								},
+								children: /* @__PURE__ */ (0, react_jsx_runtime.jsx)(BrowserView, {
+									sessionId: session.id,
+									paneId: pane.id,
+									active: activePane?.id === pane.id
+								})
+							}, pane.id)) : activePane?.kind === "browser" ? /* @__PURE__ */ (0, react_jsx_runtime.jsx)("div", {
+								style: S$1.empty,
+								children: "这条对话还没有编号，开不了浏览器"
+							}) : null
 						]
 					}),
 					showTree ? /* @__PURE__ */ (0, react_jsx_runtime.jsxs)(react_jsx_runtime.Fragment, { children: [/* @__PURE__ */ (0, react_jsx_runtime.jsx)("button", {
@@ -44652,7 +45031,7 @@ html[data-dsh-side-panels-dragging] [data-dsh-grip] {
 						"data-dsh-grip": "tree",
 						title: "左右拖动调整资源管理器宽度",
 						style: {
-							...S.grip,
+							...S$1.grip,
 							position: "relative",
 							width: 4,
 							flex: "none",
@@ -44663,7 +45042,7 @@ html[data-dsh-side-panels-dragging] [data-dsh-grip] {
 						onPointerDown: onResizeTree
 					}), /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("aside", {
 						style: {
-							...S.tree,
+							...S$1.tree,
 							gridColumn: 3,
 							gridRow: 2,
 							minWidth: 0,
@@ -44672,7 +45051,7 @@ html[data-dsh-side-panels-dragging] [data-dsh-grip] {
 						onContextMenu: (event) => event.preventDefault(),
 						children: [
 							/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", {
-								style: S.header,
+								style: S$1.header,
 								children: [/* @__PURE__ */ (0, react_jsx_runtime.jsx)("span", { children: rootName }), /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("span", {
 									style: {
 										display: "flex",
@@ -44681,7 +45060,7 @@ html[data-dsh-side-panels-dragging] [data-dsh-grip] {
 									children: [
 										/* @__PURE__ */ (0, react_jsx_runtime.jsx)("button", {
 											type: "button",
-											style: S.iconBtn,
+											style: S$1.iconBtn,
 											title: "新建文件",
 											onClick: () => startCreate("file"),
 											children: /* @__PURE__ */ (0, react_jsx_runtime.jsx)(ChromeIcon, {
@@ -44691,7 +45070,7 @@ html[data-dsh-side-panels-dragging] [data-dsh-grip] {
 										}),
 										/* @__PURE__ */ (0, react_jsx_runtime.jsx)("button", {
 											type: "button",
-											style: S.iconBtn,
+											style: S$1.iconBtn,
 											title: "新建文件夹",
 											onClick: () => startCreate("folder"),
 											children: /* @__PURE__ */ (0, react_jsx_runtime.jsx)(ChromeIcon, {
@@ -44701,7 +45080,7 @@ html[data-dsh-side-panels-dragging] [data-dsh-grip] {
 										}),
 										/* @__PURE__ */ (0, react_jsx_runtime.jsx)("button", {
 											type: "button",
-											style: S.iconBtn,
+											style: S$1.iconBtn,
 											title: "刷新",
 											onClick: () => void refreshAll(),
 											disabled: busy,
@@ -44715,7 +45094,7 @@ html[data-dsh-side-panels-dragging] [data-dsh-grip] {
 							}),
 							searchOpen ? /* @__PURE__ */ (0, react_jsx_runtime.jsx)("input", {
 								ref: searchRef,
-								style: S.search,
+								style: S$1.search,
 								placeholder: "搜索文件名",
 								value: filter,
 								onChange: (event) => setFilter(event.target.value),
@@ -44727,18 +45106,18 @@ html[data-dsh-side-panels-dragging] [data-dsh-grip] {
 								}
 							}) : null,
 							error && !creating ? /* @__PURE__ */ (0, react_jsx_runtime.jsx)("div", {
-								style: S.notice,
+								style: S$1.notice,
 								children: error
 							}) : null,
 							!root ? /* @__PURE__ */ (0, react_jsx_runtime.jsx)("div", {
 								style: {
-									...S.empty,
+									...S$1.empty,
 									marginTop: 24
 								},
 								children: "没有工作目录"
 							}) : rootEntries.length === 0 && !error ? /* @__PURE__ */ (0, react_jsx_runtime.jsx)("div", {
 								style: {
-									...S.empty,
+									...S$1.empty,
 									marginTop: 24
 								},
 								children: "没有文件"
@@ -44820,34 +45199,49 @@ html[data-dsh-side-panels-dragging] [data-dsh-grip] {
 					/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("nav", {
 						"data-dsh-rail": "",
 						style: {
-							...S.rail,
+							...S$1.rail,
 							gridColumn: railColumn,
 							gridRow: 2
 						},
 						"aria-label": "工作台切换",
-						children: [/* @__PURE__ */ (0, react_jsx_runtime.jsx)("button", {
-							type: "button",
-							title: "文件树",
-							"aria-label": "文件树",
-							"aria-pressed": showTree,
-							style: {
-								...S.railBtn,
-								...showTree ? S.railBtnActive : {}
-							},
-							onClick: toggleTree,
-							children: /* @__PURE__ */ (0, react_jsx_runtime.jsx)(FilesActivityIcon, {})
-						}), /* @__PURE__ */ (0, react_jsx_runtime.jsx)("button", {
-							type: "button",
-							title: "终端",
-							"aria-label": "终端",
-							"aria-pressed": activePane?.kind === "terminal",
-							style: {
-								...S.railBtn,
-								...activePane?.kind === "terminal" ? S.railBtnActive : {}
-							},
-							onClick: () => focusOrAddPane("terminal"),
-							children: /* @__PURE__ */ (0, react_jsx_runtime.jsx)(TerminalActivityIcon, {})
-						})]
+						children: [
+							/* @__PURE__ */ (0, react_jsx_runtime.jsx)("button", {
+								type: "button",
+								title: "文件树",
+								"aria-label": "文件树",
+								"aria-pressed": showTree,
+								style: {
+									...S$1.railBtn,
+									...showTree ? S$1.railBtnActive : {}
+								},
+								onClick: toggleTree,
+								children: /* @__PURE__ */ (0, react_jsx_runtime.jsx)(FilesActivityIcon, {})
+							}),
+							/* @__PURE__ */ (0, react_jsx_runtime.jsx)("button", {
+								type: "button",
+								title: "终端",
+								"aria-label": "终端",
+								"aria-pressed": activePane?.kind === "terminal",
+								style: {
+									...S$1.railBtn,
+									...activePane?.kind === "terminal" ? S$1.railBtnActive : {}
+								},
+								onClick: () => focusOrAddPane("terminal"),
+								children: /* @__PURE__ */ (0, react_jsx_runtime.jsx)(TerminalActivityIcon, {})
+							}),
+							/* @__PURE__ */ (0, react_jsx_runtime.jsx)("button", {
+								type: "button",
+								title: "浏览器",
+								"aria-label": "浏览器",
+								"aria-pressed": activePane?.kind === "browser",
+								style: {
+									...S$1.railBtn,
+									...activePane?.kind === "browser" ? S$1.railBtnActive : {}
+								},
+								onClick: () => focusOrAddPane("browser"),
+								children: /* @__PURE__ */ (0, react_jsx_runtime.jsx)(BrowserActivityIcon, {})
+							})
+						]
 					}),
 					creating ? /* @__PURE__ */ (0, react_jsx_runtime.jsx)(CreateDialog, {
 						kind: creating.kind,
