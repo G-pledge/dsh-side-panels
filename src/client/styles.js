@@ -32,12 +32,14 @@ export const S = {
     zIndex: 8,
     gap: 4,
     minWidth: 0,
+    overflow: 'visible',
   },
   chromeGroup: {
     display: 'flex',
     alignItems: 'center',
     gap: 2,
     flex: '0 0 auto',
+    overflow: 'visible',
   },
   filesBar: {
     display: 'flex',
@@ -355,6 +357,12 @@ export const S = {
     minHeight: 0,
     display: 'flex',
     flexDirection: 'column',
+    position: 'relative',
+  },
+  browserPopupMask: {
+    position: 'absolute',
+    inset: 0,
+    zIndex: 25,
   },
   browserDock: {
     flex: '0 0 42%',
@@ -404,7 +412,7 @@ export const S = {
     gap: 4,
     maxWidth: 180,
     height: 24,
-    padding: '0 4px 0 10px',
+    padding: '0 4px 0 6px',
     borderRadius: '8px 8px 0 0',
     fontSize: 12,
     cursor: 'pointer',
@@ -414,6 +422,23 @@ export const S = {
   browserTabActive: {
     background: 'var(--dsw-alias-bg-base, #fff)',
     opacity: 1,
+  },
+  browserTabIcon: {
+    width: 14,
+    height: 14,
+    flex: '0 0 14px',
+    borderRadius: 2,
+    objectFit: 'contain',
+    background: 'transparent',
+  },
+  browserTabIconFallback: {
+    width: 14,
+    height: 14,
+    flex: '0 0 14px',
+    opacity: 0.45,
+    display: 'inline-flex',
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   browserTabName: {
     overflow: 'hidden',
@@ -435,16 +460,316 @@ export const S = {
     flex: '0 0 24px',
     opacity: 0.7,
   },
-  browserDownloads: {
+  browserDlWrap: {
+    position: 'relative',
     flex: '0 0 auto',
-    borderTop: '1px solid var(--dsw-alias-border, #ececec)',
-    background: 'var(--dsw-alias-bg-subtle, #f3f3f3)',
-    maxHeight: 120,
+  },
+  browserDownloads: {
+    position: 'absolute',
+    top: 'calc(100% + 4px)',
+    right: 0,
+    width: 320,
+    maxWidth: 'min(320px, 72vw)',
+    maxHeight: 260,
     overflowY: 'auto',
-    padding: '6px 8px',
+    zIndex: 40,
+    border: '1px solid var(--dsw-alias-border, #e0e0e0)',
+    borderRadius: 8,
+    background: 'var(--dsw-alias-bg-base, #fff)',
+    boxShadow: '0 8px 28px rgb(0 0 0 / 18%)',
+    padding: '8px',
     display: 'flex',
     flexDirection: 'column',
     gap: 6,
+  },
+  browserMenu: {
+    position: 'absolute',
+    top: 'calc(100% + 4px)',
+    right: 0,
+    minWidth: 168,
+    zIndex: 40,
+    border: '1px solid var(--dsw-alias-border, #e0e0e0)',
+    borderRadius: 8,
+    background: 'var(--dsw-alias-bg-base, #fff)',
+    boxShadow: '0 8px 28px rgb(0 0 0 / 18%)',
+    padding: '4px',
+    display: 'flex',
+    flexDirection: 'column',
+  },
+  browserMenuItem: {
+    border: 'none',
+    background: 'transparent',
+    color: 'inherit',
+    textAlign: 'left',
+    fontSize: 12,
+    lineHeight: '22px',
+    padding: '4px 10px',
+    borderRadius: 6,
+    cursor: 'pointer',
+    whiteSpace: 'nowrap',
+  },
+  browserHistory: {
+    position: 'absolute',
+    top: 'calc(100% + 4px)',
+    right: 0,
+    width: 320,
+    maxWidth: 'min(320px, 72vw)',
+    maxHeight: 320,
+    overflowY: 'auto',
+    zIndex: 40,
+    border: '1px solid var(--dsw-alias-border, #e0e0e0)',
+    borderRadius: 8,
+    background: 'var(--dsw-alias-bg-base, #fff)',
+    boxShadow: '0 8px 28px rgb(0 0 0 / 18%)',
+    padding: '8px',
+    display: 'flex',
+    flexDirection: 'column',
+    gap: 2,
+  },
+  browserHistoryRow: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: 2,
+    minWidth: 0,
+    borderRadius: 6,
+  },
+  browserHistoryItem: {
+    border: 'none',
+    background: 'transparent',
+    color: 'inherit',
+    textAlign: 'left',
+    padding: '6px 8px',
+    borderRadius: 6,
+    cursor: 'pointer',
+    display: 'flex',
+    flexDirection: 'column',
+    gap: 2,
+    minWidth: 0,
+    flex: 1,
+  },
+  browserHistoryTitle: {
+    fontSize: 12,
+    lineHeight: '18px',
+    overflow: 'hidden',
+    textOverflow: 'ellipsis',
+    whiteSpace: 'nowrap',
+  },
+  browserHistoryMeta: {
+    fontSize: 11,
+    lineHeight: '16px',
+    opacity: 0.55,
+    display: 'flex',
+    justifyContent: 'space-between',
+    gap: 8,
+    minWidth: 0,
+  },
+  browserHistoryHost: {
+    overflow: 'hidden',
+    textOverflow: 'ellipsis',
+    whiteSpace: 'nowrap',
+    minWidth: 0,
+  },
+  browserProxy: {
+    position: 'absolute',
+    top: 'calc(100% + 4px)',
+    right: 0,
+    width: 360,
+    maxWidth: 'min(360px, 78vw)',
+    maxHeight: 420,
+    overflowY: 'auto',
+    zIndex: 40,
+    border: '1px solid var(--dsw-alias-border, #e0e0e0)',
+    borderRadius: 8,
+    background: 'var(--dsw-alias-bg-base, #fff)',
+    boxShadow: '0 8px 28px rgb(0 0 0 / 18%)',
+    padding: '10px',
+    display: 'flex',
+    flexDirection: 'column',
+    gap: 6,
+  },
+  browserProxyHead: {
+    fontSize: 13,
+    fontWeight: 600,
+    padding: '0 2px 4px',
+  },
+  browserProxyRow: {
+    border: '1px solid transparent',
+    background: 'transparent',
+    color: 'inherit',
+    textAlign: 'left',
+    padding: '8px 10px',
+    borderRadius: 8,
+    cursor: 'pointer',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: 10,
+    minWidth: 0,
+  },
+  browserProxyRowOn: {
+    background: 'rgba(0, 122, 204, 0.1)',
+    border: '1px solid rgba(0, 122, 204, 0.42)',
+  },
+  browserProxyCustom: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: 2,
+    minWidth: 0,
+    border: '1px solid transparent',
+    borderRadius: 8,
+    padding: '0 4px 0 0',
+  },
+  browserProxyPick: {
+    border: 'none',
+    background: 'transparent',
+    color: 'inherit',
+    textAlign: 'left',
+    padding: '8px 8px 8px 10px',
+    cursor: 'pointer',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: 10,
+    minWidth: 0,
+    flex: 1,
+  },
+  browserProxyName: {
+    fontSize: 13,
+    lineHeight: '18px',
+    display: 'inline-flex',
+    alignItems: 'center',
+    gap: 6,
+    minWidth: 0,
+    overflow: 'hidden',
+    textOverflow: 'ellipsis',
+    whiteSpace: 'nowrap',
+  },
+  browserProxyMeta: {
+    fontSize: 11,
+    lineHeight: '16px',
+    opacity: 0.55,
+    flex: '0 0 auto',
+    whiteSpace: 'nowrap',
+  },
+  browserProxyDot: {
+    width: 7,
+    height: 7,
+    borderRadius: 99,
+    background: '#3ba55d',
+    flex: '0 0 7px',
+  },
+  browserProxyIconBtn: {
+    width: 22,
+    height: 22,
+    border: 'none',
+    background: 'transparent',
+    cursor: 'pointer',
+    borderRadius: 4,
+    display: 'inline-flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    flex: '0 0 22px',
+    padding: 0,
+  },
+  browserProxyForm: {
+    display: 'flex',
+    flexDirection: 'column',
+    gap: 6,
+    paddingTop: 6,
+    borderTop: '1px solid var(--dsw-alias-border, #ececec)',
+  },
+  browserProxyFields: {
+    display: 'flex',
+    gap: 6,
+    minWidth: 0,
+  },
+  browserProxyInput: {
+    flex: 1,
+    minWidth: 0,
+    height: 28,
+    border: '1px solid var(--dsw-alias-border, #e0e0e0)',
+    borderRadius: 6,
+    padding: '0 8px',
+    fontSize: 12,
+    background: 'var(--dsw-alias-bg-base, #fff)',
+    color: 'inherit',
+    outline: 'none',
+  },
+  browserProxySelect: {
+    flex: '0 0 88px',
+    height: 28,
+    border: '1px solid var(--dsw-alias-border, #e0e0e0)',
+    borderRadius: 6,
+    padding: '0 6px',
+    fontSize: 12,
+    background: 'var(--dsw-alias-bg-base, #fff)',
+    color: 'inherit',
+    outline: 'none',
+  },
+  browserProxyPort: {
+    flex: '0 0 88px',
+    height: 28,
+    border: '1px solid var(--dsw-alias-border, #e0e0e0)',
+    borderRadius: 6,
+    padding: '0 8px',
+    fontSize: 12,
+    background: 'var(--dsw-alias-bg-base, #fff)',
+    color: 'inherit',
+    outline: 'none',
+  },
+  browserProxyBypass: {
+    width: '100%',
+    minHeight: 58,
+    resize: 'vertical',
+    border: '1px solid var(--dsw-alias-border, #e0e0e0)',
+    borderRadius: 6,
+    padding: '6px 8px',
+    fontSize: 12,
+    lineHeight: '18px',
+    background: 'var(--dsw-alias-bg-base, #fff)',
+    color: 'inherit',
+    outline: 'none',
+    boxSizing: 'border-box',
+    fontFamily: 'inherit',
+  },
+  browserProxyHint: {
+    fontSize: 12,
+    color: '#c43c3c',
+  },
+  browserProxyActions: {
+    display: 'flex',
+    justifyContent: 'flex-end',
+    alignItems: 'center',
+    gap: 8,
+  },
+  browserProxyAdd: {
+    border: 'none',
+    background: 'rgb(0 122 204)',
+    color: '#fff',
+    fontSize: 12,
+    lineHeight: '22px',
+    padding: '3px 14px',
+    borderRadius: 6,
+    cursor: 'pointer',
+  },
+  browserDlBar: {
+    display: 'flex',
+    justifyContent: 'flex-end',
+  },
+  browserDlEmpty: {
+    fontSize: 12,
+    opacity: 0.65,
+    padding: '4px 2px',
+  },
+  browserDlBadge: {
+    position: 'absolute',
+    top: 5,
+    right: 5,
+    width: 6,
+    height: 6,
+    borderRadius: 99,
+    background: 'rgb(0 122 204)',
+    pointerEvents: 'none',
   },
   browserDlItem: {
     display: 'grid',
@@ -900,9 +1225,35 @@ html[data-dsh-side-panels-dragging] [data-dsh-grip] {
   background: rgb(127 127 127 / 10%);
   opacity: 1;
 }
+[data-dsh-side-panels] [data-dsh-browser-tab]:active {
+  background: rgb(127 127 127 / 18%);
+  transform: translateY(1px);
+}
 [data-dsh-side-panels] [data-dsh-browser-tab-active] {
   background: var(--dsw-alias-bg-base, #fff) !important;
   opacity: 1;
+}
+[data-dsh-side-panels] [data-dsh-browser] button {
+  transition: transform .08s ease, background .08s ease, filter .08s ease, opacity .08s ease;
+}
+[data-dsh-side-panels] [data-dsh-browser] button:hover:not(:disabled) {
+  opacity: 1;
+}
+[data-dsh-side-panels] [data-dsh-browser] button:active:not(:disabled) {
+  transform: translateY(1px) scale(.94);
+  filter: brightness(.9);
+  background: rgb(127 127 127 / 20%) !important;
+}
+[data-dsh-side-panels] [data-dsh-browser] button[data-dsh-browser-primary]:hover:not(:disabled) {
+  background: rgb(0 105 180) !important;
+  color: #fff !important;
+  filter: none;
+}
+[data-dsh-side-panels] [data-dsh-browser] button[data-dsh-browser-primary]:active:not(:disabled) {
+  background: rgb(0 88 150) !important;
+  color: #fff !important;
+  transform: translateY(1px) scale(.98);
+  filter: none;
 }
 [data-dsh-side-panels] button[data-dsh-browser-f12] {
   font-size: 10px !important;

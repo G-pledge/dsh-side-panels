@@ -58,6 +58,79 @@ export function tabLabel(url, title) {
   }
 }
 
+/** 标签图标：网页给的优先，否则用站点根目录的图标。 */
+export function pickTabIcon(favicons, pageUrl) {
+  for (const raw of Array.isArray(favicons) ? favicons : []) {
+    const url = String(raw || '').trim()
+    if (url.startsWith('data:image')) return url
+    if (/^https?:\/\//i.test(url)) return url
+  }
+  try {
+    const parsed = new URL(pageUrl)
+    if (parsed.protocol === 'http:' || parsed.protocol === 'https:') {
+      return `${parsed.origin}/favicon.ico`
+    }
+  } catch {
+    // 空白页没有图标
+  }
+  return ''
+}
+
+export function faviconListFromEvent(event) {
+  if (!event) return []
+  if (Array.isArray(event.favicons)) return event.favicons
+  if (Array.isArray(event.detail)) return event.detail
+  if (event.detail && Array.isArray(event.detail.favicons)) return event.detail.favicons
+  return []
+}
+
+/** 嵌页里把图标读成图片数据，避免工作台这一层拦外链图。 */
+export function readFaviconScript(favicons, pageUrl) {
+  const hints = Array.isArray(favicons) ? favicons.filter((row) => typeof row === 'string').slice(0, 8) : []
+  return `(async function(){
+    const hints = ${JSON.stringify(hints)}
+    const page = ${JSON.stringify(String(pageUrl || ''))}
+    const urls = []
+    const add = (u) => {
+      const s = String(u || '').trim()
+      if (!s || urls.includes(s)) return
+      if (s.startsWith('data:image')) urls.unshift(s)
+      else if (/^https?:\\/\\//i.test(s)) urls.push(s)
+    }
+    for (const u of hints) add(u)
+    try {
+      const links = document.querySelectorAll('link[rel*="icon" i], link[rel="shortcut icon" i], link[rel="apple-touch-icon" i]')
+      for (const el of links) add(el.href)
+    } catch (e) {}
+    try {
+      if (page) add(new URL('/favicon.ico', page).href)
+    } catch (e) {}
+    const load = async (url) => {
+      if (url.startsWith('data:image')) return url
+      const r = await fetch(url, { credentials: 'include' })
+      if (!r.ok) throw new Error('bad')
+      const buf = await r.arrayBuffer()
+      if (buf.byteLength < 16 || buf.byteLength > 200000) throw new Error('size')
+      const mime = ((r.headers.get('content-type') || 'image/x-icon').split(';')[0] || 'image/x-icon').toLowerCase()
+      if (mime.startsWith('text/') || mime.includes('json') || mime.includes('html')) throw new Error('html')
+      const bytes = new Uint8Array(buf)
+      let bin = ''
+      const step = 0x8000
+      for (let i = 0; i < bytes.length; i += step) {
+        bin += String.fromCharCode.apply(null, bytes.subarray(i, i + step))
+      }
+      return 'data:' + mime + ';base64,' + btoa(bin)
+    }
+    for (const url of urls) {
+      try {
+        const data = await load(url)
+        if (data) return data
+      } catch (e) {}
+    }
+    return ''
+  })()`
+}
+
 /** 只有整页自己失败才提示，页面里的小框失败不当成打不开。 */
 export function shouldShowLoadError(event) {
   if (!event || event.isMainFrame === false) return false

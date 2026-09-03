@@ -1,6 +1,17 @@
 import React, { useEffect, useLayoutEffect, useRef, useState } from 'react'
-import { isPlaceholderTitle, normalizeNavigateUrl, partitionName, shouldShowLoadError, tabLabel } from '../shared/browser-id.js'
-import { ConsolePromptIcon } from './icons.jsx'
+import { forgetVisit, formatVisitTime, historyHost, historyStorageKey, isHistoryUrl, readVisitList, rememberVisit, touchVisitTitle } from '../shared/browser-history.js'
+import { faviconListFromEvent, isPlaceholderTitle, normalizeNavigateUrl, partitionName, readFaviconScript, shouldShowLoadError, tabLabel } from '../shared/browser-id.js'
+import {
+  buildErrorPageHtml,
+  describeHttpError,
+  describeNetError,
+  inspectBlankScript,
+  looksBlankPage,
+  writeErrorPageScript,
+} from '../shared/net-error-page.js'
+import { PROXY_PROFILES_KEY, PROXY_SYSTEM, proxyActiveKey, readProxyActive, readProxyProfiles, toSessionProxy } from '../shared/browser-proxy.js'
+import { BrowserProxyPanel } from './BrowserProxyPanel.jsx'
+import { ConsolePromptIcon, DownloadTrayIcon, MoreDotsIcon, ProxyGlobeIcon } from './icons.jsx'
 import { readDevtoolsMode } from './prefs.js'
 import { S } from './styles.js'
 
@@ -91,6 +102,17 @@ function guestWebContentsId(guest) {
     // 页面还没挂上
   }
   return 0
+}
+
+function sameSiteIcon(prevUrl, nextUrl, icon) {
+  const data = String(icon || '')
+  if (!data.startsWith('data:image')) return ''
+  try {
+    if (new URL(prevUrl).origin === new URL(nextUrl).origin) return data
+  } catch {
+    // 换站了
+  }
+  return ''
 }
 
 function waitTick(ms) {
@@ -247,6 +269,100 @@ function typeScript(action) {
   })()`
 }
 
+function loadVisits(sessionId) {
+  try {
+    return readVisitList(window.localStorage.getItem(historyStorageKey(sessionId)))
+  } catch {
+    return []
+  }
+}
+
+function saveVisits(sessionId, list) {
+  try {
+    window.localStorage.setItem(historyStorageKey(sessionId), JSON.stringify(list))
+  } catch {
+    // 存不下就算了
+  }
+}
+
+function loadProxyProfiles() {
+  try {
+    return readProxyProfiles(window.localStorage.getItem(PROXY_PROFILES_KEY))
+  } catch {
+    return []
+  }
+}
+
+function saveProxyProfiles(list) {
+  try {
+    window.localStorage.setItem(PROXY_PROFILES_KEY, JSON.stringify(list))
+  } catch {
+    // 存不下就算了
+  }
+}
+
+function loadProxyActive(sessionId, profiles) {
+  try {
+    return readProxyActive(window.localStorage.getItem(proxyActiveKey(sessionId)), profiles)
+  } catch {
+    return PROXY_SYSTEM
+  }
+}
+
+function saveProxyActive(sessionId, id) {
+  try {
+    window.localStorage.setItem(proxyActiveKey(sessionId), id)
+  } catch {
+    // 存不下就算了
+  }
+}
+
+async function pushProxy(sessionId, activeId, profiles) {
+  const api = typeof window !== 'undefined' ? window.dshDesktop : undefined
+  if (!api || typeof api.setBrowserProxy !== 'function') return { ok: false, missing: true }
+  const next = toSessionProxy(activeId, profiles)
+  if (!next.ok) return next
+  try {
+    const result = await api.setBrowserProxy(partitionName(sessionId), next.config)
+    return result?.ok ? { ok: true } : { ok: false }
+  } catch {
+    return { ok: false }
+  }
+}
+
+async function recoverBlankGuest(guest) {
+  if (!guest || !hasGuestApi(guest, 'executeJavaScript')) return
+  const href = guestUrl(guest)
+  if (!href || href === 'about:blank' || /^(chrome-devtools:|devtools:|chrome:)/i.test(href)) return
+  if (guest._dshErrorBusy) return
+  guest._dshErrorBusy = true
+  try {
+    const info = await guest.executeJavaScript(inspectBlankScript())
+    if (!looksBlankPage(info)) {
+      guest._dshNetFail = null
+      return
+    }
+    const target = String(guest._dshNetFail?.url || info?.href || href)
+    if (!target || target === 'about:blank' || !/^https?:/i.test(target)) {
+      guest._dshNetFail = null
+      return
+    }
+    const fail = guest._dshNetFail
+    guest._dshNetFail = null
+    const status = Number(info?.status) || 0
+    const copy = fail
+      ? describeNetError(fail.code, fail.url || target, fail.description)
+      : status >= 400
+        ? describeHttpError(status, target)
+        : describeNetError(-324, target, 'ERR_EMPTY_RESPONSE')
+    await guest.executeJavaScript(writeErrorPageScript(buildErrorPageHtml({ ...copy, reloadUrl: target })))
+  } catch {
+    // 页还没挂上
+  } finally {
+    guest._dshErrorBusy = false
+  }
+}
+
 function percent(item) {
   const total = Number(item.total) || 0
   const received = Number(item.received) || 0
@@ -279,9 +395,22 @@ export function BrowserView({ sessionId, paneId, active }) {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState()
   const [downloads, setDownloads] = useState([])
+  const [dlOpen, setDlOpen] = useState(false)
+  const [moreOpen, setMoreOpen] = useState(false)
+  const [historyOpen, setHistoryOpen] = useState(false)
+  const [proxyOpen, setProxyOpen] = useState(false)
+  const [proxyProfiles, setProxyProfiles] = useState([])
+  const [proxyActive, setProxyActive] = useState(PROXY_SYSTEM)
+  const [visits, setVisits] = useState([])
+  const dlWrapRef = useRef(null)
+  const moreWrapRef = useRef(null)
+  const proxyWrapRef = useRef(null)
+  const popupOpenRef = useRef(false)
   const [dockOpen, setDockOpen] = useState(false)
   const tabsRef = useRef(tabs)
   tabsRef.current = tabs
+  const popupOpen = dlOpen || moreOpen || historyOpen || proxyOpen
+  popupOpenRef.current = popupOpen
 
   activeIdRef.current = activeId
   dockOpenRef.current = dockOpen
@@ -294,12 +423,13 @@ export function BrowserView({ sessionId, paneId, active }) {
       if (hasGuestApi(guest, 'canGoForward')) setCanGoForward(Boolean(guest.canGoForward()))
       const next = guestUrl(guest)
       if (!next) return
+      if (/^(chrome-error:|chrome:|devtools:|chrome-devtools:)/i.test(next)) return
       setUrl(next)
       if (!editing.current) setDraft(next === 'about:blank' ? '' : next)
       const id = guest.dataset.tabId || activeIdRef.current
       const title = guestTitle(guest)
       setTabs((prev) => prev.map((tab) => (
-        tab.id === id ? { ...tab, url: next, title: tabLabel(next, title || tab.title) } : tab
+        tab.id === id ? { ...tab, url: next, title: tabLabel(next, title || tab.title), icon: sameSiteIcon(tab.url, next, tab.icon) } : tab
       )))
     } catch {
       // 跨页读不到地址
@@ -311,7 +441,7 @@ export function BrowserView({ sessionId, paneId, active }) {
       const on = tabId === id
       node.style.visibility = on ? 'visible' : 'hidden'
       node.style.zIndex = on ? '1' : '0'
-      node.style.pointerEvents = on ? 'auto' : 'none'
+      node.style.pointerEvents = on && !popupOpenRef.current ? 'auto' : 'none'
     }
     guestRef.current = guestsRef.current.get(id) ?? null
     readNav(guestRef.current)
@@ -334,12 +464,30 @@ export function BrowserView({ sessionId, paneId, active }) {
       guest.setAttribute('allow', 'clipboard-read; clipboard-write; fullscreen')
     }
     const onStart = () => {
+      guest._dshIconGen = (guest._dshIconGen || 0) + 1
+      guest._dshFavicons = []
       if (activeIdRef.current === id) setLoading(true)
+    }
+    const captureIcon = async () => {
+      if (!hasGuestApi(guest, 'executeJavaScript')) return
+      const page = guestUrl(guest)
+      if (!page || page === 'about:blank' || /^(chrome-devtools:|devtools:|chrome:)/i.test(page)) return
+      const gen = guest._dshIconGen || 0
+      try {
+        const data = await guest.executeJavaScript(readFaviconScript(guest._dshFavicons, page))
+        if (gen !== (guest._dshIconGen || 0)) return
+        if (!data || !String(data).startsWith('data:image')) return
+        setTabs((prev) => prev.map((tab) => (
+          tab.id === id ? { ...tab, icon: data } : tab
+        )))
+      } catch {
+        // 读不到图标
+      }
     }
     const onStop = () => {
       const next = guestUrl(guest)
       const title = guestTitle(guest)
-      if (next) {
+      if (next && !/^(chrome-error:|chrome:|devtools:|chrome-devtools:)/i.test(next)) {
         setTabs((prev) => prev.map((tab) => (
           tab.id === id ? { ...tab, url: next, title: tabLabel(next, title || tab.title) } : tab
         )))
@@ -349,13 +497,32 @@ export function BrowserView({ sessionId, paneId, active }) {
         readNav(guest)
       }
     }
+    const onStopped = () => {
+      onStop()
+      void recoverBlankGuest(guest)
+      void captureIcon()
+    }
     const onNav = (event) => {
       const next = event?.url || guestUrl(guest)
       if (typeof next !== 'string' || !next) return
+      if (/^(chrome-error:|chrome:|devtools:|chrome-devtools:)/i.test(next)) {
+        if (activeIdRef.current === id) {
+          setError(undefined)
+          setLoading(false)
+        }
+        return
+      }
       const title = event?.title || guestTitle(guest)
       setTabs((prev) => prev.map((tab) => (
-        tab.id === id ? { ...tab, url: next, title: tabLabel(next, title || tab.title) } : tab
+        tab.id === id ? { ...tab, url: next, title: tabLabel(next, title || tab.title), icon: sameSiteIcon(tab.url, next, tab.icon) } : tab
       )))
+      if (isHistoryUrl(next)) {
+        setVisits((prev) => {
+          const list = rememberVisit(prev, { url: next, title, at: Date.now() })
+          saveVisits(sessionId, list)
+          return list
+        })
+      }
       if (activeIdRef.current === id) {
         setError(undefined)
         setUrl(next)
@@ -369,12 +536,28 @@ export function BrowserView({ sessionId, paneId, active }) {
       setTabs((prev) => prev.map((tab) => (
         tab.id === id ? { ...tab, title: tabLabel(tab.url, title) } : tab
       )))
+      const next = guestUrl(guest)
+      if (!isHistoryUrl(next)) return
+      setVisits((prev) => {
+        const list = touchVisitTitle(prev, next, title)
+        if (list === prev) return prev
+        saveVisits(sessionId, list)
+        return list
+      })
+    }
+    const onFavicon = (event) => {
+      guest._dshFavicons = faviconListFromEvent(event)
+      void captureIcon()
     }
     const onFail = (event) => {
-      if (activeIdRef.current !== id) return
       if (!shouldShowLoadError(event)) return
-      setLoading(false)
-      setError('这个网站打不开或拒绝嵌进来')
+      guest._dshNetFail = {
+        code: event.errorCode,
+        description: event.errorDescription,
+        url: event.validatedURL || event.url || guestUrl(guest),
+      }
+      if (activeIdRef.current === id) setLoading(false)
+      void waitTick(80).then(() => recoverBlankGuest(guest))
     }
     const onNewWindow = (event) => {
       if (typeof event?.preventDefault === 'function') event.preventDefault()
@@ -382,23 +565,25 @@ export function BrowserView({ sessionId, paneId, active }) {
       if (typeof next === 'string' && next.startsWith('http')) addTabRef.current(next)
     }
     guest.addEventListener('did-start-loading', onStart)
-    guest.addEventListener('did-stop-loading', onStop)
+    guest.addEventListener('did-stop-loading', onStopped)
     guest.addEventListener('did-navigate', onNav)
     guest.addEventListener('did-navigate-in-page', onNav)
     guest.addEventListener('did-finish-load', onStop)
     guest.addEventListener('dom-ready', onStop)
     guest.addEventListener('page-title-updated', onTitle)
+    guest.addEventListener('page-favicon-updated', onFavicon)
     guest.addEventListener('did-fail-load', onFail)
     guest.addEventListener('load', onStop)
     guest.addEventListener('new-window', onNewWindow)
     guest._dshOff = () => {
       guest.removeEventListener('did-start-loading', onStart)
-      guest.removeEventListener('did-stop-loading', onStop)
+      guest.removeEventListener('did-stop-loading', onStopped)
       guest.removeEventListener('did-navigate', onNav)
       guest.removeEventListener('did-navigate-in-page', onNav)
       guest.removeEventListener('did-finish-load', onStop)
       guest.removeEventListener('dom-ready', onStop)
       guest.removeEventListener('page-title-updated', onTitle)
+      guest.removeEventListener('page-favicon-updated', onFavicon)
       guest.removeEventListener('did-fail-load', onFail)
       guest.removeEventListener('load', onStop)
       guest.removeEventListener('new-window', onNewWindow)
@@ -506,7 +691,7 @@ export function BrowserView({ sessionId, paneId, active }) {
     const parsed = startUrl === 'about:blank' ? { ok: true, url: 'about:blank' } : normalizeNavigateUrl(startUrl)
     const url = parsed.ok ? parsed.url : 'about:blank'
     const id = nextTabId()
-    setTabs((prev) => [...prev, { id, title: tabLabel(url, ''), url }])
+    setTabs((prev) => [...prev, { id, title: tabLabel(url, ''), url, icon: '' }])
     setActiveId(id)
     mountGuest(id, url)
     showTab(id)
@@ -523,7 +708,7 @@ export function BrowserView({ sessionId, paneId, active }) {
       if (guest) guest.src = 'about:blank'
       setUrl('about:blank')
       setDraft('')
-      setTabs([{ ...only, title: '新标签', url: 'about:blank' }])
+      setTabs([{ ...only, title: '新标签', url: 'about:blank', icon: '' }])
       return
     }
     const index = prev.findIndex((tab) => tab.id === id)
@@ -555,7 +740,7 @@ export function BrowserView({ sessionId, paneId, active }) {
       setDraft(parsed.url === 'about:blank' ? '' : parsed.url)
       setLoading(true)
       setTabs((prev) => prev.map((tab) => (
-        tab.id === activeIdRef.current ? { ...tab, url: parsed.url, title: tabLabel(parsed.url, '') } : tab
+        tab.id === activeIdRef.current ? { ...tab, url: parsed.url, title: tabLabel(parsed.url, ''), icon: '' } : tab
       )))
       return { url: parsed.url }
     }
@@ -657,11 +842,21 @@ export function BrowserView({ sessionId, paneId, active }) {
     if (!stage || !sessionId) return undefined
     tabSeq = 0
     const firstId = nextTabId()
-    setTabs([{ id: firstId, title: '新标签', url: 'about:blank' }])
+    setTabs([{ id: firstId, title: '新标签', url: 'about:blank', icon: '' }])
     setActiveId(firstId)
     setDraft('')
     setUrl('about:blank')
     setDownloads([])
+    setDlOpen(false)
+    setMoreOpen(false)
+    setHistoryOpen(false)
+    setProxyOpen(false)
+    const profiles = loadProxyProfiles()
+    const active = loadProxyActive(sessionId, profiles)
+    setProxyProfiles(profiles)
+    setProxyActive(active)
+    void pushProxy(sessionId, active, profiles)
+    setVisits(loadVisits(sessionId))
     setDockOpen(false)
     mountGuest(firstId, 'about:blank')
     showTab(firstId)
@@ -760,8 +955,49 @@ export function BrowserView({ sessionId, paneId, active }) {
         const rest = prev.filter((row) => row.id !== item.id)
         return [...rest, item]
       })
+      setDlOpen(true)
+      setMoreOpen(false)
+      setHistoryOpen(false)
+      setProxyOpen(false)
     })
   }, [])
+
+  useEffect(() => {
+    if (!dlOpen && !moreOpen && !historyOpen && !proxyOpen) return undefined
+    const onDown = (event) => {
+      const inDl = dlWrapRef.current?.contains(event.target)
+      const inMore = moreWrapRef.current?.contains(event.target)
+      const inProxy = proxyWrapRef.current?.contains(event.target)
+      if (!inDl) setDlOpen(false)
+      if (!inMore) {
+        setMoreOpen(false)
+        setHistoryOpen(false)
+      }
+      if (!inProxy) setProxyOpen(false)
+    }
+    const onKey = (event) => {
+      if (event.key !== 'Escape') return
+      setDlOpen(false)
+      setMoreOpen(false)
+      setHistoryOpen(false)
+      setProxyOpen(false)
+    }
+    document.addEventListener('mousedown', onDown, true)
+    window.addEventListener('mousedown', onDown, true)
+    window.addEventListener('keydown', onKey)
+    return () => {
+      document.removeEventListener('mousedown', onDown, true)
+      window.removeEventListener('mousedown', onDown, true)
+      window.removeEventListener('keydown', onKey)
+    }
+  }, [dlOpen, moreOpen, historyOpen, proxyOpen])
+
+  useEffect(() => {
+    for (const [id, guest] of guestsRef.current) {
+      const on = id === activeId && !popupOpen
+      guest.style.pointerEvents = on ? 'auto' : 'none'
+    }
+  }, [activeId, popupOpen])
 
   useEffect(() => {
     if (!active) return undefined
@@ -807,7 +1043,7 @@ export function BrowserView({ sessionId, paneId, active }) {
     setUrl(parsed.url)
     setDraft(parsed.url === 'about:blank' ? '' : parsed.url)
     setTabs((prev) => prev.map((tab) => (
-      tab.id === activeIdRef.current ? { ...tab, url: parsed.url, title: tabLabel(parsed.url, '') } : tab
+      tab.id === activeIdRef.current ? { ...tab, url: parsed.url, title: tabLabel(parsed.url, ''), icon: '' } : tab
     )))
   }
 
@@ -825,6 +1061,116 @@ export function BrowserView({ sessionId, paneId, active }) {
     if (hasGuestApi(guest, 'reload')) guest.reload()
     else guest.src = guest.src
     setLoading(true)
+  }
+
+  const hardReload = () => {
+    const guest = guestRef.current
+    if (!guest) return
+    setMoreOpen(false)
+    setHistoryOpen(false)
+    if (hasGuestApi(guest, 'reloadIgnoringCache')) guest.reloadIgnoringCache()
+    else if (hasGuestApi(guest, 'reload')) guest.reload()
+    else guest.src = guest.src
+    setLoading(true)
+  }
+
+  const reloadGuests = () => {
+    for (const guest of guestsRef.current.values()) {
+      try {
+        if (hasGuestApi(guest, 'reloadIgnoringCache')) guest.reloadIgnoringCache()
+        else if (hasGuestApi(guest, 'reload')) guest.reload()
+        else guest.src = guest.src
+      } catch {
+        // 这个标签还没挂上
+      }
+    }
+    setLoading(true)
+  }
+
+  const chooseProxy = async (id) => {
+    if (id === proxyActive) return
+    const result = await pushProxy(sessionId, id, proxyProfiles)
+    if (!result.ok) {
+      setError(result.missing ? '换代理需要桌面端嵌页' : (result.error || '代理设不上，再试一次'))
+      return
+    }
+    setProxyActive(id)
+    saveProxyActive(sessionId, id)
+    setError(undefined)
+  }
+
+  const commitProxy = (profile, edited) => {
+    const list = edited
+      ? proxyProfiles.map((row) => (row.id === profile.id ? profile : row))
+      : [...proxyProfiles, profile].slice(-40)
+    setProxyProfiles(list)
+    saveProxyProfiles(list)
+    if (edited && profile.id === proxyActive) void chooseProxyAfter(profile.id, list)
+  }
+
+  const chooseProxyAfter = async (id, list) => {
+    const result = await pushProxy(sessionId, id, list)
+    if (!result.ok) {
+      setError(result.missing ? '换代理需要桌面端嵌页' : (result.error || '代理设不上，再试一次'))
+      return
+    }
+    setProxyActive(id)
+    saveProxyActive(sessionId, id)
+    setError(undefined)
+  }
+
+  const dropProxy = (id) => {
+    const list = proxyProfiles.filter((row) => row.id !== id)
+    setProxyProfiles(list)
+    saveProxyProfiles(list)
+    if (proxyActive === id) void chooseProxyAfter(PROXY_SYSTEM, list)
+  }
+
+  const clearVisits = () => {
+    setVisits([])
+    saveVisits(sessionId, [])
+  }
+
+  const dropVisit = (url) => {
+    setVisits((prev) => {
+      const list = forgetVisit(prev, url)
+      saveVisits(sessionId, list)
+      return list
+    })
+  }
+
+  const openHistory = () => {
+    setDlOpen(false)
+    setMoreOpen(false)
+    setProxyOpen(false)
+    setHistoryOpen(true)
+  }
+
+  const openVisit = (target) => {
+    setHistoryOpen(false)
+    go(target)
+  }
+
+  const clearBrowserData = async (kind) => {
+    setMoreOpen(false)
+    setHistoryOpen(false)
+    const api = window.dshDesktop
+    if (!api || typeof api.clearBrowserData !== 'function') {
+      setError('清数据需要桌面端嵌页')
+      return
+    }
+    try {
+      const result = await api.clearBrowserData(partitionName(sessionId), kind)
+      if (!result?.ok) {
+        setError('清不掉，再试一次')
+        return
+      }
+      setError(undefined)
+      if (kind === 'browsing-data') clearVisits()
+      reloadGuests()
+    } catch {
+      setError('清不掉，再试一次')
+    }
   }
 
   const visibleDownloads = downloads.filter((item) => item.state !== 'cancelled' || item.received)
@@ -846,6 +1192,12 @@ export function BrowserView({ sessionId, paneId, active }) {
             title={tab.url}
             onClick={() => setActiveId(tab.id)}
           >
+            <TabFavicon
+              icon={tab.icon}
+              onBroken={() => setTabs((prev) => prev.map((row) => (
+                row.id === tab.id ? { ...row, icon: '' } : row
+              )))}
+            />
             <span style={S.browserTabName}>{tab.title}</span>
             <button
               type="button"
@@ -865,7 +1217,7 @@ export function BrowserView({ sessionId, paneId, active }) {
           +
         </button>
       </div>
-      <div style={{ ...S.chrome, alignItems: 'center' }}>
+      <div style={{ ...S.chrome, alignItems: 'center', overflow: 'visible', zIndex: 30 }}>
         <div style={S.chromeGroup}>
           <button type="button" style={S.iconBtn} title="后退" disabled={!canGoBack} onClick={back}>
             <NavIcon d="M10.5 3.5 5.5 8l5 4.5" />
@@ -907,50 +1259,223 @@ export function BrowserView({ sessionId, paneId, active }) {
             }}
           />
         </form>
-        <button type="button" data-dsh-browser-f12="" style={S.iconBtn} title="F12 调试" aria-label="F12 调试" onClick={openDevtools}>
-          <ConsolePromptIcon />
-        </button>
+        <div style={S.chromeGroup}>
+          <div ref={proxyWrapRef} style={S.browserDlWrap}>
+            <button
+              type="button"
+              data-dsh-browser-proxy=""
+              style={{ ...S.iconBtn, position: 'relative', opacity: proxyOpen ? 1 : 0.7 }}
+              title="代理"
+              aria-label="代理"
+              aria-pressed={proxyOpen}
+              onClick={() => {
+                setDlOpen(false)
+                setMoreOpen(false)
+                setHistoryOpen(false)
+                setProxyOpen((open) => !open)
+              }}
+            >
+              <ProxyGlobeIcon />
+              {proxyProfiles.some((row) => row.id === proxyActive) ? <span style={S.browserDlBadge} /> : null}
+            </button>
+            {proxyOpen ? (
+              <BrowserProxyPanel
+                activeId={proxyActive}
+                profiles={proxyProfiles}
+                onSelect={(id) => void chooseProxy(id)}
+                onCommit={commitProxy}
+                onDelete={dropProxy}
+              />
+            ) : null}
+          </div>
+          <div ref={dlWrapRef} style={S.browserDlWrap}>
+            <button
+              type="button"
+              data-dsh-browser-downloads=""
+              style={{ ...S.iconBtn, position: 'relative', opacity: dlOpen ? 1 : 0.7 }}
+              title="下载"
+              aria-label="下载"
+              aria-pressed={dlOpen}
+              onClick={() => {
+                setMoreOpen(false)
+                setHistoryOpen(false)
+                setProxyOpen(false)
+                setDlOpen((open) => !open)
+              }}
+            >
+              <DownloadTrayIcon />
+              {downloads.some((item) => item.state === 'progressing') ? <span style={S.browserDlBadge} /> : null}
+            </button>
+            {dlOpen ? (
+              <div style={S.browserDownloads} role="dialog" aria-label="下载">
+                {desktop?.openDownloadsFolder ? (
+                  <div style={S.browserDlBar}>
+                    <button type="button" style={S.browserDlBtn} onClick={() => desktop.openDownloadsFolder()}>
+                      打开文件夹
+                    </button>
+                  </div>
+                ) : null}
+                {visibleDownloads.length === 0 ? (
+                  <div style={S.browserDlEmpty}>还没有下载</div>
+                ) : (
+                  visibleDownloads.map((item) => (
+                    <div key={item.id} style={S.browserDlItem}>
+                      <div style={S.browserDlMeta}>
+                        <span style={S.browserDlName} title={item.savePath || item.filename}>{item.filename}</span>
+                        <span style={S.browserDlPct}>
+                          {item.state === 'completed' ? '完成' : item.state === 'interrupted' ? '中断' : `${percent(item)}%`}
+                        </span>
+                      </div>
+                      <div style={S.browserDlTrack}>
+                        <div style={{ ...S.browserDlFill, width: `${percent(item)}%` }} />
+                      </div>
+                      <div style={S.browserDlActions}>
+                        {item.state === 'progressing' && desktop?.cancelDownload ? (
+                          <button type="button" style={S.browserDlBtn} onClick={() => desktop.cancelDownload(item.id)}>取消</button>
+                        ) : null}
+                        {item.state === 'completed' && item.savePath && desktop?.openDownload ? (
+                          <button type="button" style={S.browserDlBtn} onClick={() => desktop.openDownload(item.savePath)}>打开</button>
+                        ) : null}
+                        <button
+                          type="button"
+                          style={S.browserDlBtn}
+                          onClick={() => setDownloads((prev) => prev.filter((row) => row.id !== item.id))}
+                        >
+                          关闭
+                        </button>
+                      </div>
+                    </div>
+                  ))
+                )}
+              </div>
+            ) : null}
+          </div>
+          <button type="button" data-dsh-browser-f12="" style={S.iconBtn} title="F12 调试" aria-label="F12 调试" onClick={openDevtools}>
+            <ConsolePromptIcon />
+          </button>
+          <div ref={moreWrapRef} style={S.browserDlWrap}>
+            <button
+              type="button"
+              data-dsh-browser-more=""
+              style={{ ...S.iconBtn, opacity: moreOpen || historyOpen ? 1 : 0.7 }}
+              title="更多"
+              aria-label="更多"
+              aria-pressed={moreOpen || historyOpen}
+              onClick={() => {
+                setDlOpen(false)
+                setProxyOpen(false)
+                if (historyOpen) {
+                  setHistoryOpen(false)
+                  setMoreOpen(false)
+                  return
+                }
+                setHistoryOpen(false)
+                setMoreOpen((open) => !open)
+              }}
+            >
+              <MoreDotsIcon />
+            </button>
+            {moreOpen ? (
+              <div style={S.browserMenu} role="menu" aria-label="更多">
+                <button type="button" role="menuitem" style={S.browserMenuItem} onClick={hardReload}>
+                  强制刷新
+                </button>
+                <button type="button" role="menuitem" style={S.browserMenuItem} onClick={openHistory}>
+                  历史记录
+                </button>
+                <button type="button" role="menuitem" style={S.browserMenuItem} onClick={() => void clearBrowserData('cookies')}>
+                  清除 cookie
+                </button>
+                <button type="button" role="menuitem" style={S.browserMenuItem} onClick={() => void clearBrowserData('cache')}>
+                  清除缓存
+                </button>
+                <button type="button" role="menuitem" style={S.browserMenuItem} onClick={() => void clearBrowserData('browsing-data')}>
+                  清除浏览数据
+                </button>
+              </div>
+            ) : null}
+            {historyOpen ? (
+              <div style={S.browserHistory} role="dialog" aria-label="历史记录">
+                {visits.length > 0 ? (
+                  <div style={S.browserDlBar}>
+                    <button type="button" style={S.browserDlBtn} onClick={clearVisits}>
+                      清空
+                    </button>
+                  </div>
+                ) : null}
+                {visits.length === 0 ? (
+                  <div style={S.browserDlEmpty}>还没有历史记录</div>
+                ) : (
+                  visits.map((row) => (
+                    <div key={`${row.url}-${row.at}`} style={S.browserHistoryRow}>
+                      <button
+                        type="button"
+                        style={S.browserHistoryItem}
+                        title={row.url}
+                        onClick={() => openVisit(row.url)}
+                      >
+                        <span style={S.browserHistoryTitle}>{row.title || historyHost(row.url)}</span>
+                        <span style={S.browserHistoryMeta}>
+                          <span style={S.browserHistoryHost}>{historyHost(row.url)}</span>
+                          <span>{formatVisitTime(row.at)}</span>
+                        </span>
+                      </button>
+                      <button
+                        type="button"
+                        style={S.tabClose}
+                        title="删除这条"
+                        aria-label={`删除 ${row.title || historyHost(row.url)}`}
+                        onClick={(event) => {
+                          event.stopPropagation()
+                          dropVisit(row.url)
+                        }}
+                      >
+                        ×
+                      </button>
+                    </div>
+                  ))
+                )}
+              </div>
+            ) : null}
+          </div>
+        </div>
       </div>
       <div data-dsh-browser-body="" style={S.browserBody}>
+        {popupOpen ? (
+          <div
+            data-dsh-browser-mask=""
+            style={S.browserPopupMask}
+            onMouseDown={() => {
+              setDlOpen(false)
+              setMoreOpen(false)
+              setHistoryOpen(false)
+              setProxyOpen(false)
+            }}
+          />
+        ) : null}
         <div ref={stageRef} tabIndex={-1} data-dsh-browser-stage="" style={S.browserStage}>
           {loading ? <div style={S.browserLoading} /> : null}
           {error ? <div style={S.browserError}>{error}</div> : null}
         </div>
         {dockOpen ? <div ref={dockRef} data-dsh-browser-dock="" style={S.browserDock} /> : null}
       </div>
-      {visibleDownloads.length > 0 ? (
-        <div style={S.browserDownloads}>
-          {visibleDownloads.map((item) => (
-            <div key={item.id} style={S.browserDlItem}>
-              <div style={S.browserDlMeta}>
-                <span style={S.browserDlName} title={item.savePath || item.filename}>{item.filename}</span>
-                <span style={S.browserDlPct}>
-                  {item.state === 'completed' ? '完成' : item.state === 'interrupted' ? '中断' : `${percent(item)}%`}
-                </span>
-              </div>
-              <div style={S.browserDlTrack}>
-                <div style={{ ...S.browserDlFill, width: `${percent(item)}%` }} />
-              </div>
-              <div style={S.browserDlActions}>
-                {item.state === 'progressing' && desktop?.cancelDownload ? (
-                  <button type="button" style={S.browserDlBtn} onClick={() => desktop.cancelDownload(item.id)}>取消</button>
-                ) : null}
-                {item.state === 'completed' && item.savePath && desktop?.openDownload ? (
-                  <button type="button" style={S.browserDlBtn} onClick={() => desktop.openDownload(item.savePath)}>打开</button>
-                ) : null}
-                <button
-                  type="button"
-                  style={S.browserDlBtn}
-                  onClick={() => setDownloads((prev) => prev.filter((row) => row.id !== item.id))}
-                >
-                  关闭
-                </button>
-              </div>
-            </div>
-          ))}
-        </div>
-      ) : null}
     </div>
+  )
+}
+
+function TabFavicon({ icon, onBroken }) {
+  if (!icon) {
+    return (
+      <span style={S.browserTabIconFallback} aria-hidden="true">
+        <svg viewBox="0 0 16 16" width="12" height="12" fill="none" stroke="currentColor" strokeWidth="1.4">
+          <circle cx="8" cy="8" r="5.2" />
+          <path d="M2.8 8h10.4 M8 2.8c1.5 1.6 2.2 3.3 2.2 5.2S9.5 11.6 8 13.2C6.5 11.6 5.8 9.9 5.8 8S6.5 4.4 8 2.8z" />
+        </svg>
+      </span>
+    )
+  }
+  return (
+    <img src={icon} alt="" style={S.browserTabIcon} onError={onBroken} />
   )
 }
 

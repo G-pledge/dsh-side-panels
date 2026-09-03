@@ -96,6 +96,55 @@ export function ConsolePromptIcon() {
   )
 }
 
+/** 地址栏下载：向下箭头进托盘。 */
+export function DownloadTrayIcon() {
+  return (
+    <svg viewBox="0 0 16 16" width="14" height="14" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <path d="M8 2.5v7.2" />
+      <path d="M4.8 6.8 8 10.2l3.2-3.4" />
+      <path d="M3.2 12.6h9.6" />
+    </svg>
+  )
+}
+
+/** 地址栏更多：三个点。 */
+export function MoreDotsIcon() {
+  return (
+    <svg viewBox="0 0 16 16" width="14" height="14" fill="currentColor" aria-hidden="true">
+      <circle cx="8" cy="3.2" r="1.15" />
+      <circle cx="8" cy="8" r="1.15" />
+      <circle cx="8" cy="12.8" r="1.15" />
+    </svg>
+  )
+}
+
+/** 地址栏代理：地球。 */
+export function ProxyGlobeIcon() {
+  return (
+    <svg viewBox="0 0 16 16" width="14" height="14" fill="none" stroke="currentColor" strokeWidth="1.4" aria-hidden="true">
+      <circle cx="8" cy="8" r="5.4" />
+      <path d="M2.6 8h10.8 M8 2.6c1.6 1.7 2.4 3.5 2.4 5.4S9.6 11.7 8 13.4C6.4 11.7 5.6 9.9 5.6 8S6.4 4.3 8 2.6z" />
+    </svg>
+  )
+}
+
+export function PencilIcon() {
+  return (
+    <svg viewBox="0 0 16 16" width="12" height="12" fill="none" stroke="#3ba55d" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <path d="M3.2 12.4 11.2 4.4l1.4 1.4-8 8H3.2z" />
+      <path d="M10.2 3.4 12.6 5.8" />
+    </svg>
+  )
+}
+
+export function TrashIcon() {
+  return (
+    <svg viewBox="0 0 16 16" width="12" height="12" fill="none" stroke="#e05252" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <path d="M3.4 4.4h9.2 M6.2 4.4V3.4h3.6v1 M5.2 4.4l.6 8.2h4.4l.6-8.2" />
+    </svg>
+  )
+}
+
 /** 右侧活动栏：浏览器。 */
 export function BrowserActivityIcon() {
   return (

@@ -217,6 +217,59 @@ window.__ModuleLoader__.load({ id: "dsh-side-panels", factory: (require) => {
 				return "新标签";
 			}
 		}
+		function faviconListFromEvent(event) {
+			if (!event) return [];
+			if (Array.isArray(event.favicons)) return event.favicons;
+			if (Array.isArray(event.detail)) return event.detail;
+			if (event.detail && Array.isArray(event.detail.favicons)) return event.detail.favicons;
+			return [];
+		}
+		/** 嵌页里把图标读成图片数据，避免工作台这一层拦外链图。 */
+		function readFaviconScript(favicons, pageUrl) {
+			const hints = Array.isArray(favicons) ? favicons.filter((row) => typeof row === "string").slice(0, 8) : [];
+			return `(async function(){
+    const hints = ${JSON.stringify(hints)}
+    const page = ${JSON.stringify(String(pageUrl || ""))}
+    const urls = []
+    const add = (u) => {
+      const s = String(u || '').trim()
+      if (!s || urls.includes(s)) return
+      if (s.startsWith('data:image')) urls.unshift(s)
+      else if (/^https?:\\/\\//i.test(s)) urls.push(s)
+    }
+    for (const u of hints) add(u)
+    try {
+      const links = document.querySelectorAll('link[rel*="icon" i], link[rel="shortcut icon" i], link[rel="apple-touch-icon" i]')
+      for (const el of links) add(el.href)
+    } catch (e) {}
+    try {
+      if (page) add(new URL('/favicon.ico', page).href)
+    } catch (e) {}
+    const load = async (url) => {
+      if (url.startsWith('data:image')) return url
+      const r = await fetch(url, { credentials: 'include' })
+      if (!r.ok) throw new Error('bad')
+      const buf = await r.arrayBuffer()
+      if (buf.byteLength < 16 || buf.byteLength > 200000) throw new Error('size')
+      const mime = ((r.headers.get('content-type') || 'image/x-icon').split(';')[0] || 'image/x-icon').toLowerCase()
+      if (mime.startsWith('text/') || mime.includes('json') || mime.includes('html')) throw new Error('html')
+      const bytes = new Uint8Array(buf)
+      let bin = ''
+      const step = 0x8000
+      for (let i = 0; i < bytes.length; i += step) {
+        bin += String.fromCharCode.apply(null, bytes.subarray(i, i + step))
+      }
+      return 'data:' + mime + ';base64,' + btoa(bin)
+    }
+    for (const url of urls) {
+      try {
+        const data = await load(url)
+        if (data) return data
+      } catch (e) {}
+    }
+    return ''
+  })()`;
+		}
 		/** 只有整页自己失败才提示，页面里的小框失败不当成打不开。 */
 		function shouldShowLoadError(event) {
 			if (!event || event.isMainFrame === false) return false;
@@ -225,6 +278,428 @@ window.__ModuleLoader__.load({ id: "dsh-side-panels", factory: (require) => {
 			const url = String(event.validatedURL || event.url || "");
 			if (/^(chrome-devtools:|devtools:|chrome-error:|chrome:)/i.test(url)) return false;
 			return true;
+		}
+		function isHistoryUrl(url) {
+			const parsed = normalizeNavigateUrl(url);
+			if (!parsed.ok || parsed.url === "about:blank") return false;
+			return parsed.url.startsWith("http://") || parsed.url.startsWith("https://");
+		}
+		function historyStorageKey(sessionId) {
+			return `dsh-sp-history:${sessionKey(sessionId)}`;
+		}
+		function historyHost(url) {
+			try {
+				return new URL(url).hostname || String(url || "");
+			} catch {
+				return String(url || "");
+			}
+		}
+		function visitTitle(url, title) {
+			const name = String(title || "").trim();
+			if (name && !isPlaceholderTitle(name)) return name.slice(0, 80);
+			return tabLabel(url, "").slice(0, 80);
+		}
+		function rememberVisit(list, visit, limit = 120) {
+			const url = String(visit?.url || "").trim();
+			const rows = Array.isArray(list) ? list : [];
+			if (!isHistoryUrl(url)) return rows;
+			const at = Number(visit?.at) || Date.now();
+			return [{
+				url,
+				title: visitTitle(url, visit?.title),
+				at
+			}, ...rows.filter((row) => row?.url !== url)].slice(0, limit);
+		}
+		function forgetVisit(list, url) {
+			const rows = Array.isArray(list) ? list : [];
+			const target = String(url || "").trim();
+			if (!target) return rows;
+			return rows.filter((row) => row?.url !== target);
+		}
+		function touchVisitTitle(list, url, title) {
+			const rows = Array.isArray(list) ? list : [];
+			const name = String(title || "").trim();
+			if (!isHistoryUrl(url) || !name || isPlaceholderTitle(name)) return rows;
+			const clipped = name.slice(0, 80);
+			let changed = false;
+			const next = rows.map((row) => {
+				if (row.url !== url || row.title === clipped) return row;
+				changed = true;
+				return {
+					...row,
+					title: clipped
+				};
+			});
+			return changed ? next : rows;
+		}
+		function formatVisitTime(at, now = Date.now()) {
+			const ts = Number(at) || 0;
+			if (!ts) return "";
+			const date = new Date(ts);
+			const pad = (n) => String(n).padStart(2, "0");
+			const time = `${pad(date.getHours())}:${pad(date.getMinutes())}`;
+			const startToday = new Date(now);
+			startToday.setHours(0, 0, 0, 0);
+			const start = startToday.getTime();
+			if (ts >= start) return time;
+			if (ts >= start - 864e5) return `昨天 ${time}`;
+			return `${date.getMonth() + 1}月${date.getDate()}日 ${time}`;
+		}
+		function readVisitList(raw) {
+			try {
+				const list = JSON.parse(raw);
+				if (!Array.isArray(list)) return [];
+				return list.filter((row) => row && isHistoryUrl(row.url)).map((row) => ({
+					url: String(row.url),
+					title: visitTitle(row.url, row.title),
+					at: Number(row.at) || 0
+				})).slice(0, 120);
+			} catch {
+				return [];
+			}
+		}
+		//#endregion
+		//#region src/shared/net-error-page.js
+		/** 嵌页失败页：有回包就显示回包，空页才按真实错误码补上。 */
+		const NET_ERROR_NAMES = {
+			[-105]: "ERR_NAME_NOT_RESOLVED",
+			[-106]: "ERR_INTERNET_DISCONNECTED",
+			[-102]: "ERR_CONNECTION_REFUSED",
+			[-101]: "ERR_CONNECTION_RESET",
+			[-100]: "ERR_CONNECTION_CLOSED",
+			[-104]: "ERR_CONNECTION_FAILED",
+			[-118]: "ERR_CONNECTION_TIMED_OUT",
+			[-130]: "ERR_PROXY_CONNECTION_FAILED",
+			[-111]: "ERR_TUNNEL_CONNECTION_FAILED",
+			[-127]: "ERR_SOCKS_CONNECTION_FAILED",
+			[-324]: "ERR_EMPTY_RESPONSE",
+			[-107]: "ERR_SSL_PROTOCOL_ERROR",
+			[-109]: "ERR_ADDRESS_UNREACHABLE",
+			[-21]: "ERR_NETWORK_CHANGED",
+			[-27]: "ERR_BLOCKED_BY_CLIENT",
+			[-201]: "ERR_CERT_COMMON_NAME_INVALID",
+			[-202]: "ERR_CERT_AUTHORITY_INVALID",
+			[-200]: "ERR_CERT_CONTAINS_ERRORS"
+		};
+		function errorPageHost(url) {
+			try {
+				return new URL(url).hostname || String(url || "");
+			} catch {
+				return String(url || "");
+			}
+		}
+		function netErrorCodeName(code, description) {
+			const mapped = NET_ERROR_NAMES[Number(code)];
+			if (mapped) return mapped;
+			const named = String(description || "").trim().match(/ERR_[A-Z0-9_]+/);
+			if (named) return named[0];
+			if (Number(code)) return `ERR_${Math.abs(Number(code))}`;
+			return "";
+		}
+		function describeNetError(code, url, description) {
+			const host = errorPageHost(url);
+			const name = netErrorCodeName(code, description);
+			if (name === "ERR_PROXY_CONNECTION_FAILED" || name === "ERR_SOCKS_CONNECTION_FAILED") return {
+				title: "无法访问此网站",
+				detail: "代理服务器出现问题，或者地址有误。",
+				name
+			};
+			if (name === "ERR_TUNNEL_CONNECTION_FAILED") return {
+				title: "无法访问此网站",
+				detail: host ? `${host} 的安全连接建立失败。` : "安全连接建立失败。",
+				name
+			};
+			if (name === "ERR_EMPTY_RESPONSE") return {
+				title: "没有数据",
+				detail: host ? `${host} 没有发送任何数据。` : "网站没有发送任何数据。",
+				name
+			};
+			if (name === "ERR_NAME_NOT_RESOLVED") return {
+				title: "找不到该网站",
+				detail: host ? `找不到 ${host} 的 IP 地址。` : "找不到该网站的 IP 地址。",
+				name
+			};
+			if (name === "ERR_INTERNET_DISCONNECTED") return {
+				title: "没有网络连接",
+				detail: "请检查网线、无线网络或代理设置。",
+				name
+			};
+			if (name === "ERR_CONNECTION_TIMED_OUT") return {
+				title: "无法访问此网站",
+				detail: host ? `${host} 响应时间过长。` : "响应时间过长。",
+				name
+			};
+			if (name === "ERR_CONNECTION_REFUSED") return {
+				title: "无法访问此网站",
+				detail: host ? `${host} 拒绝了连接。` : "网站拒绝了连接。",
+				name
+			};
+			if (name === "ERR_CONNECTION_RESET") return {
+				title: "无法访问此网站",
+				detail: host ? `${host} 意外中断了连接。` : "连接被中断。",
+				name
+			};
+			if (name === "ERR_SSL_PROTOCOL_ERROR" || String(name).startsWith("ERR_CERT_")) return {
+				title: "连接不是专用连接",
+				detail: host ? `攻击者可能试图窃取 ${host} 的信息。` : "证书或加密出现问题。",
+				name
+			};
+			return {
+				title: "无法访问此网站",
+				detail: host ? `${host} 意外中断了连接。` : "网页无法加载。",
+				name: name || "ERR_FAILED"
+			};
+		}
+		function describeHttpError(status, url) {
+			const code = Number(status) || 0;
+			const host = errorPageHost(url);
+			return {
+				title: "该网页无法正常运作",
+				detail: host ? `${host} 目前无法处理此请求。` : "目前无法处理此请求。",
+				name: `HTTP ERROR ${code}`
+			};
+		}
+		function looksBlankPage(info) {
+			if (!info || typeof info !== "object") return false;
+			if (String(info.text || "").trim()) return false;
+			if (Number(info.media) > 0) return false;
+			return (Number(info.htmlLen) || 0) < 240;
+		}
+		function escapeHtml(text) {
+			return String(text || "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+		}
+		function buildErrorPageHtml({ title, detail, name, reloadUrl }) {
+			const safeTitle = escapeHtml(title);
+			const safeDetail = escapeHtml(detail);
+			const safeName = escapeHtml(name);
+			const href = String(reloadUrl || "").trim();
+			return `<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>${safeTitle}</title>
+<style>
+  html,body{margin:0;padding:0;background:#fff;color:#333;font-family:system-ui,-apple-system,"Segoe UI","Microsoft YaHei",sans-serif}
+  main{max-width:540px;margin:0 auto;padding:14vh 24px 40px}
+  svg{width:48px;height:48px;display:block}
+  h1{font-size:22px;font-weight:400;margin:18px 0 10px;line-height:1.3}
+  p{margin:0 0 18px;font-size:14px;color:#5f6368;line-height:1.6}
+  code{display:block;font-size:12px;color:#9aa0a6;margin-bottom:28px}
+  button{
+    background:#1a73e8;
+    color:#fff;
+    border:none;
+    border-radius:4px;
+    padding:8px 22px;
+    font-size:13px;
+    cursor:pointer;
+    box-shadow:0 1px 2px rgb(0 0 0 / 22%);
+    transition:background .08s ease,box-shadow .08s ease,transform .08s ease;
+  }
+  button:hover{background:#1557b0;box-shadow:0 1px 3px rgb(0 0 0 / 28%)}
+  button:active{
+    background:#12499a;
+    transform:translateY(1px) scale(.98);
+    box-shadow:none;
+  }
+  button:focus-visible{outline:2px solid #1a73e8;outline-offset:2px}
+</style>
+</head>
+<body>
+<main>
+  <svg viewBox="0 0 48 48" aria-hidden="true">
+    <path fill="#9aa0a6" d="M10 6h18l10 10v26H10z"/>
+    <path fill="#fff" d="M28 6v10h10"/>
+    <circle cx="18.5" cy="28" r="1.6" fill="#5f6368"/>
+    <circle cx="29.5" cy="28" r="1.6" fill="#5f6368"/>
+    <path fill="none" stroke="#5f6368" stroke-width="1.6" stroke-linecap="round" d="M19 34c2 2.2 8 2.2 10 0"/>
+  </svg>
+  <h1>${safeTitle}</h1>
+  <p>${safeDetail}</p>
+  <code>${safeName}</code>
+  <button type="button" onclick="${href.startsWith("http://") || href.startsWith("https://") ? `location.replace(${JSON.stringify(href)})` : "location.reload()"}">重新加载</button>
+</main>
+</body>
+</html>`;
+		}
+		function inspectBlankScript() {
+			return `(function(){
+    if (window.__dshErrorFilled) return { text: 'filled', htmlLen: 999, media: 1, status: 0, href: location.href, title: document.title || '' }
+    const body = document.body
+    const text = (body && body.innerText || '').replace(/\\s+/g, ' ').trim()
+    const htmlLen = body ? body.innerHTML.length : 0
+    const media = body ? body.querySelectorAll('img,canvas,svg,video,iframe').length : 0
+    let status = 0
+    try {
+      const nav = performance.getEntriesByType('navigation')[0]
+      if (nav && nav.responseStatus) status = nav.responseStatus
+    } catch (e) {}
+    return { text: text.slice(0, 400), htmlLen, media, status, href: location.href, title: document.title || '' }
+  })()`;
+		}
+		function writeErrorPageScript(html) {
+			return `(function(){
+    if (window.__dshErrorFilled) return 'done'
+    document.open()
+    document.write(${JSON.stringify(html)})
+    document.close()
+    window.__dshErrorFilled = true
+    return 'filled'
+  })()`;
+		}
+		//#endregion
+		//#region src/shared/browser-proxy.js
+		/** 嵌页代理：只动这条对话的登录本，不碰日常 Chrome。 */
+		const PROXY_PROFILES_KEY = "dsh-sp-proxy-profiles";
+		const PROXY_DIRECT = "direct";
+		const PROXY_SYSTEM = "system";
+		const PROXY_TYPES = [
+			"http",
+			"socks5",
+			"socks4"
+		];
+		function proxyActiveKey(sessionId) {
+			return `dsh-sp-proxy-active:${sessionKey(sessionId)}`;
+		}
+		function isProxyHost(host) {
+			const text = String(host || "").trim();
+			if (!text || text.length > 253) return false;
+			if (/^[a-zA-Z][a-zA-Z0-9+.-]*:\/\//.test(text)) return false;
+			if (text.includes("/") || text.includes(" ")) return false;
+			if (text.startsWith("[")) return /^\[[0-9a-fA-F:]+\]$/.test(text);
+			if (text.includes(":")) return false;
+			return /^[a-zA-Z0-9.-]+$/.test(text);
+		}
+		function proxyTypeOf(raw) {
+			const type = String(raw || "").trim().toLowerCase();
+			return PROXY_TYPES.includes(type) ? type : "http";
+		}
+		function buildProxyRules(profile) {
+			const host = String(profile?.host || "").trim();
+			const port = Number(profile?.port);
+			const type = proxyTypeOf(profile?.type);
+			if (!isProxyHost(host)) return {
+				ok: false,
+				error: "主机地址无效"
+			};
+			if (!Number.isInteger(port) || port < 1 || port > 65535) return {
+				ok: false,
+				error: "端口无效"
+			};
+			const target = `${host}:${port}`;
+			if (type === "socks5") return {
+				ok: true,
+				rules: `socks5://${target}`
+			};
+			if (type === "socks4") return {
+				ok: true,
+				rules: `socks4://${target}`
+			};
+			return {
+				ok: true,
+				rules: `http://${target}`
+			};
+		}
+		function formatProxyAddr(profile) {
+			const next = buildProxyRules(profile);
+			return next.ok ? next.rules : "";
+		}
+		function buildBypassRules(raw) {
+			const extra = String(raw || "").split(/[\n,]+/).map((row) => row.trim()).filter(Boolean);
+			const base = [
+				"localhost",
+				"127.0.0.1",
+				"::1",
+				"<local>"
+			];
+			const seen = new Set(base.map((row) => row.toLowerCase()));
+			const list = [...base];
+			for (const row of extra) {
+				const key = row.toLowerCase();
+				if (seen.has(key)) continue;
+				seen.add(key);
+				list.push(row);
+			}
+			return list.join(",");
+		}
+		function sanitizeProxyProfile(raw, id) {
+			const name = String(raw?.name || "").trim().slice(0, 40);
+			if (!name) return {
+				ok: false,
+				error: "先填名称"
+			};
+			const type = proxyTypeOf(raw?.type);
+			const host = String(raw?.host || "").trim();
+			const port = Number(raw?.port);
+			const bypass = String(raw?.bypass || "").trim();
+			const rules = buildProxyRules({
+				type,
+				host,
+				port
+			});
+			if (!rules.ok) return rules;
+			return {
+				ok: true,
+				profile: {
+					id: String(id || raw?.id || "").trim() || `px-${Date.now().toString(36)}`,
+					name,
+					type,
+					host,
+					port,
+					bypass
+				}
+			};
+		}
+		function readProxyProfiles(raw) {
+			try {
+				const list = JSON.parse(raw);
+				if (!Array.isArray(list)) return [];
+				const out = [];
+				const seen = /* @__PURE__ */ new Set();
+				for (const row of list) {
+					const next = sanitizeProxyProfile(row, row?.id);
+					if (!next.ok || seen.has(next.profile.id)) continue;
+					seen.add(next.profile.id);
+					out.push(next.profile);
+				}
+				return out.slice(0, 40);
+			} catch {
+				return [];
+			}
+		}
+		function readProxyActive(raw, profiles) {
+			const id = String(raw || "").trim();
+			if (id === "direct") return PROXY_DIRECT;
+			if (id === "system" || !id) return PROXY_SYSTEM;
+			if (Array.isArray(profiles) && profiles.some((row) => row.id === id)) return id;
+			return PROXY_SYSTEM;
+		}
+		function toSessionProxy(activeId, profiles) {
+			const id = String(activeId || "system");
+			if (id === "direct") return {
+				ok: true,
+				config: { mode: "direct" }
+			};
+			if (id === "system") return {
+				ok: true,
+				config: { mode: "system" }
+			};
+			const profile = (Array.isArray(profiles) ? profiles : []).find((row) => row.id === id);
+			if (!profile) return {
+				ok: false,
+				error: "找不到这条代理"
+			};
+			const rules = buildProxyRules(profile);
+			if (!rules.ok) return rules;
+			return {
+				ok: true,
+				config: {
+					mode: "fixed_servers",
+					proxyRules: rules.rules,
+					proxyBypassRules: buildBypassRules(profile.bypass)
+				}
+			};
 		}
 		//#endregion
 		//#region src/client/icons.jsx
@@ -395,6 +870,97 @@ window.__ModuleLoader__.load({ id: "dsh-side-panels", factory: (require) => {
 				children: [/* @__PURE__ */ (0, react_jsx_runtime.jsx)("path", { d: "M3.5 4.2 7.2 8 3.5 11.8" }), /* @__PURE__ */ (0, react_jsx_runtime.jsx)("path", { d: "M8.2 12.2h4.6" })]
 			});
 		}
+		/** 地址栏下载：向下箭头进托盘。 */
+		function DownloadTrayIcon() {
+			return /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("svg", {
+				viewBox: "0 0 16 16",
+				width: "14",
+				height: "14",
+				fill: "none",
+				stroke: "currentColor",
+				strokeWidth: "1.5",
+				strokeLinecap: "round",
+				strokeLinejoin: "round",
+				"aria-hidden": "true",
+				children: [
+					/* @__PURE__ */ (0, react_jsx_runtime.jsx)("path", { d: "M8 2.5v7.2" }),
+					/* @__PURE__ */ (0, react_jsx_runtime.jsx)("path", { d: "M4.8 6.8 8 10.2l3.2-3.4" }),
+					/* @__PURE__ */ (0, react_jsx_runtime.jsx)("path", { d: "M3.2 12.6h9.6" })
+				]
+			});
+		}
+		/** 地址栏更多：三个点。 */
+		function MoreDotsIcon() {
+			return /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("svg", {
+				viewBox: "0 0 16 16",
+				width: "14",
+				height: "14",
+				fill: "currentColor",
+				"aria-hidden": "true",
+				children: [
+					/* @__PURE__ */ (0, react_jsx_runtime.jsx)("circle", {
+						cx: "8",
+						cy: "3.2",
+						r: "1.15"
+					}),
+					/* @__PURE__ */ (0, react_jsx_runtime.jsx)("circle", {
+						cx: "8",
+						cy: "8",
+						r: "1.15"
+					}),
+					/* @__PURE__ */ (0, react_jsx_runtime.jsx)("circle", {
+						cx: "8",
+						cy: "12.8",
+						r: "1.15"
+					})
+				]
+			});
+		}
+		/** 地址栏代理：地球。 */
+		function ProxyGlobeIcon() {
+			return /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("svg", {
+				viewBox: "0 0 16 16",
+				width: "14",
+				height: "14",
+				fill: "none",
+				stroke: "currentColor",
+				strokeWidth: "1.4",
+				"aria-hidden": "true",
+				children: [/* @__PURE__ */ (0, react_jsx_runtime.jsx)("circle", {
+					cx: "8",
+					cy: "8",
+					r: "5.4"
+				}), /* @__PURE__ */ (0, react_jsx_runtime.jsx)("path", { d: "M2.6 8h10.8 M8 2.6c1.6 1.7 2.4 3.5 2.4 5.4S9.6 11.7 8 13.4C6.4 11.7 5.6 9.9 5.6 8S6.4 4.3 8 2.6z" })]
+			});
+		}
+		function PencilIcon$1() {
+			return /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("svg", {
+				viewBox: "0 0 16 16",
+				width: "12",
+				height: "12",
+				fill: "none",
+				stroke: "#3ba55d",
+				strokeWidth: "1.5",
+				strokeLinecap: "round",
+				strokeLinejoin: "round",
+				"aria-hidden": "true",
+				children: [/* @__PURE__ */ (0, react_jsx_runtime.jsx)("path", { d: "M3.2 12.4 11.2 4.4l1.4 1.4-8 8H3.2z" }), /* @__PURE__ */ (0, react_jsx_runtime.jsx)("path", { d: "M10.2 3.4 12.6 5.8" })]
+			});
+		}
+		function TrashIcon() {
+			return /* @__PURE__ */ (0, react_jsx_runtime.jsx)("svg", {
+				viewBox: "0 0 16 16",
+				width: "12",
+				height: "12",
+				fill: "none",
+				stroke: "#e05252",
+				strokeWidth: "1.5",
+				strokeLinecap: "round",
+				strokeLinejoin: "round",
+				"aria-hidden": "true",
+				children: /* @__PURE__ */ (0, react_jsx_runtime.jsx)("path", { d: "M3.4 4.4h9.2 M6.2 4.4V3.4h3.6v1 M5.2 4.4l.6 8.2h4.4l.6-8.2" })
+			});
+		}
 		/** 右侧活动栏：浏览器。 */
 		function BrowserActivityIcon() {
 			return /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("svg", {
@@ -437,67 +1003,6 @@ window.__ModuleLoader__.load({ id: "dsh-side-panels", factory: (require) => {
 			});
 		}
 		//#endregion
-		//#region src/client/prefs.js
-		const SETTINGS_NS = "dsh-side-panels";
-		const DEFAULT_PREFS = {
-			enabled: true,
-			terminalTheme: "follow",
-			startCollapsed: false,
-			shell: "auto",
-			customPath: "",
-			devtoolsMode: "bottom"
-		};
-		const listeners$1 = /* @__PURE__ */ new Set();
-		let bound;
-		const memory = { ...DEFAULT_PREFS };
-		let cached = { ...DEFAULT_PREFS };
-		function samePrefs(left, right) {
-			return left.enabled === right.enabled && left.terminalTheme === right.terminalTheme && left.startCollapsed === right.startCollapsed && left.shell === right.shell && left.customPath === right.customPath && left.devtoolsMode === right.devtoolsMode;
-		}
-		function emit$1() {
-			snapshotValue();
-			for (const listener of listeners$1) listener();
-		}
-		function snapshotValue() {
-			const snap = bound?.getSnapshot();
-			const next = snap?.status === "ready" && snap.value && typeof snap.value === "object" ? {
-				...DEFAULT_PREFS,
-				...snap.value
-			} : {
-				...DEFAULT_PREFS,
-				...memory
-			};
-			if (samePrefs(cached, next)) return cached;
-			cached = next;
-			return cached;
-		}
-		function attachPrefs(settingsScope) {
-			bound = settingsScope.bind({ namespace: SETTINGS_NS });
-			const stop = bound.subscribe(emit$1);
-			emit$1();
-			return () => {
-				stop();
-				bound = void 0;
-				emit$1();
-			};
-		}
-		function subscribePrefs(listener) {
-			listeners$1.add(listener);
-			return () => listeners$1.delete(listener);
-		}
-		function getPrefs() {
-			return snapshotValue();
-		}
-		function readDevtoolsMode(prefs = getPrefs()) {
-			return prefs.devtoolsMode === "detach" ? "detach" : "bottom";
-		}
-		function setPref(field, value) {
-			if ((bound?.getSnapshot())?.writable) return bound.set(field, value);
-			memory[field] = value;
-			emit$1();
-			return Promise.resolve();
-		}
-		//#endregion
 		//#region src/client/styles.js
 		const S$1 = {
 			panel: {
@@ -532,13 +1037,15 @@ window.__ModuleLoader__.load({ id: "dsh-side-panels", factory: (require) => {
 				position: "relative",
 				zIndex: 8,
 				gap: 4,
-				minWidth: 0
+				minWidth: 0,
+				overflow: "visible"
 			},
 			chromeGroup: {
 				display: "flex",
 				alignItems: "center",
 				gap: 2,
-				flex: "0 0 auto"
+				flex: "0 0 auto",
+				overflow: "visible"
 			},
 			filesBar: {
 				display: "flex",
@@ -855,7 +1362,13 @@ window.__ModuleLoader__.load({ id: "dsh-side-panels", factory: (require) => {
 				flex: 1,
 				minHeight: 0,
 				display: "flex",
-				flexDirection: "column"
+				flexDirection: "column",
+				position: "relative"
+			},
+			browserPopupMask: {
+				position: "absolute",
+				inset: 0,
+				zIndex: 25
 			},
 			browserDock: {
 				flex: "0 0 42%",
@@ -905,7 +1418,7 @@ window.__ModuleLoader__.load({ id: "dsh-side-panels", factory: (require) => {
 				gap: 4,
 				maxWidth: 180,
 				height: 24,
-				padding: "0 4px 0 10px",
+				padding: "0 4px 0 6px",
 				borderRadius: "8px 8px 0 0",
 				fontSize: 12,
 				cursor: "pointer",
@@ -915,6 +1428,23 @@ window.__ModuleLoader__.load({ id: "dsh-side-panels", factory: (require) => {
 			browserTabActive: {
 				background: "var(--dsw-alias-bg-base, #fff)",
 				opacity: 1
+			},
+			browserTabIcon: {
+				width: 14,
+				height: 14,
+				flex: "0 0 14px",
+				borderRadius: 2,
+				objectFit: "contain",
+				background: "transparent"
+			},
+			browserTabIconFallback: {
+				width: 14,
+				height: 14,
+				flex: "0 0 14px",
+				opacity: .45,
+				display: "inline-flex",
+				alignItems: "center",
+				justifyContent: "center"
 			},
 			browserTabName: {
 				overflow: "hidden",
@@ -936,16 +1466,316 @@ window.__ModuleLoader__.load({ id: "dsh-side-panels", factory: (require) => {
 				flex: "0 0 24px",
 				opacity: .7
 			},
+			browserDlWrap: {
+				position: "relative",
+				flex: "0 0 auto"
+			},
 			browserDownloads: {
-				flex: "0 0 auto",
-				borderTop: "1px solid var(--dsw-alias-border, #ececec)",
-				background: "var(--dsw-alias-bg-subtle, #f3f3f3)",
-				maxHeight: 120,
+				position: "absolute",
+				top: "calc(100% + 4px)",
+				right: 0,
+				width: 320,
+				maxWidth: "min(320px, 72vw)",
+				maxHeight: 260,
 				overflowY: "auto",
-				padding: "6px 8px",
+				zIndex: 40,
+				border: "1px solid var(--dsw-alias-border, #e0e0e0)",
+				borderRadius: 8,
+				background: "var(--dsw-alias-bg-base, #fff)",
+				boxShadow: "0 8px 28px rgb(0 0 0 / 18%)",
+				padding: "8px",
 				display: "flex",
 				flexDirection: "column",
 				gap: 6
+			},
+			browserMenu: {
+				position: "absolute",
+				top: "calc(100% + 4px)",
+				right: 0,
+				minWidth: 168,
+				zIndex: 40,
+				border: "1px solid var(--dsw-alias-border, #e0e0e0)",
+				borderRadius: 8,
+				background: "var(--dsw-alias-bg-base, #fff)",
+				boxShadow: "0 8px 28px rgb(0 0 0 / 18%)",
+				padding: "4px",
+				display: "flex",
+				flexDirection: "column"
+			},
+			browserMenuItem: {
+				border: "none",
+				background: "transparent",
+				color: "inherit",
+				textAlign: "left",
+				fontSize: 12,
+				lineHeight: "22px",
+				padding: "4px 10px",
+				borderRadius: 6,
+				cursor: "pointer",
+				whiteSpace: "nowrap"
+			},
+			browserHistory: {
+				position: "absolute",
+				top: "calc(100% + 4px)",
+				right: 0,
+				width: 320,
+				maxWidth: "min(320px, 72vw)",
+				maxHeight: 320,
+				overflowY: "auto",
+				zIndex: 40,
+				border: "1px solid var(--dsw-alias-border, #e0e0e0)",
+				borderRadius: 8,
+				background: "var(--dsw-alias-bg-base, #fff)",
+				boxShadow: "0 8px 28px rgb(0 0 0 / 18%)",
+				padding: "8px",
+				display: "flex",
+				flexDirection: "column",
+				gap: 2
+			},
+			browserHistoryRow: {
+				display: "flex",
+				alignItems: "center",
+				gap: 2,
+				minWidth: 0,
+				borderRadius: 6
+			},
+			browserHistoryItem: {
+				border: "none",
+				background: "transparent",
+				color: "inherit",
+				textAlign: "left",
+				padding: "6px 8px",
+				borderRadius: 6,
+				cursor: "pointer",
+				display: "flex",
+				flexDirection: "column",
+				gap: 2,
+				minWidth: 0,
+				flex: 1
+			},
+			browserHistoryTitle: {
+				fontSize: 12,
+				lineHeight: "18px",
+				overflow: "hidden",
+				textOverflow: "ellipsis",
+				whiteSpace: "nowrap"
+			},
+			browserHistoryMeta: {
+				fontSize: 11,
+				lineHeight: "16px",
+				opacity: .55,
+				display: "flex",
+				justifyContent: "space-between",
+				gap: 8,
+				minWidth: 0
+			},
+			browserHistoryHost: {
+				overflow: "hidden",
+				textOverflow: "ellipsis",
+				whiteSpace: "nowrap",
+				minWidth: 0
+			},
+			browserProxy: {
+				position: "absolute",
+				top: "calc(100% + 4px)",
+				right: 0,
+				width: 360,
+				maxWidth: "min(360px, 78vw)",
+				maxHeight: 420,
+				overflowY: "auto",
+				zIndex: 40,
+				border: "1px solid var(--dsw-alias-border, #e0e0e0)",
+				borderRadius: 8,
+				background: "var(--dsw-alias-bg-base, #fff)",
+				boxShadow: "0 8px 28px rgb(0 0 0 / 18%)",
+				padding: "10px",
+				display: "flex",
+				flexDirection: "column",
+				gap: 6
+			},
+			browserProxyHead: {
+				fontSize: 13,
+				fontWeight: 600,
+				padding: "0 2px 4px"
+			},
+			browserProxyRow: {
+				border: "1px solid transparent",
+				background: "transparent",
+				color: "inherit",
+				textAlign: "left",
+				padding: "8px 10px",
+				borderRadius: 8,
+				cursor: "pointer",
+				display: "flex",
+				alignItems: "center",
+				justifyContent: "space-between",
+				gap: 10,
+				minWidth: 0
+			},
+			browserProxyRowOn: {
+				background: "rgba(0, 122, 204, 0.1)",
+				border: "1px solid rgba(0, 122, 204, 0.42)"
+			},
+			browserProxyCustom: {
+				display: "flex",
+				alignItems: "center",
+				gap: 2,
+				minWidth: 0,
+				border: "1px solid transparent",
+				borderRadius: 8,
+				padding: "0 4px 0 0"
+			},
+			browserProxyPick: {
+				border: "none",
+				background: "transparent",
+				color: "inherit",
+				textAlign: "left",
+				padding: "8px 8px 8px 10px",
+				cursor: "pointer",
+				display: "flex",
+				alignItems: "center",
+				justifyContent: "space-between",
+				gap: 10,
+				minWidth: 0,
+				flex: 1
+			},
+			browserProxyName: {
+				fontSize: 13,
+				lineHeight: "18px",
+				display: "inline-flex",
+				alignItems: "center",
+				gap: 6,
+				minWidth: 0,
+				overflow: "hidden",
+				textOverflow: "ellipsis",
+				whiteSpace: "nowrap"
+			},
+			browserProxyMeta: {
+				fontSize: 11,
+				lineHeight: "16px",
+				opacity: .55,
+				flex: "0 0 auto",
+				whiteSpace: "nowrap"
+			},
+			browserProxyDot: {
+				width: 7,
+				height: 7,
+				borderRadius: 99,
+				background: "#3ba55d",
+				flex: "0 0 7px"
+			},
+			browserProxyIconBtn: {
+				width: 22,
+				height: 22,
+				border: "none",
+				background: "transparent",
+				cursor: "pointer",
+				borderRadius: 4,
+				display: "inline-flex",
+				alignItems: "center",
+				justifyContent: "center",
+				flex: "0 0 22px",
+				padding: 0
+			},
+			browserProxyForm: {
+				display: "flex",
+				flexDirection: "column",
+				gap: 6,
+				paddingTop: 6,
+				borderTop: "1px solid var(--dsw-alias-border, #ececec)"
+			},
+			browserProxyFields: {
+				display: "flex",
+				gap: 6,
+				minWidth: 0
+			},
+			browserProxyInput: {
+				flex: 1,
+				minWidth: 0,
+				height: 28,
+				border: "1px solid var(--dsw-alias-border, #e0e0e0)",
+				borderRadius: 6,
+				padding: "0 8px",
+				fontSize: 12,
+				background: "var(--dsw-alias-bg-base, #fff)",
+				color: "inherit",
+				outline: "none"
+			},
+			browserProxySelect: {
+				flex: "0 0 88px",
+				height: 28,
+				border: "1px solid var(--dsw-alias-border, #e0e0e0)",
+				borderRadius: 6,
+				padding: "0 6px",
+				fontSize: 12,
+				background: "var(--dsw-alias-bg-base, #fff)",
+				color: "inherit",
+				outline: "none"
+			},
+			browserProxyPort: {
+				flex: "0 0 88px",
+				height: 28,
+				border: "1px solid var(--dsw-alias-border, #e0e0e0)",
+				borderRadius: 6,
+				padding: "0 8px",
+				fontSize: 12,
+				background: "var(--dsw-alias-bg-base, #fff)",
+				color: "inherit",
+				outline: "none"
+			},
+			browserProxyBypass: {
+				width: "100%",
+				minHeight: 58,
+				resize: "vertical",
+				border: "1px solid var(--dsw-alias-border, #e0e0e0)",
+				borderRadius: 6,
+				padding: "6px 8px",
+				fontSize: 12,
+				lineHeight: "18px",
+				background: "var(--dsw-alias-bg-base, #fff)",
+				color: "inherit",
+				outline: "none",
+				boxSizing: "border-box",
+				fontFamily: "inherit"
+			},
+			browserProxyHint: {
+				fontSize: 12,
+				color: "#c43c3c"
+			},
+			browserProxyActions: {
+				display: "flex",
+				justifyContent: "flex-end",
+				alignItems: "center",
+				gap: 8
+			},
+			browserProxyAdd: {
+				border: "none",
+				background: "rgb(0 122 204)",
+				color: "#fff",
+				fontSize: 12,
+				lineHeight: "22px",
+				padding: "3px 14px",
+				borderRadius: 6,
+				cursor: "pointer"
+			},
+			browserDlBar: {
+				display: "flex",
+				justifyContent: "flex-end"
+			},
+			browserDlEmpty: {
+				fontSize: 12,
+				opacity: .65,
+				padding: "4px 2px"
+			},
+			browserDlBadge: {
+				position: "absolute",
+				top: 5,
+				right: 5,
+				width: 6,
+				height: 6,
+				borderRadius: 99,
+				background: "rgb(0 122 204)",
+				pointerEvents: "none"
 			},
 			browserDlItem: {
 				display: "grid",
@@ -1398,9 +2228,35 @@ html[data-dsh-side-panels-dragging] [data-dsh-grip] {
   background: rgb(127 127 127 / 10%);
   opacity: 1;
 }
+[data-dsh-side-panels] [data-dsh-browser-tab]:active {
+  background: rgb(127 127 127 / 18%);
+  transform: translateY(1px);
+}
 [data-dsh-side-panels] [data-dsh-browser-tab-active] {
   background: var(--dsw-alias-bg-base, #fff) !important;
   opacity: 1;
+}
+[data-dsh-side-panels] [data-dsh-browser] button {
+  transition: transform .08s ease, background .08s ease, filter .08s ease, opacity .08s ease;
+}
+[data-dsh-side-panels] [data-dsh-browser] button:hover:not(:disabled) {
+  opacity: 1;
+}
+[data-dsh-side-panels] [data-dsh-browser] button:active:not(:disabled) {
+  transform: translateY(1px) scale(.94);
+  filter: brightness(.9);
+  background: rgb(127 127 127 / 20%) !important;
+}
+[data-dsh-side-panels] [data-dsh-browser] button[data-dsh-browser-primary]:hover:not(:disabled) {
+  background: rgb(0 105 180) !important;
+  color: #fff !important;
+  filter: none;
+}
+[data-dsh-side-panels] [data-dsh-browser] button[data-dsh-browser-primary]:active:not(:disabled) {
+  background: rgb(0 88 150) !important;
+  color: #fff !important;
+  transform: translateY(1px) scale(.98);
+  filter: none;
 }
 [data-dsh-side-panels] button[data-dsh-browser-f12] {
   font-size: 10px !important;
@@ -1568,6 +2424,274 @@ html[data-dsh-side-panels-dragging] [data-dsh-grip] {
 }
 `;
 		//#endregion
+		//#region src/client/BrowserProxyPanel.jsx
+		const EMPTY = {
+			name: "",
+			type: "http",
+			host: "",
+			port: "",
+			bypass: ""
+		};
+		function typeLabel(type) {
+			if (type === "socks5") return "socks5";
+			if (type === "socks4") return "socks4";
+			return "http";
+		}
+		function BrowserProxyPanel({ activeId, profiles, onSelect, onCommit, onDelete }) {
+			const [form, setForm] = (0, react.useState)(EMPTY);
+			const [editId, setEditId] = (0, react.useState)("");
+			const [hint, setHint] = (0, react.useState)("");
+			const patch = (field, value) => {
+				setHint("");
+				setForm((prev) => ({
+					...prev,
+					[field]: value
+				}));
+			};
+			const resetForm = () => {
+				setEditId("");
+				setForm(EMPTY);
+				setHint("");
+			};
+			const save = () => {
+				const next = sanitizeProxyProfile({
+					...form,
+					port: form.port === "" ? NaN : Number(form.port)
+				}, editId);
+				if (!next.ok) {
+					setHint(next.error);
+					return;
+				}
+				onCommit(next.profile, Boolean(editId));
+				resetForm();
+			};
+			const startEdit = (profile) => {
+				setEditId(profile.id);
+				setForm({
+					name: profile.name,
+					type: typeLabel(profile.type),
+					host: profile.host,
+					port: String(profile.port),
+					bypass: profile.bypass || ""
+				});
+				setHint("");
+			};
+			return /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", {
+				style: S$1.browserProxy,
+				role: "dialog",
+				"aria-label": "代理切换",
+				children: [
+					/* @__PURE__ */ (0, react_jsx_runtime.jsx)("div", {
+						style: S$1.browserProxyHead,
+						children: "代理切换"
+					}),
+					/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("button", {
+						type: "button",
+						style: {
+							...S$1.browserProxyRow,
+							...activeId === "direct" ? S$1.browserProxyRowOn : {}
+						},
+						onClick: () => onSelect(PROXY_DIRECT),
+						children: [/* @__PURE__ */ (0, react_jsx_runtime.jsx)("span", {
+							style: S$1.browserProxyName,
+							children: "直接连接"
+						}), /* @__PURE__ */ (0, react_jsx_runtime.jsx)("span", {
+							style: S$1.browserProxyMeta,
+							children: "不使用代理"
+						})]
+					}),
+					/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("button", {
+						type: "button",
+						style: {
+							...S$1.browserProxyRow,
+							...activeId === "system" ? S$1.browserProxyRowOn : {}
+						},
+						onClick: () => onSelect(PROXY_SYSTEM),
+						children: [/* @__PURE__ */ (0, react_jsx_runtime.jsx)("span", {
+							style: S$1.browserProxyName,
+							children: "系统代理"
+						}), /* @__PURE__ */ (0, react_jsx_runtime.jsx)("span", {
+							style: S$1.browserProxyMeta,
+							children: "系统设置"
+						})]
+					}),
+					profiles.map((row) => {
+						const on = activeId === row.id;
+						return /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", {
+							style: {
+								...S$1.browserProxyCustom,
+								...on ? S$1.browserProxyRowOn : {}
+							},
+							children: [
+								/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("button", {
+									type: "button",
+									style: S$1.browserProxyPick,
+									onClick: () => onSelect(row.id),
+									children: [/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("span", {
+										style: S$1.browserProxyName,
+										children: [on ? /* @__PURE__ */ (0, react_jsx_runtime.jsx)("span", { style: S$1.browserProxyDot }) : null, row.name]
+									}), /* @__PURE__ */ (0, react_jsx_runtime.jsx)("span", {
+										style: S$1.browserProxyMeta,
+										children: formatProxyAddr(row)
+									})]
+								}),
+								/* @__PURE__ */ (0, react_jsx_runtime.jsx)("button", {
+									type: "button",
+									style: S$1.browserProxyIconBtn,
+									title: "改这条",
+									"aria-label": `改 ${row.name}`,
+									onClick: (event) => {
+										event.stopPropagation();
+										startEdit(row);
+									},
+									children: /* @__PURE__ */ (0, react_jsx_runtime.jsx)(PencilIcon$1, {})
+								}),
+								/* @__PURE__ */ (0, react_jsx_runtime.jsx)("button", {
+									type: "button",
+									style: S$1.browserProxyIconBtn,
+									title: "删除这条",
+									"aria-label": `删除 ${row.name}`,
+									onClick: (event) => {
+										event.stopPropagation();
+										if (editId === row.id) resetForm();
+										onDelete(row.id);
+									},
+									children: /* @__PURE__ */ (0, react_jsx_runtime.jsx)(TrashIcon, {})
+								})
+							]
+						}, row.id);
+					}),
+					/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", {
+						style: S$1.browserProxyForm,
+						children: [
+							/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", {
+								style: S$1.browserProxyFields,
+								children: [/* @__PURE__ */ (0, react_jsx_runtime.jsx)("input", {
+									style: S$1.browserProxyInput,
+									value: form.name,
+									spellCheck: false,
+									placeholder: "代理名称",
+									onChange: (event) => patch("name", event.target.value)
+								}), /* @__PURE__ */ (0, react_jsx_runtime.jsx)("select", {
+									style: S$1.browserProxySelect,
+									value: form.type,
+									onChange: (event) => patch("type", event.target.value),
+									children: PROXY_TYPES.map((type) => /* @__PURE__ */ (0, react_jsx_runtime.jsx)("option", {
+										value: type,
+										children: type
+									}, type))
+								})]
+							}),
+							/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", {
+								style: S$1.browserProxyFields,
+								children: [/* @__PURE__ */ (0, react_jsx_runtime.jsx)("input", {
+									style: S$1.browserProxyInput,
+									value: form.host,
+									spellCheck: false,
+									placeholder: "主机地址",
+									onChange: (event) => patch("host", event.target.value)
+								}), /* @__PURE__ */ (0, react_jsx_runtime.jsx)("input", {
+									style: S$1.browserProxyPort,
+									value: form.port,
+									spellCheck: false,
+									inputMode: "numeric",
+									placeholder: "端口",
+									onChange: (event) => patch("port", event.target.value.replace(/[^\d]/g, "").slice(0, 5))
+								})]
+							}),
+							/* @__PURE__ */ (0, react_jsx_runtime.jsx)("textarea", {
+								style: S$1.browserProxyBypass,
+								value: form.bypass,
+								spellCheck: false,
+								placeholder: "不使用代理的地址，每行一个，例如：\n*.example.com",
+								onChange: (event) => patch("bypass", event.target.value)
+							}),
+							hint ? /* @__PURE__ */ (0, react_jsx_runtime.jsx)("div", {
+								style: S$1.browserProxyHint,
+								children: hint
+							}) : null,
+							/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", {
+								style: S$1.browserProxyActions,
+								children: [editId ? /* @__PURE__ */ (0, react_jsx_runtime.jsx)("button", {
+									type: "button",
+									style: S$1.browserDlBtn,
+									onClick: resetForm,
+									children: "取消"
+								}) : null, /* @__PURE__ */ (0, react_jsx_runtime.jsx)("button", {
+									type: "button",
+									"data-dsh-browser-primary": "",
+									style: S$1.browserProxyAdd,
+									onClick: save,
+									children: editId ? "保存" : "添加"
+								})]
+							})
+						]
+					})
+				]
+			});
+		}
+		//#endregion
+		//#region src/client/prefs.js
+		const SETTINGS_NS = "dsh-side-panels";
+		const DEFAULT_PREFS = {
+			enabled: true,
+			terminalTheme: "follow",
+			startCollapsed: false,
+			shell: "auto",
+			customPath: "",
+			devtoolsMode: "bottom"
+		};
+		const listeners$1 = /* @__PURE__ */ new Set();
+		let bound;
+		const memory = { ...DEFAULT_PREFS };
+		let cached = { ...DEFAULT_PREFS };
+		function samePrefs(left, right) {
+			return left.enabled === right.enabled && left.terminalTheme === right.terminalTheme && left.startCollapsed === right.startCollapsed && left.shell === right.shell && left.customPath === right.customPath && left.devtoolsMode === right.devtoolsMode;
+		}
+		function emit$1() {
+			snapshotValue();
+			for (const listener of listeners$1) listener();
+		}
+		function snapshotValue() {
+			const snap = bound?.getSnapshot();
+			const next = snap?.status === "ready" && snap.value && typeof snap.value === "object" ? {
+				...DEFAULT_PREFS,
+				...snap.value
+			} : {
+				...DEFAULT_PREFS,
+				...memory
+			};
+			if (samePrefs(cached, next)) return cached;
+			cached = next;
+			return cached;
+		}
+		function attachPrefs(settingsScope) {
+			bound = settingsScope.bind({ namespace: SETTINGS_NS });
+			const stop = bound.subscribe(emit$1);
+			emit$1();
+			return () => {
+				stop();
+				bound = void 0;
+				emit$1();
+			};
+		}
+		function subscribePrefs(listener) {
+			listeners$1.add(listener);
+			return () => listeners$1.delete(listener);
+		}
+		function getPrefs() {
+			return snapshotValue();
+		}
+		function readDevtoolsMode(prefs = getPrefs()) {
+			return prefs.devtoolsMode === "detach" ? "detach" : "bottom";
+		}
+		function setPref(field, value) {
+			if ((bound?.getSnapshot())?.writable) return bound.set(field, value);
+			memory[field] = value;
+			emit$1();
+			return Promise.resolve();
+		}
+		//#endregion
 		//#region src/client/BrowserView.jsx
 		let tabSeq = 0;
 		function nextTabId() {
@@ -1636,6 +2760,14 @@ html[data-dsh-side-panels-dragging] [data-dsh-grip] {
 				if (hasGuestApi(guest, "getWebContentsId")) return guest.getWebContentsId();
 			} catch {}
 			return 0;
+		}
+		function sameSiteIcon(prevUrl, nextUrl, icon) {
+			const data = String(icon || "");
+			if (!data.startsWith("data:image")) return "";
+			try {
+				if (new URL(prevUrl).origin === new URL(nextUrl).origin) return data;
+			} catch {}
+			return "";
 		}
 		function waitTick(ms) {
 			return new Promise((resolve) => setTimeout(resolve, ms));
@@ -1801,6 +2933,85 @@ html[data-dsh-side-panels-dragging] [data-dsh-grip] {
     return true
   })()`;
 		}
+		function loadVisits(sessionId) {
+			try {
+				return readVisitList(window.localStorage.getItem(historyStorageKey(sessionId)));
+			} catch {
+				return [];
+			}
+		}
+		function saveVisits(sessionId, list) {
+			try {
+				window.localStorage.setItem(historyStorageKey(sessionId), JSON.stringify(list));
+			} catch {}
+		}
+		function loadProxyProfiles() {
+			try {
+				return readProxyProfiles(window.localStorage.getItem(PROXY_PROFILES_KEY));
+			} catch {
+				return [];
+			}
+		}
+		function saveProxyProfiles(list) {
+			try {
+				window.localStorage.setItem(PROXY_PROFILES_KEY, JSON.stringify(list));
+			} catch {}
+		}
+		function loadProxyActive(sessionId, profiles) {
+			try {
+				return readProxyActive(window.localStorage.getItem(proxyActiveKey(sessionId)), profiles);
+			} catch {
+				return PROXY_SYSTEM;
+			}
+		}
+		function saveProxyActive(sessionId, id) {
+			try {
+				window.localStorage.setItem(proxyActiveKey(sessionId), id);
+			} catch {}
+		}
+		async function pushProxy(sessionId, activeId, profiles) {
+			const api = typeof window !== "undefined" ? window.dshDesktop : void 0;
+			if (!api || typeof api.setBrowserProxy !== "function") return {
+				ok: false,
+				missing: true
+			};
+			const next = toSessionProxy(activeId, profiles);
+			if (!next.ok) return next;
+			try {
+				return (await api.setBrowserProxy(partitionName(sessionId), next.config))?.ok ? { ok: true } : { ok: false };
+			} catch {
+				return { ok: false };
+			}
+		}
+		async function recoverBlankGuest(guest) {
+			if (!guest || !hasGuestApi(guest, "executeJavaScript")) return;
+			const href = guestUrl(guest);
+			if (!href || href === "about:blank" || /^(chrome-devtools:|devtools:|chrome:)/i.test(href)) return;
+			if (guest._dshErrorBusy) return;
+			guest._dshErrorBusy = true;
+			try {
+				const info = await guest.executeJavaScript(inspectBlankScript());
+				if (!looksBlankPage(info)) {
+					guest._dshNetFail = null;
+					return;
+				}
+				const target = String(guest._dshNetFail?.url || info?.href || href);
+				if (!target || target === "about:blank" || !/^https?:/i.test(target)) {
+					guest._dshNetFail = null;
+					return;
+				}
+				const fail = guest._dshNetFail;
+				guest._dshNetFail = null;
+				const status = Number(info?.status) || 0;
+				const copy = fail ? describeNetError(fail.code, fail.url || target, fail.description) : status >= 400 ? describeHttpError(status, target) : describeNetError(-324, target, "ERR_EMPTY_RESPONSE");
+				await guest.executeJavaScript(writeErrorPageScript(buildErrorPageHtml({
+					...copy,
+					reloadUrl: target
+				})));
+			} catch {} finally {
+				guest._dshErrorBusy = false;
+			}
+		}
 		function percent$1(item) {
 			const total = Number(item.total) || 0;
 			const received = Number(item.received) || 0;
@@ -1832,9 +3043,22 @@ html[data-dsh-side-panels-dragging] [data-dsh-grip] {
 			const [loading, setLoading] = (0, react.useState)(false);
 			const [error, setError] = (0, react.useState)();
 			const [downloads, setDownloads] = (0, react.useState)([]);
+			const [dlOpen, setDlOpen] = (0, react.useState)(false);
+			const [moreOpen, setMoreOpen] = (0, react.useState)(false);
+			const [historyOpen, setHistoryOpen] = (0, react.useState)(false);
+			const [proxyOpen, setProxyOpen] = (0, react.useState)(false);
+			const [proxyProfiles, setProxyProfiles] = (0, react.useState)([]);
+			const [proxyActive, setProxyActive] = (0, react.useState)(PROXY_SYSTEM);
+			const [visits, setVisits] = (0, react.useState)([]);
+			const dlWrapRef = (0, react.useRef)(null);
+			const moreWrapRef = (0, react.useRef)(null);
+			const proxyWrapRef = (0, react.useRef)(null);
+			const popupOpenRef = (0, react.useRef)(false);
 			const [dockOpen, setDockOpen] = (0, react.useState)(false);
 			const tabsRef = (0, react.useRef)(tabs);
 			tabsRef.current = tabs;
+			const popupOpen = dlOpen || moreOpen || historyOpen || proxyOpen;
+			popupOpenRef.current = popupOpen;
 			activeIdRef.current = activeId;
 			dockOpenRef.current = dockOpen;
 			activeRef.current = active;
@@ -1845,6 +3069,7 @@ html[data-dsh-side-panels-dragging] [data-dsh-grip] {
 					if (hasGuestApi(guest, "canGoForward")) setCanGoForward(Boolean(guest.canGoForward()));
 					const next = guestUrl(guest);
 					if (!next) return;
+					if (/^(chrome-error:|chrome:|devtools:|chrome-devtools:)/i.test(next)) return;
 					setUrl(next);
 					if (!editing.current) setDraft(next === "about:blank" ? "" : next);
 					const id = guest.dataset.tabId || activeIdRef.current;
@@ -1852,7 +3077,8 @@ html[data-dsh-side-panels-dragging] [data-dsh-grip] {
 					setTabs((prev) => prev.map((tab) => tab.id === id ? {
 						...tab,
 						url: next,
-						title: tabLabel(next, title || tab.title)
+						title: tabLabel(next, title || tab.title),
+						icon: sameSiteIcon(tab.url, next, tab.icon)
 					} : tab));
 				} catch {}
 			};
@@ -1861,7 +3087,7 @@ html[data-dsh-side-panels-dragging] [data-dsh-grip] {
 					const on = tabId === id;
 					node.style.visibility = on ? "visible" : "hidden";
 					node.style.zIndex = on ? "1" : "0";
-					node.style.pointerEvents = on ? "auto" : "none";
+					node.style.pointerEvents = on && !popupOpenRef.current ? "auto" : "none";
 				}
 				guestRef.current = guestsRef.current.get(id) ?? null;
 				readNav(guestRef.current);
@@ -1883,12 +3109,29 @@ html[data-dsh-side-panels-dragging] [data-dsh-grip] {
 					guest.setAttribute("allow", "clipboard-read; clipboard-write; fullscreen");
 				}
 				const onStart = () => {
+					guest._dshIconGen = (guest._dshIconGen || 0) + 1;
+					guest._dshFavicons = [];
 					if (activeIdRef.current === id) setLoading(true);
+				};
+				const captureIcon = async () => {
+					if (!hasGuestApi(guest, "executeJavaScript")) return;
+					const page = guestUrl(guest);
+					if (!page || page === "about:blank" || /^(chrome-devtools:|devtools:|chrome:)/i.test(page)) return;
+					const gen = guest._dshIconGen || 0;
+					try {
+						const data = await guest.executeJavaScript(readFaviconScript(guest._dshFavicons, page));
+						if (gen !== (guest._dshIconGen || 0)) return;
+						if (!data || !String(data).startsWith("data:image")) return;
+						setTabs((prev) => prev.map((tab) => tab.id === id ? {
+							...tab,
+							icon: data
+						} : tab));
+					} catch {}
 				};
 				const onStop = () => {
 					const next = guestUrl(guest);
 					const title = guestTitle(guest);
-					if (next) setTabs((prev) => prev.map((tab) => tab.id === id ? {
+					if (next && !/^(chrome-error:|chrome:|devtools:|chrome-devtools:)/i.test(next)) setTabs((prev) => prev.map((tab) => tab.id === id ? {
 						...tab,
 						url: next,
 						title: tabLabel(next, title || tab.title)
@@ -1898,15 +3141,37 @@ html[data-dsh-side-panels-dragging] [data-dsh-grip] {
 						readNav(guest);
 					}
 				};
+				const onStopped = () => {
+					onStop();
+					recoverBlankGuest(guest);
+					captureIcon();
+				};
 				const onNav = (event) => {
 					const next = event?.url || guestUrl(guest);
 					if (typeof next !== "string" || !next) return;
+					if (/^(chrome-error:|chrome:|devtools:|chrome-devtools:)/i.test(next)) {
+						if (activeIdRef.current === id) {
+							setError(void 0);
+							setLoading(false);
+						}
+						return;
+					}
 					const title = event?.title || guestTitle(guest);
 					setTabs((prev) => prev.map((tab) => tab.id === id ? {
 						...tab,
 						url: next,
-						title: tabLabel(next, title || tab.title)
+						title: tabLabel(next, title || tab.title),
+						icon: sameSiteIcon(tab.url, next, tab.icon)
 					} : tab));
+					if (isHistoryUrl(next)) setVisits((prev) => {
+						const list = rememberVisit(prev, {
+							url: next,
+							title,
+							at: Date.now()
+						});
+						saveVisits(sessionId, list);
+						return list;
+					});
 					if (activeIdRef.current === id) {
 						setError(void 0);
 						setUrl(next);
@@ -1921,12 +3186,28 @@ html[data-dsh-side-panels-dragging] [data-dsh-grip] {
 						...tab,
 						title: tabLabel(tab.url, title)
 					} : tab));
+					const next = guestUrl(guest);
+					if (!isHistoryUrl(next)) return;
+					setVisits((prev) => {
+						const list = touchVisitTitle(prev, next, title);
+						if (list === prev) return prev;
+						saveVisits(sessionId, list);
+						return list;
+					});
+				};
+				const onFavicon = (event) => {
+					guest._dshFavicons = faviconListFromEvent(event);
+					captureIcon();
 				};
 				const onFail = (event) => {
-					if (activeIdRef.current !== id) return;
 					if (!shouldShowLoadError(event)) return;
-					setLoading(false);
-					setError("这个网站打不开或拒绝嵌进来");
+					guest._dshNetFail = {
+						code: event.errorCode,
+						description: event.errorDescription,
+						url: event.validatedURL || event.url || guestUrl(guest)
+					};
+					if (activeIdRef.current === id) setLoading(false);
+					waitTick(80).then(() => recoverBlankGuest(guest));
 				};
 				const onNewWindow = (event) => {
 					if (typeof event?.preventDefault === "function") event.preventDefault();
@@ -1934,23 +3215,25 @@ html[data-dsh-side-panels-dragging] [data-dsh-grip] {
 					if (typeof next === "string" && next.startsWith("http")) addTabRef.current(next);
 				};
 				guest.addEventListener("did-start-loading", onStart);
-				guest.addEventListener("did-stop-loading", onStop);
+				guest.addEventListener("did-stop-loading", onStopped);
 				guest.addEventListener("did-navigate", onNav);
 				guest.addEventListener("did-navigate-in-page", onNav);
 				guest.addEventListener("did-finish-load", onStop);
 				guest.addEventListener("dom-ready", onStop);
 				guest.addEventListener("page-title-updated", onTitle);
+				guest.addEventListener("page-favicon-updated", onFavicon);
 				guest.addEventListener("did-fail-load", onFail);
 				guest.addEventListener("load", onStop);
 				guest.addEventListener("new-window", onNewWindow);
 				guest._dshOff = () => {
 					guest.removeEventListener("did-start-loading", onStart);
-					guest.removeEventListener("did-stop-loading", onStop);
+					guest.removeEventListener("did-stop-loading", onStopped);
 					guest.removeEventListener("did-navigate", onNav);
 					guest.removeEventListener("did-navigate-in-page", onNav);
 					guest.removeEventListener("did-finish-load", onStop);
 					guest.removeEventListener("dom-ready", onStop);
 					guest.removeEventListener("page-title-updated", onTitle);
+					guest.removeEventListener("page-favicon-updated", onFavicon);
 					guest.removeEventListener("did-fail-load", onFail);
 					guest.removeEventListener("load", onStop);
 					guest.removeEventListener("new-window", onNewWindow);
@@ -2046,7 +3329,8 @@ html[data-dsh-side-panels-dragging] [data-dsh-grip] {
 				setTabs((prev) => [...prev, {
 					id,
 					title: tabLabel(url, ""),
-					url
+					url,
+					icon: ""
 				}]);
 				setActiveId(id);
 				mountGuest(id, url);
@@ -2066,7 +3350,8 @@ html[data-dsh-side-panels-dragging] [data-dsh-grip] {
 					setTabs([{
 						...only,
 						title: "新标签",
-						url: "about:blank"
+						url: "about:blank",
+						icon: ""
 					}]);
 					return;
 				}
@@ -2099,7 +3384,8 @@ html[data-dsh-side-panels-dragging] [data-dsh-grip] {
 					setTabs((prev) => prev.map((tab) => tab.id === activeIdRef.current ? {
 						...tab,
 						url: parsed.url,
-						title: tabLabel(parsed.url, "")
+						title: tabLabel(parsed.url, ""),
+						icon: ""
 					} : tab));
 					return { url: parsed.url };
 				}
@@ -2197,12 +3483,23 @@ html[data-dsh-side-panels-dragging] [data-dsh-grip] {
 				setTabs([{
 					id: firstId,
 					title: "新标签",
-					url: "about:blank"
+					url: "about:blank",
+					icon: ""
 				}]);
 				setActiveId(firstId);
 				setDraft("");
 				setUrl("about:blank");
 				setDownloads([]);
+				setDlOpen(false);
+				setMoreOpen(false);
+				setHistoryOpen(false);
+				setProxyOpen(false);
+				const profiles = loadProxyProfiles();
+				const active = loadProxyActive(sessionId, profiles);
+				setProxyProfiles(profiles);
+				setProxyActive(active);
+				pushProxy(sessionId, active, profiles);
+				setVisits(loadVisits(sessionId));
 				setDockOpen(false);
 				mountGuest(firstId, "about:blank");
 				showTab(firstId);
@@ -2298,8 +3595,52 @@ html[data-dsh-side-panels-dragging] [data-dsh-grip] {
 					setDownloads((prev) => {
 						return [...prev.filter((row) => row.id !== item.id), item];
 					});
+					setDlOpen(true);
+					setMoreOpen(false);
+					setHistoryOpen(false);
+					setProxyOpen(false);
 				});
 			}, []);
+			(0, react.useEffect)(() => {
+				if (!dlOpen && !moreOpen && !historyOpen && !proxyOpen) return void 0;
+				const onDown = (event) => {
+					const inDl = dlWrapRef.current?.contains(event.target);
+					const inMore = moreWrapRef.current?.contains(event.target);
+					const inProxy = proxyWrapRef.current?.contains(event.target);
+					if (!inDl) setDlOpen(false);
+					if (!inMore) {
+						setMoreOpen(false);
+						setHistoryOpen(false);
+					}
+					if (!inProxy) setProxyOpen(false);
+				};
+				const onKey = (event) => {
+					if (event.key !== "Escape") return;
+					setDlOpen(false);
+					setMoreOpen(false);
+					setHistoryOpen(false);
+					setProxyOpen(false);
+				};
+				document.addEventListener("mousedown", onDown, true);
+				window.addEventListener("mousedown", onDown, true);
+				window.addEventListener("keydown", onKey);
+				return () => {
+					document.removeEventListener("mousedown", onDown, true);
+					window.removeEventListener("mousedown", onDown, true);
+					window.removeEventListener("keydown", onKey);
+				};
+			}, [
+				dlOpen,
+				moreOpen,
+				historyOpen,
+				proxyOpen
+			]);
+			(0, react.useEffect)(() => {
+				for (const [id, guest] of guestsRef.current) {
+					const on = id === activeId && !popupOpen;
+					guest.style.pointerEvents = on ? "auto" : "none";
+				}
+			}, [activeId, popupOpen]);
 			(0, react.useEffect)(() => {
 				if (!active) return void 0;
 				const onKey = (event) => {
@@ -2345,7 +3686,8 @@ html[data-dsh-side-panels-dragging] [data-dsh-grip] {
 				setTabs((prev) => prev.map((tab) => tab.id === activeIdRef.current ? {
 					...tab,
 					url: parsed.url,
-					title: tabLabel(parsed.url, "")
+					title: tabLabel(parsed.url, ""),
+					icon: ""
 				} : tab));
 			};
 			const back = () => {
@@ -2362,6 +3704,98 @@ html[data-dsh-side-panels-dragging] [data-dsh-grip] {
 				if (hasGuestApi(guest, "reload")) guest.reload();
 				else guest.src = guest.src;
 				setLoading(true);
+			};
+			const hardReload = () => {
+				const guest = guestRef.current;
+				if (!guest) return;
+				setMoreOpen(false);
+				setHistoryOpen(false);
+				if (hasGuestApi(guest, "reloadIgnoringCache")) guest.reloadIgnoringCache();
+				else if (hasGuestApi(guest, "reload")) guest.reload();
+				else guest.src = guest.src;
+				setLoading(true);
+			};
+			const reloadGuests = () => {
+				for (const guest of guestsRef.current.values()) try {
+					if (hasGuestApi(guest, "reloadIgnoringCache")) guest.reloadIgnoringCache();
+					else if (hasGuestApi(guest, "reload")) guest.reload();
+					else guest.src = guest.src;
+				} catch {}
+				setLoading(true);
+			};
+			const chooseProxy = async (id) => {
+				if (id === proxyActive) return;
+				const result = await pushProxy(sessionId, id, proxyProfiles);
+				if (!result.ok) {
+					setError(result.missing ? "换代理需要桌面端嵌页" : result.error || "代理设不上，再试一次");
+					return;
+				}
+				setProxyActive(id);
+				saveProxyActive(sessionId, id);
+				setError(void 0);
+			};
+			const commitProxy = (profile, edited) => {
+				const list = edited ? proxyProfiles.map((row) => row.id === profile.id ? profile : row) : [...proxyProfiles, profile].slice(-40);
+				setProxyProfiles(list);
+				saveProxyProfiles(list);
+				if (edited && profile.id === proxyActive) chooseProxyAfter(profile.id, list);
+			};
+			const chooseProxyAfter = async (id, list) => {
+				const result = await pushProxy(sessionId, id, list);
+				if (!result.ok) {
+					setError(result.missing ? "换代理需要桌面端嵌页" : result.error || "代理设不上，再试一次");
+					return;
+				}
+				setProxyActive(id);
+				saveProxyActive(sessionId, id);
+				setError(void 0);
+			};
+			const dropProxy = (id) => {
+				const list = proxyProfiles.filter((row) => row.id !== id);
+				setProxyProfiles(list);
+				saveProxyProfiles(list);
+				if (proxyActive === id) chooseProxyAfter(PROXY_SYSTEM, list);
+			};
+			const clearVisits = () => {
+				setVisits([]);
+				saveVisits(sessionId, []);
+			};
+			const dropVisit = (url) => {
+				setVisits((prev) => {
+					const list = forgetVisit(prev, url);
+					saveVisits(sessionId, list);
+					return list;
+				});
+			};
+			const openHistory = () => {
+				setDlOpen(false);
+				setMoreOpen(false);
+				setProxyOpen(false);
+				setHistoryOpen(true);
+			};
+			const openVisit = (target) => {
+				setHistoryOpen(false);
+				go(target);
+			};
+			const clearBrowserData = async (kind) => {
+				setMoreOpen(false);
+				setHistoryOpen(false);
+				const api = window.dshDesktop;
+				if (!api || typeof api.clearBrowserData !== "function") {
+					setError("清数据需要桌面端嵌页");
+					return;
+				}
+				try {
+					if (!(await api.clearBrowserData(partitionName(sessionId), kind))?.ok) {
+						setError("清不掉，再试一次");
+						return;
+					}
+					setError(void 0);
+					if (kind === "browsing-data") clearVisits();
+					reloadGuests();
+				} catch {
+					setError("清不掉，再试一次");
+				}
 			};
 			const visibleDownloads = downloads.filter((item) => item.state !== "cancelled" || item.received);
 			const desktop = typeof window !== "undefined" ? window.dshDesktop : void 0;
@@ -2386,20 +3820,30 @@ html[data-dsh-side-panels-dragging] [data-dsh-grip] {
 							},
 							title: tab.url,
 							onClick: () => setActiveId(tab.id),
-							children: [/* @__PURE__ */ (0, react_jsx_runtime.jsx)("span", {
-								style: S$1.browserTabName,
-								children: tab.title
-							}), /* @__PURE__ */ (0, react_jsx_runtime.jsx)("button", {
-								type: "button",
-								style: S$1.tabClose,
-								title: "关闭标签",
-								"aria-label": `关闭 ${tab.title}`,
-								onClick: (event) => {
-									event.stopPropagation();
-									closeTab(tab.id);
-								},
-								children: "×"
-							})]
+							children: [
+								/* @__PURE__ */ (0, react_jsx_runtime.jsx)(TabFavicon, {
+									icon: tab.icon,
+									onBroken: () => setTabs((prev) => prev.map((row) => row.id === tab.id ? {
+										...row,
+										icon: ""
+									} : row))
+								}),
+								/* @__PURE__ */ (0, react_jsx_runtime.jsx)("span", {
+									style: S$1.browserTabName,
+									children: tab.title
+								}),
+								/* @__PURE__ */ (0, react_jsx_runtime.jsx)("button", {
+									type: "button",
+									style: S$1.tabClose,
+									title: "关闭标签",
+									"aria-label": `关闭 ${tab.title}`,
+									onClick: (event) => {
+										event.stopPropagation();
+										closeTab(tab.id);
+									},
+									children: "×"
+								})
+							]
 						}, tab.id)), /* @__PURE__ */ (0, react_jsx_runtime.jsx)("button", {
 							type: "button",
 							style: S$1.browserTabAdd,
@@ -2412,7 +3856,9 @@ html[data-dsh-side-panels-dragging] [data-dsh-grip] {
 					/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", {
 						style: {
 							...S$1.chrome,
-							alignItems: "center"
+							alignItems: "center",
+							overflow: "visible",
+							zIndex: 30
 						},
 						children: [
 							/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", {
@@ -2472,85 +3918,308 @@ html[data-dsh-side-panels-dragging] [data-dsh-grip] {
 									}
 								})
 							}),
-							/* @__PURE__ */ (0, react_jsx_runtime.jsx)("button", {
-								type: "button",
-								"data-dsh-browser-f12": "",
-								style: S$1.iconBtn,
-								title: "F12 调试",
-								"aria-label": "F12 调试",
-								onClick: openDevtools,
-								children: /* @__PURE__ */ (0, react_jsx_runtime.jsx)(ConsolePromptIcon, {})
+							/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", {
+								style: S$1.chromeGroup,
+								children: [
+									/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", {
+										ref: proxyWrapRef,
+										style: S$1.browserDlWrap,
+										children: [/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("button", {
+											type: "button",
+											"data-dsh-browser-proxy": "",
+											style: {
+												...S$1.iconBtn,
+												position: "relative",
+												opacity: proxyOpen ? 1 : .7
+											},
+											title: "代理",
+											"aria-label": "代理",
+											"aria-pressed": proxyOpen,
+											onClick: () => {
+												setDlOpen(false);
+												setMoreOpen(false);
+												setHistoryOpen(false);
+												setProxyOpen((open) => !open);
+											},
+											children: [/* @__PURE__ */ (0, react_jsx_runtime.jsx)(ProxyGlobeIcon, {}), proxyProfiles.some((row) => row.id === proxyActive) ? /* @__PURE__ */ (0, react_jsx_runtime.jsx)("span", { style: S$1.browserDlBadge }) : null]
+										}), proxyOpen ? /* @__PURE__ */ (0, react_jsx_runtime.jsx)(BrowserProxyPanel, {
+											activeId: proxyActive,
+											profiles: proxyProfiles,
+											onSelect: (id) => void chooseProxy(id),
+											onCommit: commitProxy,
+											onDelete: dropProxy
+										}) : null]
+									}),
+									/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", {
+										ref: dlWrapRef,
+										style: S$1.browserDlWrap,
+										children: [/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("button", {
+											type: "button",
+											"data-dsh-browser-downloads": "",
+											style: {
+												...S$1.iconBtn,
+												position: "relative",
+												opacity: dlOpen ? 1 : .7
+											},
+											title: "下载",
+											"aria-label": "下载",
+											"aria-pressed": dlOpen,
+											onClick: () => {
+												setMoreOpen(false);
+												setHistoryOpen(false);
+												setProxyOpen(false);
+												setDlOpen((open) => !open);
+											},
+											children: [/* @__PURE__ */ (0, react_jsx_runtime.jsx)(DownloadTrayIcon, {}), downloads.some((item) => item.state === "progressing") ? /* @__PURE__ */ (0, react_jsx_runtime.jsx)("span", { style: S$1.browserDlBadge }) : null]
+										}), dlOpen ? /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", {
+											style: S$1.browserDownloads,
+											role: "dialog",
+											"aria-label": "下载",
+											children: [desktop?.openDownloadsFolder ? /* @__PURE__ */ (0, react_jsx_runtime.jsx)("div", {
+												style: S$1.browserDlBar,
+												children: /* @__PURE__ */ (0, react_jsx_runtime.jsx)("button", {
+													type: "button",
+													style: S$1.browserDlBtn,
+													onClick: () => desktop.openDownloadsFolder(),
+													children: "打开文件夹"
+												})
+											}) : null, visibleDownloads.length === 0 ? /* @__PURE__ */ (0, react_jsx_runtime.jsx)("div", {
+												style: S$1.browserDlEmpty,
+												children: "还没有下载"
+											}) : visibleDownloads.map((item) => /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", {
+												style: S$1.browserDlItem,
+												children: [
+													/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", {
+														style: S$1.browserDlMeta,
+														children: [/* @__PURE__ */ (0, react_jsx_runtime.jsx)("span", {
+															style: S$1.browserDlName,
+															title: item.savePath || item.filename,
+															children: item.filename
+														}), /* @__PURE__ */ (0, react_jsx_runtime.jsx)("span", {
+															style: S$1.browserDlPct,
+															children: item.state === "completed" ? "完成" : item.state === "interrupted" ? "中断" : `${percent$1(item)}%`
+														})]
+													}),
+													/* @__PURE__ */ (0, react_jsx_runtime.jsx)("div", {
+														style: S$1.browserDlTrack,
+														children: /* @__PURE__ */ (0, react_jsx_runtime.jsx)("div", { style: {
+															...S$1.browserDlFill,
+															width: `${percent$1(item)}%`
+														} })
+													}),
+													/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", {
+														style: S$1.browserDlActions,
+														children: [
+															item.state === "progressing" && desktop?.cancelDownload ? /* @__PURE__ */ (0, react_jsx_runtime.jsx)("button", {
+																type: "button",
+																style: S$1.browserDlBtn,
+																onClick: () => desktop.cancelDownload(item.id),
+																children: "取消"
+															}) : null,
+															item.state === "completed" && item.savePath && desktop?.openDownload ? /* @__PURE__ */ (0, react_jsx_runtime.jsx)("button", {
+																type: "button",
+																style: S$1.browserDlBtn,
+																onClick: () => desktop.openDownload(item.savePath),
+																children: "打开"
+															}) : null,
+															/* @__PURE__ */ (0, react_jsx_runtime.jsx)("button", {
+																type: "button",
+																style: S$1.browserDlBtn,
+																onClick: () => setDownloads((prev) => prev.filter((row) => row.id !== item.id)),
+																children: "关闭"
+															})
+														]
+													})
+												]
+											}, item.id))]
+										}) : null]
+									}),
+									/* @__PURE__ */ (0, react_jsx_runtime.jsx)("button", {
+										type: "button",
+										"data-dsh-browser-f12": "",
+										style: S$1.iconBtn,
+										title: "F12 调试",
+										"aria-label": "F12 调试",
+										onClick: openDevtools,
+										children: /* @__PURE__ */ (0, react_jsx_runtime.jsx)(ConsolePromptIcon, {})
+									}),
+									/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", {
+										ref: moreWrapRef,
+										style: S$1.browserDlWrap,
+										children: [
+											/* @__PURE__ */ (0, react_jsx_runtime.jsx)("button", {
+												type: "button",
+												"data-dsh-browser-more": "",
+												style: {
+													...S$1.iconBtn,
+													opacity: moreOpen || historyOpen ? 1 : .7
+												},
+												title: "更多",
+												"aria-label": "更多",
+												"aria-pressed": moreOpen || historyOpen,
+												onClick: () => {
+													setDlOpen(false);
+													setProxyOpen(false);
+													if (historyOpen) {
+														setHistoryOpen(false);
+														setMoreOpen(false);
+														return;
+													}
+													setHistoryOpen(false);
+													setMoreOpen((open) => !open);
+												},
+												children: /* @__PURE__ */ (0, react_jsx_runtime.jsx)(MoreDotsIcon, {})
+											}),
+											moreOpen ? /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", {
+												style: S$1.browserMenu,
+												role: "menu",
+												"aria-label": "更多",
+												children: [
+													/* @__PURE__ */ (0, react_jsx_runtime.jsx)("button", {
+														type: "button",
+														role: "menuitem",
+														style: S$1.browserMenuItem,
+														onClick: hardReload,
+														children: "强制刷新"
+													}),
+													/* @__PURE__ */ (0, react_jsx_runtime.jsx)("button", {
+														type: "button",
+														role: "menuitem",
+														style: S$1.browserMenuItem,
+														onClick: openHistory,
+														children: "历史记录"
+													}),
+													/* @__PURE__ */ (0, react_jsx_runtime.jsx)("button", {
+														type: "button",
+														role: "menuitem",
+														style: S$1.browserMenuItem,
+														onClick: () => void clearBrowserData("cookies"),
+														children: "清除 cookie"
+													}),
+													/* @__PURE__ */ (0, react_jsx_runtime.jsx)("button", {
+														type: "button",
+														role: "menuitem",
+														style: S$1.browserMenuItem,
+														onClick: () => void clearBrowserData("cache"),
+														children: "清除缓存"
+													}),
+													/* @__PURE__ */ (0, react_jsx_runtime.jsx)("button", {
+														type: "button",
+														role: "menuitem",
+														style: S$1.browserMenuItem,
+														onClick: () => void clearBrowserData("browsing-data"),
+														children: "清除浏览数据"
+													})
+												]
+											}) : null,
+											historyOpen ? /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", {
+												style: S$1.browserHistory,
+												role: "dialog",
+												"aria-label": "历史记录",
+												children: [visits.length > 0 ? /* @__PURE__ */ (0, react_jsx_runtime.jsx)("div", {
+													style: S$1.browserDlBar,
+													children: /* @__PURE__ */ (0, react_jsx_runtime.jsx)("button", {
+														type: "button",
+														style: S$1.browserDlBtn,
+														onClick: clearVisits,
+														children: "清空"
+													})
+												}) : null, visits.length === 0 ? /* @__PURE__ */ (0, react_jsx_runtime.jsx)("div", {
+													style: S$1.browserDlEmpty,
+													children: "还没有历史记录"
+												}) : visits.map((row) => /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", {
+													style: S$1.browserHistoryRow,
+													children: [/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("button", {
+														type: "button",
+														style: S$1.browserHistoryItem,
+														title: row.url,
+														onClick: () => openVisit(row.url),
+														children: [/* @__PURE__ */ (0, react_jsx_runtime.jsx)("span", {
+															style: S$1.browserHistoryTitle,
+															children: row.title || historyHost(row.url)
+														}), /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("span", {
+															style: S$1.browserHistoryMeta,
+															children: [/* @__PURE__ */ (0, react_jsx_runtime.jsx)("span", {
+																style: S$1.browserHistoryHost,
+																children: historyHost(row.url)
+															}), /* @__PURE__ */ (0, react_jsx_runtime.jsx)("span", { children: formatVisitTime(row.at) })]
+														})]
+													}), /* @__PURE__ */ (0, react_jsx_runtime.jsx)("button", {
+														type: "button",
+														style: S$1.tabClose,
+														title: "删除这条",
+														"aria-label": `删除 ${row.title || historyHost(row.url)}`,
+														onClick: (event) => {
+															event.stopPropagation();
+															dropVisit(row.url);
+														},
+														children: "×"
+													})]
+												}, `${row.url}-${row.at}`))]
+											}) : null
+										]
+									})
+								]
 							})
 						]
 					}),
 					/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", {
 						"data-dsh-browser-body": "",
 						style: S$1.browserBody,
-						children: [/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", {
-							ref: stageRef,
-							tabIndex: -1,
-							"data-dsh-browser-stage": "",
-							style: S$1.browserStage,
-							children: [loading ? /* @__PURE__ */ (0, react_jsx_runtime.jsx)("div", { style: S$1.browserLoading }) : null, error ? /* @__PURE__ */ (0, react_jsx_runtime.jsx)("div", {
-								style: S$1.browserError,
-								children: error
-							}) : null]
-						}), dockOpen ? /* @__PURE__ */ (0, react_jsx_runtime.jsx)("div", {
-							ref: dockRef,
-							"data-dsh-browser-dock": "",
-							style: S$1.browserDock
-						}) : null]
-					}),
-					visibleDownloads.length > 0 ? /* @__PURE__ */ (0, react_jsx_runtime.jsx)("div", {
-						style: S$1.browserDownloads,
-						children: visibleDownloads.map((item) => /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", {
-							style: S$1.browserDlItem,
-							children: [
-								/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", {
-									style: S$1.browserDlMeta,
-									children: [/* @__PURE__ */ (0, react_jsx_runtime.jsx)("span", {
-										style: S$1.browserDlName,
-										title: item.savePath || item.filename,
-										children: item.filename
-									}), /* @__PURE__ */ (0, react_jsx_runtime.jsx)("span", {
-										style: S$1.browserDlPct,
-										children: item.state === "completed" ? "完成" : item.state === "interrupted" ? "中断" : `${percent$1(item)}%`
-									})]
-								}),
-								/* @__PURE__ */ (0, react_jsx_runtime.jsx)("div", {
-									style: S$1.browserDlTrack,
-									children: /* @__PURE__ */ (0, react_jsx_runtime.jsx)("div", { style: {
-										...S$1.browserDlFill,
-										width: `${percent$1(item)}%`
-									} })
-								}),
-								/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", {
-									style: S$1.browserDlActions,
-									children: [
-										item.state === "progressing" && desktop?.cancelDownload ? /* @__PURE__ */ (0, react_jsx_runtime.jsx)("button", {
-											type: "button",
-											style: S$1.browserDlBtn,
-											onClick: () => desktop.cancelDownload(item.id),
-											children: "取消"
-										}) : null,
-										item.state === "completed" && item.savePath && desktop?.openDownload ? /* @__PURE__ */ (0, react_jsx_runtime.jsx)("button", {
-											type: "button",
-											style: S$1.browserDlBtn,
-											onClick: () => desktop.openDownload(item.savePath),
-											children: "打开"
-										}) : null,
-										/* @__PURE__ */ (0, react_jsx_runtime.jsx)("button", {
-											type: "button",
-											style: S$1.browserDlBtn,
-											onClick: () => setDownloads((prev) => prev.filter((row) => row.id !== item.id)),
-											children: "关闭"
-										})
-									]
-								})
-							]
-						}, item.id))
-					}) : null
+						children: [
+							popupOpen ? /* @__PURE__ */ (0, react_jsx_runtime.jsx)("div", {
+								"data-dsh-browser-mask": "",
+								style: S$1.browserPopupMask,
+								onMouseDown: () => {
+									setDlOpen(false);
+									setMoreOpen(false);
+									setHistoryOpen(false);
+									setProxyOpen(false);
+								}
+							}) : null,
+							/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", {
+								ref: stageRef,
+								tabIndex: -1,
+								"data-dsh-browser-stage": "",
+								style: S$1.browserStage,
+								children: [loading ? /* @__PURE__ */ (0, react_jsx_runtime.jsx)("div", { style: S$1.browserLoading }) : null, error ? /* @__PURE__ */ (0, react_jsx_runtime.jsx)("div", {
+									style: S$1.browserError,
+									children: error
+								}) : null]
+							}),
+							dockOpen ? /* @__PURE__ */ (0, react_jsx_runtime.jsx)("div", {
+								ref: dockRef,
+								"data-dsh-browser-dock": "",
+								style: S$1.browserDock
+							}) : null
+						]
+					})
 				]
+			});
+		}
+		function TabFavicon({ icon, onBroken }) {
+			if (!icon) return /* @__PURE__ */ (0, react_jsx_runtime.jsx)("span", {
+				style: S$1.browserTabIconFallback,
+				"aria-hidden": "true",
+				children: /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("svg", {
+					viewBox: "0 0 16 16",
+					width: "12",
+					height: "12",
+					fill: "none",
+					stroke: "currentColor",
+					strokeWidth: "1.4",
+					children: [/* @__PURE__ */ (0, react_jsx_runtime.jsx)("circle", {
+						cx: "8",
+						cy: "8",
+						r: "5.2"
+					}), /* @__PURE__ */ (0, react_jsx_runtime.jsx)("path", { d: "M2.8 8h10.4 M8 2.8c1.5 1.6 2.2 3.3 2.2 5.2S9.5 11.6 8 13.2C6.5 11.6 5.8 9.9 5.8 8S6.5 4.4 8 2.8z" })]
+				})
+			});
+			return /* @__PURE__ */ (0, react_jsx_runtime.jsx)("img", {
+				src: icon,
+				alt: "",
+				style: S$1.browserTabIcon,
+				onError: onBroken
 			});
 		}
 		function NavIcon({ d }) {
