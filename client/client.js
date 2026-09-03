@@ -156,6 +156,348 @@ window.__ModuleLoader__.load({ id: "dsh-side-panels", factory: (require) => {
 			}
 		};
 		//#endregion
+		//#region src/shared/browser-id.js
+		/** 对话钥匙和网址规则，浏览器端和电脑端共用。 */
+		function sessionKey(sessionId) {
+			const raw = String(sessionId ?? "").trim() || "default";
+			const safe = raw.replace(/[^a-zA-Z0-9._-]+/g, "_").replace(/^_+|_+$/g, "").slice(0, 48) || "session";
+			let hash = 2166136261;
+			for (let i = 0; i < raw.length; i += 1) {
+				hash ^= raw.charCodeAt(i);
+				hash = Math.imul(hash, 16777619);
+			}
+			return `${safe}-${(hash >>> 0).toString(16).padStart(8, "0")}`;
+		}
+		function partitionName(sessionId) {
+			return `persist:dsh-sp-${sessionKey(sessionId)}`;
+		}
+		/** 地址栏和遥控导航只走网页，避免 file / javascript 摸到本机。 */
+		function normalizeNavigateUrl(raw) {
+			const text = String(raw ?? "").trim();
+			if (text === "" || text === "about:blank") return {
+				ok: true,
+				url: "about:blank"
+			};
+			let url = text;
+			if (!/^[a-zA-Z][a-zA-Z0-9+.-]*:/.test(url)) url = `https://${url}`;
+			let parsed;
+			try {
+				parsed = new URL(url);
+			} catch {
+				return {
+					ok: false,
+					error: "网址无效"
+				};
+			}
+			const protocol = parsed.protocol.toLowerCase();
+			if (protocol !== "http:" && protocol !== "https:" && parsed.href !== "about:blank") return {
+				ok: false,
+				error: "只打开网页地址"
+			};
+			return {
+				ok: true,
+				url: parsed.href
+			};
+		}
+		/** 空白页占位名，不能当成真正的网页标题留下。 */
+		function isPlaceholderTitle(title) {
+			const name = String(title || "").trim();
+			return !name || name === "新标签" || name === "about:blank";
+		}
+		/** 标签上显示的名字：优先网页标题，否则用站点名。 */
+		function tabLabel(url, title) {
+			const name = String(title || "").trim();
+			if (name && !isPlaceholderTitle(name)) return name.slice(0, 40);
+			if (!url || url === "about:blank") return "新标签";
+			try {
+				const parsed = new URL(url);
+				if (parsed.protocol === "about:") return "新标签";
+				return parsed.hostname || parsed.href.slice(0, 40);
+			} catch {
+				return "新标签";
+			}
+		}
+		/** 只有整页自己失败才提示，页面里的小框失败不当成打不开。 */
+		function shouldShowLoadError(event) {
+			if (!event || event.isMainFrame === false) return false;
+			const code = Number(event.errorCode) || 0;
+			if (!code || code === -3) return false;
+			const url = String(event.validatedURL || event.url || "");
+			if (/^(chrome-devtools:|devtools:|chrome-error:|chrome:)/i.test(url)) return false;
+			return true;
+		}
+		//#endregion
+		//#region src/client/icons.jsx
+		function extOf(name) {
+			const base = String(name).toLowerCase();
+			if (base === ".gitignore" || base.endsWith(".gitignore")) return "gitignore";
+			const dot = base.lastIndexOf(".");
+			if (dot <= 0) return "";
+			return base.slice(dot + 1);
+		}
+		function gitColor(letter) {
+			if (letter === "U" || letter === "A") return "#3ba55d";
+			if (letter === "M") return "#e2b53e";
+			if (letter === "D") return "#e05252";
+			return "#6a9a73";
+		}
+		function FileKindIcon({ name, directory, open }) {
+			if (directory) return /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("svg", {
+				viewBox: "0 0 16 16",
+				width: "16",
+				height: "16",
+				"aria-hidden": "true",
+				children: [/* @__PURE__ */ (0, react_jsx_runtime.jsx)("path", {
+					fill: open ? "#dcb67a" : "#c9a66b",
+					d: open ? "M1.5 13V5.2h3.4L6.4 3.8h8.1V13z" : "M1.5 13V4.4h3.6L6.6 3h8V13z"
+				}), /* @__PURE__ */ (0, react_jsx_runtime.jsx)("path", {
+					fill: open ? "#e8c992" : "#d4b07a",
+					d: open ? "M1.5 6.2h13V13h-13z" : "M1.5 5.6h13V13h-13z"
+				})]
+			});
+			const ext = extOf(name);
+			if (ext === "gitignore") return /* @__PURE__ */ (0, react_jsx_runtime.jsx)("svg", {
+				viewBox: "0 0 16 16",
+				width: "16",
+				height: "16",
+				"aria-hidden": "true",
+				children: /* @__PURE__ */ (0, react_jsx_runtime.jsx)("path", {
+					fill: "#f05133",
+					d: "M8 1.6 14.2 8 8 14.4 1.8 8z"
+				})
+			});
+			const badge = {
+				ts: {
+					bg: "#3178c6",
+					text: "TS"
+				},
+				tsx: {
+					bg: "#3178c6",
+					text: "TS"
+				},
+				js: {
+					bg: "#cbcb41",
+					text: "JS",
+					fg: "#333"
+				},
+				jsx: {
+					bg: "#cbcb41",
+					text: "JS",
+					fg: "#333"
+				},
+				mjs: {
+					bg: "#cbcb41",
+					text: "JS",
+					fg: "#333"
+				},
+				json: {
+					bg: "#8bc34a",
+					text: "{}"
+				},
+				yml: {
+					bg: "#cb171e",
+					text: "Y"
+				},
+				yaml: {
+					bg: "#cb171e",
+					text: "Y"
+				},
+				md: {
+					bg: "#519aba",
+					text: "M"
+				},
+				css: {
+					bg: "#563d7c",
+					text: "#"
+				},
+				html: {
+					bg: "#e44d26",
+					text: "<>"
+				}
+			}[ext] ?? {
+				bg: "#6c7780",
+				text: "·"
+			};
+			return /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("svg", {
+				viewBox: "0 0 16 16",
+				width: "16",
+				height: "16",
+				"aria-hidden": "true",
+				children: [/* @__PURE__ */ (0, react_jsx_runtime.jsx)("rect", {
+					x: "1.5",
+					y: "1.5",
+					width: "13",
+					height: "13",
+					rx: "2",
+					fill: badge.bg
+				}), /* @__PURE__ */ (0, react_jsx_runtime.jsx)("text", {
+					x: "8",
+					y: "11",
+					textAnchor: "middle",
+					fill: badge.fg ?? "#fff",
+					fontSize: badge.text.length > 1 ? 6.5 : 8,
+					fontFamily: "ui-sans-serif, system-ui, sans-serif",
+					fontWeight: "700",
+					children: badge.text
+				})]
+			});
+		}
+		/** 右侧活动栏：两张叠着的纸，和 Cursor 文件树按钮同一类。 */
+		function FilesActivityIcon() {
+			return /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("svg", {
+				viewBox: "0 0 24 24",
+				width: "22",
+				height: "22",
+				fill: "none",
+				stroke: "currentColor",
+				strokeWidth: "1.6",
+				"aria-hidden": "true",
+				children: [/* @__PURE__ */ (0, react_jsx_runtime.jsx)("rect", {
+					x: "4",
+					y: "7",
+					width: "11",
+					height: "14",
+					rx: "1.4"
+				}), /* @__PURE__ */ (0, react_jsx_runtime.jsx)("path", { d: "M9 7V4.4A1.4 1.4 0 0 1 10.4 3H19.6A1.4 1.4 0 0 1 21 4.4V17.6A1.4 1.4 0 0 1 19.6 19H15" })]
+			});
+		}
+		/** 右侧活动栏：终端。 */
+		function TerminalActivityIcon() {
+			return /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("svg", {
+				viewBox: "0 0 24 24",
+				width: "22",
+				height: "22",
+				fill: "none",
+				stroke: "currentColor",
+				strokeWidth: "1.6",
+				"aria-hidden": "true",
+				children: [/* @__PURE__ */ (0, react_jsx_runtime.jsx)("rect", {
+					x: "3.5",
+					y: "5",
+					width: "17",
+					height: "14",
+					rx: "2"
+				}), /* @__PURE__ */ (0, react_jsx_runtime.jsx)("path", { d: "M7 10.5 10 13 7 15.5 M12.5 15.5H17" })]
+			});
+		}
+		/** 地址栏 F12：命令行提示符。 */
+		function ConsolePromptIcon() {
+			return /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("svg", {
+				viewBox: "0 0 16 16",
+				width: "14",
+				height: "14",
+				fill: "none",
+				stroke: "currentColor",
+				strokeWidth: "1.5",
+				strokeLinecap: "round",
+				strokeLinejoin: "round",
+				"aria-hidden": "true",
+				children: [/* @__PURE__ */ (0, react_jsx_runtime.jsx)("path", { d: "M3.5 4.2 7.2 8 3.5 11.8" }), /* @__PURE__ */ (0, react_jsx_runtime.jsx)("path", { d: "M8.2 12.2h4.6" })]
+			});
+		}
+		/** 右侧活动栏：浏览器。 */
+		function BrowserActivityIcon() {
+			return /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("svg", {
+				viewBox: "0 0 24 24",
+				width: "22",
+				height: "22",
+				fill: "none",
+				stroke: "currentColor",
+				strokeWidth: "1.6",
+				"aria-hidden": "true",
+				children: [/* @__PURE__ */ (0, react_jsx_runtime.jsx)("circle", {
+					cx: "12",
+					cy: "12",
+					r: "8.2"
+				}), /* @__PURE__ */ (0, react_jsx_runtime.jsx)("path", { d: "M3.8 12h16.4 M12 3.8c2.2 2.4 3.4 4.9 3.4 8.2S14.2 17.8 12 20.2C9.8 17.8 8.6 15.3 8.6 12S9.8 6.2 12 3.8z" })]
+			});
+		}
+		function WorkbenchToggleIcon() {
+			return /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("svg", {
+				viewBox: "0 0 16 16",
+				width: "16",
+				height: "16",
+				fill: "none",
+				stroke: "currentColor",
+				strokeWidth: "1.3",
+				"aria-hidden": "true",
+				children: [/* @__PURE__ */ (0, react_jsx_runtime.jsx)("rect", {
+					x: "1.5",
+					y: "2.5",
+					width: "8.5",
+					height: "11",
+					rx: "1"
+				}), /* @__PURE__ */ (0, react_jsx_runtime.jsx)("rect", {
+					x: "11",
+					y: "2.5",
+					width: "3.5",
+					height: "11",
+					rx: "0.8"
+				})]
+			});
+		}
+		//#endregion
+		//#region src/client/prefs.js
+		const SETTINGS_NS = "dsh-side-panels";
+		const DEFAULT_PREFS = {
+			enabled: true,
+			terminalTheme: "follow",
+			startCollapsed: false,
+			shell: "auto",
+			customPath: "",
+			devtoolsMode: "bottom"
+		};
+		const listeners$1 = /* @__PURE__ */ new Set();
+		let bound;
+		const memory = { ...DEFAULT_PREFS };
+		let cached = { ...DEFAULT_PREFS };
+		function samePrefs(left, right) {
+			return left.enabled === right.enabled && left.terminalTheme === right.terminalTheme && left.startCollapsed === right.startCollapsed && left.shell === right.shell && left.customPath === right.customPath && left.devtoolsMode === right.devtoolsMode;
+		}
+		function emit$1() {
+			snapshotValue();
+			for (const listener of listeners$1) listener();
+		}
+		function snapshotValue() {
+			const snap = bound?.getSnapshot();
+			const next = snap?.status === "ready" && snap.value && typeof snap.value === "object" ? {
+				...DEFAULT_PREFS,
+				...snap.value
+			} : {
+				...DEFAULT_PREFS,
+				...memory
+			};
+			if (samePrefs(cached, next)) return cached;
+			cached = next;
+			return cached;
+		}
+		function attachPrefs(settingsScope) {
+			bound = settingsScope.bind({ namespace: SETTINGS_NS });
+			const stop = bound.subscribe(emit$1);
+			emit$1();
+			return () => {
+				stop();
+				bound = void 0;
+				emit$1();
+			};
+		}
+		function subscribePrefs(listener) {
+			listeners$1.add(listener);
+			return () => listeners$1.delete(listener);
+		}
+		function getPrefs() {
+			return snapshotValue();
+		}
+		function readDevtoolsMode(prefs = getPrefs()) {
+			return prefs.devtoolsMode === "detach" ? "detach" : "bottom";
+		}
+		function setPref(field, value) {
+			if ((bound?.getSnapshot())?.writable) return bound.set(field, value);
+			memory[field] = value;
+			emit$1();
+			return Promise.resolve();
+		}
+		//#endregion
 		//#region src/client/styles.js
 		const S$1 = {
 			panel: {
@@ -509,14 +851,29 @@ window.__ModuleLoader__.load({ id: "dsh-side-panels", factory: (require) => {
 				background: "#fff",
 				outline: "none"
 			},
-			browserFrame: {
+			browserBody: {
+				flex: 1,
+				minHeight: 0,
+				display: "flex",
+				flexDirection: "column"
+			},
+			browserDock: {
+				flex: "0 0 42%",
+				minHeight: 160,
+				borderTop: "1px solid #3c4043",
+				background: "#202124",
+				position: "relative",
+				overflow: "hidden"
+			},
+			browserLoading: {
 				position: "absolute",
-				inset: 0,
-				width: "100%",
-				height: "100%",
-				objectFit: "fill",
-				pointerEvents: "none",
-				userSelect: "none"
+				top: 0,
+				left: 0,
+				right: 0,
+				height: 2,
+				background: "rgb(0 122 204 / 70%)",
+				zIndex: 3,
+				pointerEvents: "none"
 			},
 			browserError: {
 				position: "absolute",
@@ -529,6 +886,120 @@ window.__ModuleLoader__.load({ id: "dsh-side-panels", factory: (require) => {
 				color: "#fff",
 				fontSize: 12,
 				zIndex: 2
+			},
+			browserTabBar: {
+				display: "flex",
+				alignItems: "center",
+				minHeight: 28,
+				padding: "2px 6px 0",
+				gap: 2,
+				overflowX: "auto",
+				overflowY: "hidden",
+				background: "var(--dsw-alias-bg-subtle, #f3f3f3)",
+				borderBottom: "1px solid var(--dsw-alias-border, #ececec)",
+				flex: "0 0 auto"
+			},
+			browserTab: {
+				display: "inline-flex",
+				alignItems: "center",
+				gap: 4,
+				maxWidth: 180,
+				height: 24,
+				padding: "0 4px 0 10px",
+				borderRadius: "8px 8px 0 0",
+				fontSize: 12,
+				cursor: "pointer",
+				opacity: .7,
+				flex: "0 0 auto"
+			},
+			browserTabActive: {
+				background: "var(--dsw-alias-bg-base, #fff)",
+				opacity: 1
+			},
+			browserTabName: {
+				overflow: "hidden",
+				textOverflow: "ellipsis",
+				whiteSpace: "nowrap",
+				flex: 1,
+				minWidth: 0
+			},
+			browserTabAdd: {
+				width: 24,
+				height: 24,
+				border: "none",
+				background: "transparent",
+				color: "inherit",
+				borderRadius: 6,
+				cursor: "pointer",
+				fontSize: 16,
+				lineHeight: 1,
+				flex: "0 0 24px",
+				opacity: .7
+			},
+			browserDownloads: {
+				flex: "0 0 auto",
+				borderTop: "1px solid var(--dsw-alias-border, #ececec)",
+				background: "var(--dsw-alias-bg-subtle, #f3f3f3)",
+				maxHeight: 120,
+				overflowY: "auto",
+				padding: "6px 8px",
+				display: "flex",
+				flexDirection: "column",
+				gap: 6
+			},
+			browserDlItem: {
+				display: "grid",
+				gridTemplateColumns: "minmax(0,1fr) auto",
+				gridTemplateRows: "auto auto",
+				columnGap: 8,
+				rowGap: 4,
+				alignItems: "center"
+			},
+			browserDlMeta: {
+				display: "flex",
+				alignItems: "center",
+				gap: 8,
+				minWidth: 0,
+				gridColumn: "1 / 2"
+			},
+			browserDlName: {
+				overflow: "hidden",
+				textOverflow: "ellipsis",
+				whiteSpace: "nowrap",
+				fontSize: 12
+			},
+			browserDlPct: {
+				fontSize: 11,
+				opacity: .65,
+				flex: "0 0 auto"
+			},
+			browserDlTrack: {
+				gridColumn: "1 / 2",
+				height: 4,
+				borderRadius: 99,
+				background: "rgb(0 0 0 / 10%)",
+				overflow: "hidden"
+			},
+			browserDlFill: {
+				height: "100%",
+				background: "rgb(0 122 204 / 80%)",
+				borderRadius: 99
+			},
+			browserDlActions: {
+				gridColumn: "2 / 3",
+				gridRow: "1 / 3",
+				display: "flex",
+				gap: 4
+			},
+			browserDlBtn: {
+				border: "none",
+				background: "transparent",
+				color: "inherit",
+				fontSize: 11,
+				cursor: "pointer",
+				padding: "2px 6px",
+				borderRadius: 4,
+				opacity: .75
 			},
 			previewBar: {
 				display: "flex",
@@ -908,6 +1379,33 @@ html[data-dsh-side-panels-dragging] [data-dsh-grip] {
   border-color: rgb(0 122 204 / 45%);
   background: var(--dsw-alias-bg-base, #fff);
 }
+[data-dsh-side-panels] [data-dsh-browser-guest] {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  border: 0;
+  background: #fff;
+}
+[data-dsh-side-panels] [data-dsh-browser-devtools] {
+  position: absolute;
+  left: 0;
+  top: 0;
+  border: 0;
+  background: #202124;
+}
+[data-dsh-side-panels] [data-dsh-browser-tab]:hover {
+  background: rgb(127 127 127 / 10%);
+  opacity: 1;
+}
+[data-dsh-side-panels] [data-dsh-browser-tab-active] {
+  background: var(--dsw-alias-bg-base, #fff) !important;
+  opacity: 1;
+}
+[data-dsh-side-panels] button[data-dsh-browser-f12] {
+  font-size: 10px !important;
+  font-weight: 700;
+}
 [data-dsh-cm],
 [data-dsh-cm] .cm-editor {
   height: 100%;
@@ -1071,52 +1569,648 @@ html[data-dsh-side-panels-dragging] [data-dsh-grip] {
 `;
 		//#endregion
 		//#region src/client/BrowserView.jsx
-		function socketUrl$1(session, width, height) {
-			return `${window.location.protocol === "https:" ? "wss:" : "ws:"}//${window.location.host || "127.0.0.1"}/dsh-side-panels/browser?${new URLSearchParams({
-				session: session ?? "",
-				width: String(width || 900),
-				height: String(height || 640)
-			})}`;
+		let tabSeq = 0;
+		function nextTabId() {
+			tabSeq += 1;
+			return `tab-${tabSeq}`;
 		}
-		function pointIn(node, event) {
-			const box = node.getBoundingClientRect();
-			if (box.width < 8 || box.height < 8) return {
-				x: 0,
-				y: 0
-			};
+		function socketUrl$1(session) {
+			return `${window.location.protocol === "https:" ? "wss:" : "ws:"}//${window.location.host || "127.0.0.1"}/dsh-side-panels/browser?${new URLSearchParams({ session: session ?? "" })}`;
+		}
+		function chromeUserAgent() {
+			const ua = String(navigator.userAgent || "");
+			if (!/Electron/i.test(ua)) return ua;
+			return "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/132.0.0.0 Safari/537.36";
+		}
+		function hasGuestApi(node, name) {
+			return node && typeof node[name] === "function";
+		}
+		function canUseWebview() {
+			if (typeof window === "undefined" || typeof document === "undefined") return false;
+			const api = window.dshDesktop;
+			if (api && api.webview === true) return true;
+			if (api && api.webview === false) return false;
+			try {
+				if (typeof customElements !== "undefined" && customElements.get("webview")) return true;
+			} catch {}
+			try {
+				const node = document.createElement("webview");
+				if (hasGuestApi(node, "getURL") || hasGuestApi(node, "openDevTools")) return true;
+				const parent = document.body || document.documentElement;
+				if (!parent) return false;
+				node.setAttribute("style", "position:fixed;width:0;height:0;opacity:0;pointer-events:none");
+				parent.appendChild(node);
+				const ok = hasGuestApi(node, "getURL") || hasGuestApi(node, "openDevTools");
+				node.remove();
+				return ok;
+			} catch {
+				return false;
+			}
+		}
+		function guestUrl(guest, fallback) {
+			try {
+				if (hasGuestApi(guest, "getURL")) {
+					const next = guest.getURL();
+					if (typeof next === "string" && next) return next;
+				}
+			} catch {}
+			const src = guest?.src;
+			if (typeof src === "string" && src) return src;
+			return fallback || "";
+		}
+		function guestTitle(guest) {
+			try {
+				if (hasGuestApi(guest, "getTitle")) {
+					const title = guest.getTitle();
+					if (!isPlaceholderTitle(title)) return title;
+				}
+			} catch {}
+			try {
+				const title = guest?.contentDocument?.title;
+				if (!isPlaceholderTitle(title)) return title;
+			} catch {}
+			return "";
+		}
+		function guestWebContentsId(guest) {
+			try {
+				if (hasGuestApi(guest, "getWebContentsId")) return guest.getWebContentsId();
+			} catch {}
+			return 0;
+		}
+		function waitTick(ms) {
+			return new Promise((resolve) => setTimeout(resolve, ms));
+		}
+		async function waitWebContentsId(guest, tries = 50) {
+			for (let i = 0; i < tries; i += 1) {
+				const id = guestWebContentsId(guest);
+				if (id) return id;
+				await waitTick(50);
+			}
+			return 0;
+		}
+		function waitFrame() {
+			return new Promise((resolve) => {
+				window.requestAnimationFrame(() => window.requestAnimationFrame(resolve));
+			});
+		}
+		function intersectBox(a, b) {
+			const x = Math.max(a.x, b.x);
+			const y = Math.max(a.y, b.y);
+			const right = Math.min(a.x + a.width, b.x + b.width);
+			const bottom = Math.min(a.y + a.height, b.y + b.height);
 			return {
-				x: Math.max(0, (event.clientX - box.left) * (node.clientWidth / box.width)),
-				y: Math.max(0, (event.clientY - box.top) * (node.clientHeight / box.height))
+				x,
+				y,
+				width: Math.max(0, right - x),
+				height: Math.max(0, bottom - y)
 			};
+		}
+		function elementBox(el) {
+			const rect = el.getBoundingClientRect();
+			return {
+				x: rect.left,
+				y: rect.top,
+				width: rect.width,
+				height: rect.height
+			};
+		}
+		function addFrameOffset(box, doc) {
+			let x = box.x;
+			let y = box.y;
+			let current = doc.defaultView;
+			while (current && current !== current.top) {
+				let frame;
+				try {
+					frame = current.frameElement;
+				} catch {
+					break;
+				}
+				if (!frame) break;
+				const fr = frame.getBoundingClientRect();
+				x += fr.left;
+				y += fr.top;
+				current = current.parent;
+			}
+			return {
+				...box,
+				x,
+				y
+			};
+		}
+		function measureDockBox(dock, clip, visible) {
+			if (!dock) return {
+				x: 0,
+				y: 0,
+				width: 0,
+				height: 0,
+				visible: false
+			};
+			let box = elementBox(dock);
+			if (clip) box = intersectBox(box, elementBox(clip));
+			const view = dock.ownerDocument.defaultView;
+			box = intersectBox(box, {
+				x: 0,
+				y: 0,
+				width: view ? view.innerWidth : box.width,
+				height: view ? view.innerHeight : box.height
+			});
+			box = addFrameOffset(box, dock.ownerDocument);
+			try {
+				const topWin = window.top;
+				if (topWin && topWin !== window) box = intersectBox(box, {
+					x: 0,
+					y: 0,
+					width: topWin.innerWidth,
+					height: topWin.innerHeight
+				});
+			} catch {}
+			const width = Math.round(box.width);
+			const height = Math.round(box.height);
+			return {
+				x: Math.round(box.x),
+				y: Math.round(box.y),
+				width,
+				height,
+				visible: Boolean(visible) && width >= 32 && height >= 32
+			};
+		}
+		async function waitForDockBox(dock) {
+			if (!dock) return {
+				width: 0,
+				height: 0
+			};
+			for (let i = 0; i < 24; i += 1) {
+				const box = dock.getBoundingClientRect();
+				if (box.width >= 32 && box.height >= 32) return {
+					width: Math.round(box.width),
+					height: Math.round(box.height)
+				};
+				await waitFrame();
+			}
+			const box = dock.getBoundingClientRect();
+			return {
+				width: Math.max(1, Math.round(box.width)),
+				height: Math.max(1, Math.round(box.height))
+			};
+		}
+		function snapshotScript() {
+			return `(() => {
+    const lines = []
+    const walk = (el, depth) => {
+      if (!el || lines.length >= 400) return
+      const role = el.getAttribute('role') || el.tagName.toLowerCase()
+      const name = String(el.getAttribute('aria-label') || el.innerText || '').trim().replace(/\\s+/g, ' ').slice(0, 80)
+      if (name) lines.push('  '.repeat(depth) + role + ': ' + name)
+      for (const child of el.children) walk(child, depth + 1)
+    }
+    walk(document.body, 0)
+    return { url: location.href, title: document.title, text: lines.join('\\n') }
+  })()`;
+		}
+		function clickScript(action) {
+			if (action.selector) return `(() => {
+      const node = document.querySelector(${JSON.stringify(String(action.selector))})
+      if (!node) throw new Error('找不到这个元素')
+      node.click()
+      return { url: location.href, title: document.title }
+    })()`;
+			const x = Number(action.x) || 0;
+			const y = Number(action.y) || 0;
+			return `(() => {
+    const node = document.elementFromPoint(${x}, ${y})
+    if (!node) throw new Error('这一点没有元素')
+    node.dispatchEvent(new MouseEvent('click', { bubbles: true, clientX: ${x}, clientY: ${y} }))
+    return { url: location.href, title: document.title }
+  })()`;
+		}
+		function typeScript(action) {
+			const text = String(action.text ?? "");
+			if (action.selector) return `(() => {
+      const node = document.querySelector(${JSON.stringify(String(action.selector))})
+      if (!node) throw new Error('找不到输入框')
+      node.focus()
+      node.value = ${JSON.stringify(text)}
+      node.dispatchEvent(new Event('input', { bubbles: true }))
+      return true
+    })()`;
+			return `(() => {
+    const node = document.activeElement
+    if (!node) throw new Error('没有焦点')
+    node.value = (node.value || '') + ${JSON.stringify(text)}
+    node.dispatchEvent(new Event('input', { bubbles: true }))
+    return true
+  })()`;
+		}
+		function percent$1(item) {
+			const total = Number(item.total) || 0;
+			const received = Number(item.received) || 0;
+			if (total <= 0) return item.state === "completed" ? 100 : 0;
+			return Math.min(100, Math.round(received / total * 100));
 		}
 		function BrowserView({ sessionId, paneId, active }) {
 			const stageRef = (0, react.useRef)(null);
+			const dockRef = (0, react.useRef)(null);
+			const wrapRef = (0, react.useRef)(null);
+			const guestRef = (0, react.useRef)(null);
+			const guestsRef = (0, react.useRef)(/* @__PURE__ */ new Map());
 			const socketRef = (0, react.useRef)(null);
 			const urlRef = (0, react.useRef)(null);
+			const editing = (0, react.useRef)(false);
+			const activeIdRef = (0, react.useRef)("");
+			const addTabRef = (0, react.useRef)(() => {});
+			const applyRef = (0, react.useRef)(async () => {});
+			const dockOpenRef = (0, react.useRef)(false);
+			const dockGenRef = (0, react.useRef)(0);
+			const activeRef = (0, react.useRef)(active);
+			const lastDockKeyRef = (0, react.useRef)("");
+			const [tabs, setTabs] = (0, react.useState)([]);
+			const [activeId, setActiveId] = (0, react.useState)("");
 			const [draft, setDraft] = (0, react.useState)("");
 			const [url, setUrl] = (0, react.useState)("about:blank");
 			const [canGoBack, setCanGoBack] = (0, react.useState)(false);
 			const [canGoForward, setCanGoForward] = (0, react.useState)(false);
 			const [loading, setLoading] = (0, react.useState)(false);
-			const [frame, setFrame] = (0, react.useState)();
 			const [error, setError] = (0, react.useState)();
-			const editing = (0, react.useRef)(false);
-			(0, react.useEffect)(() => {
+			const [downloads, setDownloads] = (0, react.useState)([]);
+			const [dockOpen, setDockOpen] = (0, react.useState)(false);
+			const tabsRef = (0, react.useRef)(tabs);
+			tabsRef.current = tabs;
+			activeIdRef.current = activeId;
+			dockOpenRef.current = dockOpen;
+			activeRef.current = active;
+			const readNav = (guest) => {
+				if (!guest) return;
+				try {
+					if (hasGuestApi(guest, "canGoBack")) setCanGoBack(Boolean(guest.canGoBack()));
+					if (hasGuestApi(guest, "canGoForward")) setCanGoForward(Boolean(guest.canGoForward()));
+					const next = guestUrl(guest);
+					if (!next) return;
+					setUrl(next);
+					if (!editing.current) setDraft(next === "about:blank" ? "" : next);
+					const id = guest.dataset.tabId || activeIdRef.current;
+					const title = guestTitle(guest);
+					setTabs((prev) => prev.map((tab) => tab.id === id ? {
+						...tab,
+						url: next,
+						title: tabLabel(next, title || tab.title)
+					} : tab));
+				} catch {}
+			};
+			const showTab = (id) => {
+				for (const [tabId, node] of guestsRef.current) {
+					const on = tabId === id;
+					node.style.visibility = on ? "visible" : "hidden";
+					node.style.zIndex = on ? "1" : "0";
+					node.style.pointerEvents = on ? "auto" : "none";
+				}
+				guestRef.current = guestsRef.current.get(id) ?? null;
+				readNav(guestRef.current);
+			};
+			const mountGuest = (id, startUrl) => {
 				const stage = stageRef.current;
-				if (!stage || !sessionId) return void 0;
-				let closed = false;
-				let socket;
-				const send = (payload) => {
-					if (socket?.readyState === WebSocket.OPEN) socket.send(JSON.stringify(payload));
+				if (!stage) return;
+				const embed = canUseWebview();
+				const guest = document.createElement(embed ? "webview" : "iframe");
+				guest.setAttribute("data-dsh-browser-guest", "");
+				guest.dataset.tabId = id;
+				guest.style.cssText = "position:absolute;inset:0;width:100%;height:100%;border:0;background:#fff;visibility:hidden;z-index:0";
+				if (embed) {
+					guest.setAttribute("partition", partitionName(sessionId));
+					guest.setAttribute("allowpopups", "on");
+					guest.setAttribute("useragent", chromeUserAgent());
+				} else {
+					guest.setAttribute("referrerpolicy", "no-referrer-when-downgrade");
+					guest.setAttribute("allow", "clipboard-read; clipboard-write; fullscreen");
+				}
+				const onStart = () => {
+					if (activeIdRef.current === id) setLoading(true);
 				};
-				const measure = () => ({
-					width: Math.max(320, stage.clientWidth || 900),
-					height: Math.max(240, stage.clientHeight || 640)
-				});
+				const onStop = () => {
+					const next = guestUrl(guest);
+					const title = guestTitle(guest);
+					if (next) setTabs((prev) => prev.map((tab) => tab.id === id ? {
+						...tab,
+						url: next,
+						title: tabLabel(next, title || tab.title)
+					} : tab));
+					if (activeIdRef.current === id) {
+						setLoading(false);
+						readNav(guest);
+					}
+				};
+				const onNav = (event) => {
+					const next = event?.url || guestUrl(guest);
+					if (typeof next !== "string" || !next) return;
+					const title = event?.title || guestTitle(guest);
+					setTabs((prev) => prev.map((tab) => tab.id === id ? {
+						...tab,
+						url: next,
+						title: tabLabel(next, title || tab.title)
+					} : tab));
+					if (activeIdRef.current === id) {
+						setError(void 0);
+						setUrl(next);
+						if (!editing.current) setDraft(next === "about:blank" ? "" : next);
+						readNav(guest);
+					}
+				};
+				const onTitle = (event) => {
+					const title = event?.title || guestTitle(guest);
+					if (isPlaceholderTitle(title)) return;
+					setTabs((prev) => prev.map((tab) => tab.id === id ? {
+						...tab,
+						title: tabLabel(tab.url, title)
+					} : tab));
+				};
+				const onFail = (event) => {
+					if (activeIdRef.current !== id) return;
+					if (!shouldShowLoadError(event)) return;
+					setLoading(false);
+					setError("这个网站打不开或拒绝嵌进来");
+				};
+				const onNewWindow = (event) => {
+					if (typeof event?.preventDefault === "function") event.preventDefault();
+					const next = event?.url;
+					if (typeof next === "string" && next.startsWith("http")) addTabRef.current(next);
+				};
+				guest.addEventListener("did-start-loading", onStart);
+				guest.addEventListener("did-stop-loading", onStop);
+				guest.addEventListener("did-navigate", onNav);
+				guest.addEventListener("did-navigate-in-page", onNav);
+				guest.addEventListener("did-finish-load", onStop);
+				guest.addEventListener("dom-ready", onStop);
+				guest.addEventListener("page-title-updated", onTitle);
+				guest.addEventListener("did-fail-load", onFail);
+				guest.addEventListener("load", onStop);
+				guest.addEventListener("new-window", onNewWindow);
+				guest._dshOff = () => {
+					guest.removeEventListener("did-start-loading", onStart);
+					guest.removeEventListener("did-stop-loading", onStop);
+					guest.removeEventListener("did-navigate", onNav);
+					guest.removeEventListener("did-navigate-in-page", onNav);
+					guest.removeEventListener("did-finish-load", onStop);
+					guest.removeEventListener("dom-ready", onStop);
+					guest.removeEventListener("page-title-updated", onTitle);
+					guest.removeEventListener("did-fail-load", onFail);
+					guest.removeEventListener("load", onStop);
+					guest.removeEventListener("new-window", onNewWindow);
+				};
+				stage.appendChild(guest);
+				guest.src = startUrl || "about:blank";
+				guestsRef.current.set(id, guest);
+			};
+			const dropGuest = (id) => {
+				const guest = guestsRef.current.get(id);
+				if (!guest) return;
+				try {
+					guest._dshOff?.();
+				} catch {}
+				guest.remove();
+				guestsRef.current.delete(id);
+			};
+			const currentDockBox = (visible) => measureDockBox(dockRef.current, wrapRef.current, visible);
+			const pushDockBox = (force = false) => {
+				const api = window.dshDesktop;
+				if (!api || typeof api.moveGuestDevtools !== "function") return;
+				const box = currentDockBox(dockOpenRef.current && activeRef.current);
+				const key = `${box.x},${box.y},${box.width},${box.height},${box.visible}`;
+				if (!force && key === lastDockKeyRef.current) return;
+				lastDockKeyRef.current = key;
+				api.moveGuestDevtools(box);
+			};
+			const closeDocked = async () => {
+				dockGenRef.current += 1;
+				lastDockKeyRef.current = "";
+				const page = guestRef.current;
+				const api = window.dshDesktop;
+				try {
+					if (hasGuestApi(page, "closeDevTools")) page.closeDevTools();
+				} catch {}
+				try {
+					if (api && typeof api.closeGuestDevtools === "function") await api.closeGuestDevtools(guestWebContentsId(page) || 0);
+				} catch {}
+			};
+			const attachDocked = async () => {
+				const gen = dockGenRef.current + 1;
+				dockGenRef.current = gen;
+				const page = guestRef.current;
+				const api = window.dshDesktop;
+				if (!page || !api || typeof api.attachGuestDevtools !== "function") {
+					setError("贴在网页底下需要桌面端嵌页");
+					setDockOpen(false);
+					return;
+				}
+				const dock = dockRef.current;
+				if (!dock) {
+					setError("调试区还没挂上，再点一次");
+					return;
+				}
+				await waitForDockBox(dock);
+				if (gen !== dockGenRef.current) return;
+				const pageId = await waitWebContentsId(page);
+				if (gen !== dockGenRef.current) return;
+				if (!pageId) {
+					setError("调试区还没挂上，再点一次");
+					setDockOpen(false);
+					return;
+				}
+				try {
+					const box = currentDockBox(activeRef.current);
+					const result = await api.attachGuestDevtools(pageId, box);
+					if (gen !== dockGenRef.current) {
+						try {
+							if (result?.ok) await api.closeGuestDevtools(pageId);
+						} catch {}
+						return;
+					}
+					if (result?.ok) {
+						setError(void 0);
+						lastDockKeyRef.current = `${box.x},${box.y},${box.width},${box.height},${box.visible}`;
+					} else {
+						setError("调试区打不开");
+						setDockOpen(false);
+					}
+				} catch {
+					if (gen !== dockGenRef.current) return;
+					setError("调试区打不开");
+					setDockOpen(false);
+				}
+			};
+			const addTab = (startUrl = "about:blank") => {
+				const parsed = startUrl === "about:blank" ? {
+					ok: true,
+					url: "about:blank"
+				} : normalizeNavigateUrl(startUrl);
+				const url = parsed.ok ? parsed.url : "about:blank";
+				const id = nextTabId();
+				setTabs((prev) => [...prev, {
+					id,
+					title: tabLabel(url, ""),
+					url
+				}]);
+				setActiveId(id);
+				mountGuest(id, url);
+				showTab(id);
+				return id;
+			};
+			addTabRef.current = addTab;
+			const closeTab = (id) => {
+				const prev = tabsRef.current;
+				if (prev.length <= 1) {
+					const only = prev[0];
+					if (!only) return;
+					const guest = guestsRef.current.get(only.id);
+					if (guest) guest.src = "about:blank";
+					setUrl("about:blank");
+					setDraft("");
+					setTabs([{
+						...only,
+						title: "新标签",
+						url: "about:blank"
+					}]);
+					return;
+				}
+				const index = prev.findIndex((tab) => tab.id === id);
+				const nextTabs = prev.filter((tab) => tab.id !== id);
+				dropGuest(id);
+				setTabs(nextTabs);
+				if (activeIdRef.current === id) {
+					const pick = nextTabs[index] ?? nextTabs[index - 1] ?? nextTabs[0];
+					setActiveId(pick.id);
+				}
+			};
+			const runInGuest = async (code) => {
+				const guest = guestRef.current;
+				if (!guest) throw new Error("浏览器还没就绪");
+				if (hasGuestApi(guest, "executeJavaScript")) return guest.executeJavaScript(code);
+				throw new Error("这个页面读不到，换桌面端嵌页后再试");
+			};
+			const applyAction = async (action) => {
+				const guest = guestRef.current;
+				if (!guest) throw new Error("浏览器还没就绪");
+				const type = action?.type ?? action?.action;
+				if (type === "navigate") {
+					const parsed = normalizeNavigateUrl(action.url);
+					if (!parsed.ok) throw new Error(parsed.error);
+					guest.src = parsed.url;
+					setUrl(parsed.url);
+					setDraft(parsed.url === "about:blank" ? "" : parsed.url);
+					setLoading(true);
+					setTabs((prev) => prev.map((tab) => tab.id === activeIdRef.current ? {
+						...tab,
+						url: parsed.url,
+						title: tabLabel(parsed.url, "")
+					} : tab));
+					return { url: parsed.url };
+				}
+				if (type === "back") {
+					if (hasGuestApi(guest, "goBack")) guest.goBack();
+					else throw new Error("这个嵌页不能后退");
+					return { ok: true };
+				}
+				if (type === "forward") {
+					if (hasGuestApi(guest, "goForward")) guest.goForward();
+					else throw new Error("这个嵌页不能前进");
+					return { ok: true };
+				}
+				if (type === "reload") {
+					if (hasGuestApi(guest, "reload")) guest.reload();
+					else guest.src = guest.src;
+					setLoading(true);
+					return { ok: true };
+				}
+				if (type === "snapshot" || type === "url" || type === "state") return runInGuest(snapshotScript());
+				if (type === "click") return runInGuest(clickScript(action));
+				if (type === "type") return runInGuest(typeScript(action));
+				if (type === "press") {
+					const key = String(action.key ?? "Enter");
+					return runInGuest(`(() => {
+        document.activeElement?.dispatchEvent(new KeyboardEvent('keydown', { key: ${JSON.stringify(key)}, bubbles: true }))
+        document.activeElement?.dispatchEvent(new KeyboardEvent('keyup', { key: ${JSON.stringify(key)}, bubbles: true }))
+        return true
+      })()`);
+				}
+				if (type === "devtools") {
+					openDevtools();
+					return { ok: true };
+				}
+				if (type === "console" || type === "network" || type === "cdp" || type === "screenshot") throw new Error("嵌页模式下这个排查口还没接上");
+				if (type === "pointer" || type === "wheel" || type === "key" || type === "resize") return { ok: true };
+				throw new Error("不认识这个操作");
+			};
+			applyRef.current = applyAction;
+			const closeTabRef = (0, react.useRef)(closeTab);
+			closeTabRef.current = closeTab;
+			const openDevtools = () => {
+				const guest = guestRef.current;
+				const mode = readDevtoolsMode();
+				const openDetached = () => {
+					if (!hasGuestApi(guest, "openDevTools")) return false;
+					try {
+						if (hasGuestApi(guest, "isDevToolsOpened") && guest.isDevToolsOpened()) {
+							guest.closeDevTools();
+							setError(void 0);
+							return true;
+						}
+						guest.openDevTools({ mode: "detach" });
+						setError(void 0);
+						return true;
+					} catch {
+						return false;
+					}
+				};
+				const fail = () => {
+					if (window.dshDesktop) setError("调试区打不开");
+					else setError("F12 需要用桌面端打开");
+				};
+				if (mode !== "detach") {
+					if (dockOpenRef.current) {
+						setDockOpen(false);
+						return;
+					}
+					setDockOpen(true);
+					setError(void 0);
+					return;
+				}
+				if (dockOpenRef.current) setDockOpen(false);
+				const api = window.dshDesktop;
+				const wcId = guestWebContentsId(guest);
+				if (api && typeof api.openGuestDevtools === "function" && wcId) {
+					Promise.resolve(api.openGuestDevtools(wcId, "detach")).then((result) => {
+						if (result?.ok) {
+							setError(void 0);
+							return;
+						}
+						if (!openDetached()) fail();
+					}).catch(() => {
+						if (!openDetached()) fail();
+					});
+					return;
+				}
+				if (openDetached()) return;
+				fail();
+			};
+			(0, react.useEffect)(() => {
+				if (!stageRef.current || !sessionId) return void 0;
+				tabSeq = 0;
+				const firstId = nextTabId();
+				setTabs([{
+					id: firstId,
+					title: "新标签",
+					url: "about:blank"
+				}]);
+				setActiveId(firstId);
+				setDraft("");
+				setUrl("about:blank");
+				setDownloads([]);
+				setDockOpen(false);
+				mountGuest(firstId, "about:blank");
+				showTab(firstId);
+				let socket;
+				let closed = false;
 				const connect = () => {
 					if (closed) return;
-					const size = measure();
-					socket = new WebSocket(socketUrl$1(sessionId, size.width, size.height));
+					socket = new WebSocket(socketUrl$1(sessionId));
 					socketRef.current = socket;
 					socket.onmessage = (event) => {
 						let next;
@@ -1129,52 +2223,31 @@ html[data-dsh-side-panels-dragging] [data-dsh-grip] {
 							setError(next.message || "浏览器开不了");
 							return;
 						}
-						if (next.type === "frame" && typeof next.data === "string") {
-							setFrame(`data:image/jpeg;base64,${next.data}`);
-							setError(void 0);
-						}
-						if (next.type === "state" || next.type === "ready") {
-							if (typeof next.url === "string") {
-								setUrl(next.url);
-								if (!editing.current) setDraft(next.url === "about:blank" ? "" : next.url);
-							}
-							if (typeof next.canGoBack === "boolean") setCanGoBack(next.canGoBack);
-							if (typeof next.canGoForward === "boolean") setCanGoForward(next.canGoForward);
-							if (typeof next.loading === "boolean") setLoading(next.loading);
-						}
-					};
-					socket.onerror = () => {
-						if (!closed) setError("连不上浏览器，请重启桌面端后再试。");
-					};
-					socket.onopen = () => {
-						send({
-							type: "resize",
-							...measure()
+						if (next.type === "cmd") applyRef.current(next.action).then((value) => {
+							if (socket?.readyState === WebSocket.OPEN) socket.send(JSON.stringify({
+								type: "result",
+								id: next.id,
+								ok: true,
+								value
+							}));
+						}).catch((err) => {
+							if (socket?.readyState === WebSocket.OPEN) socket.send(JSON.stringify({
+								type: "result",
+								id: next.id,
+								ok: false,
+								error: String(err.message ?? err)
+							}));
 						});
 					};
+					socket.onerror = () => {};
 				};
 				const start = window.requestAnimationFrame(() => connect());
-				const observer = typeof ResizeObserver === "undefined" ? void 0 : new ResizeObserver(() => {
-					send({
-						type: "resize",
-						...measure()
-					});
-				});
-				observer?.observe(stage);
-				const onWheel = (event) => {
-					event.preventDefault();
-					send({
-						type: "wheel",
-						dx: event.deltaX,
-						dy: event.deltaY
-					});
-				};
-				stage.addEventListener("wheel", onWheel, { passive: false });
 				return () => {
 					closed = true;
 					window.cancelAnimationFrame(start);
-					observer?.disconnect();
-					stage.removeEventListener("wheel", onWheel);
+					for (const id of [...guestsRef.current.keys()]) dropGuest(id);
+					closeDocked();
+					guestRef.current = null;
 					socketRef.current = null;
 					try {
 						socket?.close();
@@ -1182,166 +2255,302 @@ html[data-dsh-side-panels-dragging] [data-dsh-grip] {
 				};
 			}, [sessionId, paneId]);
 			(0, react.useEffect)(() => {
-				if (!active) return void 0;
-				const id = window.requestAnimationFrame(() => {
-					const stage = stageRef.current;
-					if (!stage) return;
-					const socket = socketRef.current;
-					if (socket?.readyState === WebSocket.OPEN) socket.send(JSON.stringify({
-						type: "resize",
-						width: Math.max(320, stage.clientWidth || 900),
-						height: Math.max(240, stage.clientHeight || 640)
-					}));
-					stage.focus();
+				if (!guestsRef.current.has(activeId)) return;
+				showTab(activeId);
+			}, [activeId]);
+			(0, react.useLayoutEffect)(() => {
+				if (!dockOpen) {
+					closeDocked();
+					return;
+				}
+				attachDocked();
+			}, [dockOpen, activeId]);
+			(0, react.useEffect)(() => {
+				if (!dockOpen) return void 0;
+				const dock = dockRef.current;
+				if (!dock) return void 0;
+				const kick = () => pushDockBox();
+				kick();
+				const obs = new ResizeObserver(() => kick());
+				obs.observe(dock);
+				if (wrapRef.current) obs.observe(wrapRef.current);
+				window.addEventListener("resize", kick);
+				window.addEventListener("scroll", kick, true);
+				const io = typeof IntersectionObserver === "function" ? new IntersectionObserver(() => kick(), { threshold: [
+					0,
+					.05,
+					.5,
+					1
+				] }) : null;
+				io?.observe(dock);
+				return () => {
+					obs.disconnect();
+					io?.disconnect();
+					window.removeEventListener("resize", kick);
+					window.removeEventListener("scroll", kick, true);
+				};
+			}, [dockOpen, active]);
+			(0, react.useEffect)(() => {
+				const api = window.dshDesktop;
+				if (!api || typeof api.onDownload !== "function") return void 0;
+				return api.onDownload((item) => {
+					if (!item?.id) return;
+					setDownloads((prev) => {
+						return [...prev.filter((row) => row.id !== item.id), item];
+					});
 				});
-				return () => window.cancelAnimationFrame(id);
+			}, []);
+			(0, react.useEffect)(() => {
+				if (!active) return void 0;
+				const onKey = (event) => {
+					if (!wrapRef.current?.contains(event.target)) return;
+					if (event.key === "F12" || event.ctrlKey && event.shiftKey && event.key.toLowerCase() === "i") {
+						event.preventDefault();
+						openDevtools();
+						return;
+					}
+					if (event.ctrlKey && event.key.toLowerCase() === "t") {
+						event.preventDefault();
+						addTabRef.current();
+						return;
+					}
+					if (event.ctrlKey && event.key.toLowerCase() === "w") {
+						event.preventDefault();
+						closeTabRef.current(activeIdRef.current);
+						return;
+					}
+					if (event.ctrlKey && event.key.toLowerCase() === "l") {
+						event.preventDefault();
+						urlRef.current?.focus();
+						urlRef.current?.select();
+					}
+				};
+				window.addEventListener("keydown", onKey);
+				return () => window.removeEventListener("keydown", onKey);
 			}, [active]);
-			const send = (payload) => {
-				const socket = socketRef.current;
-				if (socket?.readyState === WebSocket.OPEN) socket.send(JSON.stringify(payload));
-			};
 			const go = (target) => {
 				editing.current = false;
-				send({
-					type: "navigate",
-					url: target
-				});
-			};
-			const onPointer = (event, kind) => {
-				const stage = stageRef.current;
-				if (!stage) return;
-				if (kind !== "move") {
-					event.preventDefault();
-					stage.focus();
+				const parsed = normalizeNavigateUrl(target);
+				if (!parsed.ok) {
+					setError(parsed.error);
+					return;
 				}
-				const point = pointIn(stage, event);
-				send({
-					type: "pointer",
-					event: kind,
-					x: point.x,
-					y: point.y,
-					button: event.button,
-					clickCount: event.detail || 1
-				});
+				const guest = guestRef.current;
+				if (!guest) return;
+				setError(void 0);
+				setLoading(true);
+				guest.src = parsed.url;
+				setUrl(parsed.url);
+				setDraft(parsed.url === "about:blank" ? "" : parsed.url);
+				setTabs((prev) => prev.map((tab) => tab.id === activeIdRef.current ? {
+					...tab,
+					url: parsed.url,
+					title: tabLabel(parsed.url, "")
+				} : tab));
 			};
+			const back = () => {
+				const guest = guestRef.current;
+				if (hasGuestApi(guest, "goBack")) guest.goBack();
+			};
+			const forward = () => {
+				const guest = guestRef.current;
+				if (hasGuestApi(guest, "goForward")) guest.goForward();
+			};
+			const reload = () => {
+				const guest = guestRef.current;
+				if (!guest) return;
+				if (hasGuestApi(guest, "reload")) guest.reload();
+				else guest.src = guest.src;
+				setLoading(true);
+			};
+			const visibleDownloads = downloads.filter((item) => item.state !== "cancelled" || item.received);
+			const desktop = typeof window !== "undefined" ? window.dshDesktop : void 0;
 			if (!sessionId) return /* @__PURE__ */ (0, react_jsx_runtime.jsx)("div", {
 				style: S$1.empty,
 				children: "这条对话还没有编号，开不了浏览器"
 			});
 			return /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", {
+				ref: wrapRef,
 				style: S$1.browserWrap,
-				children: [/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", {
-					style: S$1.chrome,
-					children: [/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", {
-						style: S$1.chromeGroup,
+				"data-dsh-browser": "",
+				children: [
+					/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", {
+						"data-dsh-browser-tabs": "",
+						style: S$1.browserTabBar,
+						children: [tabs.map((tab) => /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", {
+							"data-dsh-browser-tab": "",
+							"data-dsh-browser-tab-active": tab.id === activeId ? "" : void 0,
+							style: {
+								...S$1.browserTab,
+								...tab.id === activeId ? S$1.browserTabActive : {}
+							},
+							title: tab.url,
+							onClick: () => setActiveId(tab.id),
+							children: [/* @__PURE__ */ (0, react_jsx_runtime.jsx)("span", {
+								style: S$1.browserTabName,
+								children: tab.title
+							}), /* @__PURE__ */ (0, react_jsx_runtime.jsx)("button", {
+								type: "button",
+								style: S$1.tabClose,
+								title: "关闭标签",
+								"aria-label": `关闭 ${tab.title}`,
+								onClick: (event) => {
+									event.stopPropagation();
+									closeTab(tab.id);
+								},
+								children: "×"
+							})]
+						}, tab.id)), /* @__PURE__ */ (0, react_jsx_runtime.jsx)("button", {
+							type: "button",
+							style: S$1.browserTabAdd,
+							title: "新标签",
+							"aria-label": "新标签",
+							onClick: () => addTab(),
+							children: "+"
+						})]
+					}),
+					/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", {
+						style: {
+							...S$1.chrome,
+							alignItems: "center"
+						},
 						children: [
-							/* @__PURE__ */ (0, react_jsx_runtime.jsx)("button", {
-								type: "button",
-								style: S$1.iconBtn,
-								title: "后退",
-								disabled: !canGoBack,
-								onClick: () => send({ type: "back" }),
-								children: /* @__PURE__ */ (0, react_jsx_runtime.jsx)(NavIcon, { d: "M10.5 3.5 5.5 8l5 4.5" })
+							/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", {
+								style: S$1.chromeGroup,
+								children: [
+									/* @__PURE__ */ (0, react_jsx_runtime.jsx)("button", {
+										type: "button",
+										style: S$1.iconBtn,
+										title: "后退",
+										disabled: !canGoBack,
+										onClick: back,
+										children: /* @__PURE__ */ (0, react_jsx_runtime.jsx)(NavIcon, { d: "M10.5 3.5 5.5 8l5 4.5" })
+									}),
+									/* @__PURE__ */ (0, react_jsx_runtime.jsx)("button", {
+										type: "button",
+										style: S$1.iconBtn,
+										title: "前进",
+										disabled: !canGoForward,
+										onClick: forward,
+										children: /* @__PURE__ */ (0, react_jsx_runtime.jsx)(NavIcon, { d: "M5.5 3.5 10.5 8l-5 4.5" })
+									}),
+									/* @__PURE__ */ (0, react_jsx_runtime.jsx)("button", {
+										type: "button",
+										style: S$1.iconBtn,
+										title: "刷新",
+										onClick: reload,
+										children: /* @__PURE__ */ (0, react_jsx_runtime.jsx)(NavIcon, { d: "M3 8a5 5 0 0 1 9-2.5 M13 3.5v3h-3 M13 8a5 5 0 0 1-9 2.5 M3 12.5v-3h3" })
+									})
+								]
+							}),
+							/* @__PURE__ */ (0, react_jsx_runtime.jsx)("form", {
+								style: S$1.browserUrlForm,
+								onSubmit: (event) => {
+									event.preventDefault();
+									go(draft);
+								},
+								children: /* @__PURE__ */ (0, react_jsx_runtime.jsx)("input", {
+									ref: urlRef,
+									"data-dsh-browser-url": "",
+									style: S$1.browserUrl,
+									value: draft,
+									spellCheck: false,
+									placeholder: "输入网址",
+									onFocus: () => {
+										editing.current = true;
+									},
+									onBlur: () => {
+										editing.current = false;
+										setDraft(url === "about:blank" ? "" : url);
+									},
+									onChange: (event) => setDraft(event.target.value),
+									onKeyDown: (event) => {
+										if (event.key === "Escape") {
+											editing.current = false;
+											setDraft(url === "about:blank" ? "" : url);
+										}
+									}
+								})
 							}),
 							/* @__PURE__ */ (0, react_jsx_runtime.jsx)("button", {
 								type: "button",
+								"data-dsh-browser-f12": "",
 								style: S$1.iconBtn,
-								title: "前进",
-								disabled: !canGoForward,
-								onClick: () => send({ type: "forward" }),
-								children: /* @__PURE__ */ (0, react_jsx_runtime.jsx)(NavIcon, { d: "M5.5 3.5 10.5 8l-5 4.5" })
-							}),
-							/* @__PURE__ */ (0, react_jsx_runtime.jsx)("button", {
-								type: "button",
-								style: S$1.iconBtn,
-								title: "刷新",
-								onClick: () => send({ type: "reload" }),
-								children: /* @__PURE__ */ (0, react_jsx_runtime.jsx)(NavIcon, { d: "M3 8a5 5 0 0 1 9-2.5 M13 3.5v3h-3 M13 8a5 5 0 0 1-9 2.5 M3 12.5v-3h3" })
+								title: "F12 调试",
+								"aria-label": "F12 调试",
+								onClick: openDevtools,
+								children: /* @__PURE__ */ (0, react_jsx_runtime.jsx)(ConsolePromptIcon, {})
 							})
 						]
-					}), /* @__PURE__ */ (0, react_jsx_runtime.jsx)("form", {
-						style: S$1.browserUrlForm,
-						onSubmit: (event) => {
-							event.preventDefault();
-							go(draft);
-						},
-						children: /* @__PURE__ */ (0, react_jsx_runtime.jsx)("input", {
-							ref: urlRef,
-							"data-dsh-browser-url": "",
-							style: S$1.browserUrl,
-							value: draft,
-							spellCheck: false,
-							placeholder: "输入网址",
-							onFocus: () => {
-								editing.current = true;
-							},
-							onBlur: () => {
-								editing.current = false;
-								setDraft(url === "about:blank" ? "" : url);
-							},
-							onChange: (event) => setDraft(event.target.value),
-							onKeyDown: (event) => {
-								if (event.key === "Escape") {
-									editing.current = false;
-									setDraft(url === "about:blank" ? "" : url);
-									stageRef.current?.focus();
-								}
-							}
-						})
-					})]
-				}), /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", {
-					ref: stageRef,
-					tabIndex: 0,
-					"data-dsh-browser-stage": "",
-					style: S$1.browserStage,
-					onPointerDown: (event) => {
-						event.currentTarget.setPointerCapture?.(event.pointerId);
-						onPointer(event, "down");
-					},
-					onPointerMove: (event) => {
-						if (event.buttons) onPointer(event, "move");
-					},
-					onPointerUp: (event) => onPointer(event, "up"),
-					onContextMenu: (event) => event.preventDefault(),
-					onKeyDown: (event) => {
-						if (event.target !== stageRef.current) return;
-						if (event.ctrlKey && event.key.toLowerCase() === "l") {
-							event.preventDefault();
-							urlRef.current?.focus();
-							urlRef.current?.select();
-							return;
-						}
-						event.preventDefault();
-						send({
-							type: "key",
-							event: "down",
-							key: event.key,
-							code: event.code
-						});
-					},
-					onKeyUp: (event) => {
-						if (event.target !== stageRef.current) return;
-						event.preventDefault();
-						send({
-							type: "key",
-							event: "up",
-							key: event.key,
-							code: event.code
-						});
-					},
-					children: [frame ? /* @__PURE__ */ (0, react_jsx_runtime.jsx)("img", {
-						alt: "",
-						draggable: false,
-						src: frame,
-						style: S$1.browserFrame
-					}) : /* @__PURE__ */ (0, react_jsx_runtime.jsx)("div", {
-						style: S$1.empty,
-						children: loading ? "正在打开…" : "输入网址后回车"
-					}), error ? /* @__PURE__ */ (0, react_jsx_runtime.jsx)("div", {
-						style: S$1.browserError,
-						children: error
-					}) : null]
-				})]
+					}),
+					/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", {
+						"data-dsh-browser-body": "",
+						style: S$1.browserBody,
+						children: [/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", {
+							ref: stageRef,
+							tabIndex: -1,
+							"data-dsh-browser-stage": "",
+							style: S$1.browserStage,
+							children: [loading ? /* @__PURE__ */ (0, react_jsx_runtime.jsx)("div", { style: S$1.browserLoading }) : null, error ? /* @__PURE__ */ (0, react_jsx_runtime.jsx)("div", {
+								style: S$1.browserError,
+								children: error
+							}) : null]
+						}), dockOpen ? /* @__PURE__ */ (0, react_jsx_runtime.jsx)("div", {
+							ref: dockRef,
+							"data-dsh-browser-dock": "",
+							style: S$1.browserDock
+						}) : null]
+					}),
+					visibleDownloads.length > 0 ? /* @__PURE__ */ (0, react_jsx_runtime.jsx)("div", {
+						style: S$1.browserDownloads,
+						children: visibleDownloads.map((item) => /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", {
+							style: S$1.browserDlItem,
+							children: [
+								/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", {
+									style: S$1.browserDlMeta,
+									children: [/* @__PURE__ */ (0, react_jsx_runtime.jsx)("span", {
+										style: S$1.browserDlName,
+										title: item.savePath || item.filename,
+										children: item.filename
+									}), /* @__PURE__ */ (0, react_jsx_runtime.jsx)("span", {
+										style: S$1.browserDlPct,
+										children: item.state === "completed" ? "完成" : item.state === "interrupted" ? "中断" : `${percent$1(item)}%`
+									})]
+								}),
+								/* @__PURE__ */ (0, react_jsx_runtime.jsx)("div", {
+									style: S$1.browserDlTrack,
+									children: /* @__PURE__ */ (0, react_jsx_runtime.jsx)("div", { style: {
+										...S$1.browserDlFill,
+										width: `${percent$1(item)}%`
+									} })
+								}),
+								/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", {
+									style: S$1.browserDlActions,
+									children: [
+										item.state === "progressing" && desktop?.cancelDownload ? /* @__PURE__ */ (0, react_jsx_runtime.jsx)("button", {
+											type: "button",
+											style: S$1.browserDlBtn,
+											onClick: () => desktop.cancelDownload(item.id),
+											children: "取消"
+										}) : null,
+										item.state === "completed" && item.savePath && desktop?.openDownload ? /* @__PURE__ */ (0, react_jsx_runtime.jsx)("button", {
+											type: "button",
+											style: S$1.browserDlBtn,
+											onClick: () => desktop.openDownload(item.savePath),
+											children: "打开"
+										}) : null,
+										/* @__PURE__ */ (0, react_jsx_runtime.jsx)("button", {
+											type: "button",
+											style: S$1.browserDlBtn,
+											onClick: () => setDownloads((prev) => prev.filter((row) => row.id !== item.id)),
+											children: "关闭"
+										})
+									]
+								})
+							]
+						}, item.id))
+					}) : null
+				]
 			});
 		}
 		function NavIcon({ d }) {
@@ -29363,201 +30572,6 @@ html[data-dsh-side-panels-dragging] [data-dsh-grip] {
 			baseTheme
 		];
 		//#endregion
-		//#region src/client/icons.jsx
-		function extOf(name) {
-			const base = String(name).toLowerCase();
-			if (base === ".gitignore" || base.endsWith(".gitignore")) return "gitignore";
-			const dot = base.lastIndexOf(".");
-			if (dot <= 0) return "";
-			return base.slice(dot + 1);
-		}
-		function gitColor(letter) {
-			if (letter === "U" || letter === "A") return "#3ba55d";
-			if (letter === "M") return "#e2b53e";
-			if (letter === "D") return "#e05252";
-			return "#6a9a73";
-		}
-		function FileKindIcon({ name, directory, open }) {
-			if (directory) return /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("svg", {
-				viewBox: "0 0 16 16",
-				width: "16",
-				height: "16",
-				"aria-hidden": "true",
-				children: [/* @__PURE__ */ (0, react_jsx_runtime.jsx)("path", {
-					fill: open ? "#dcb67a" : "#c9a66b",
-					d: open ? "M1.5 13V5.2h3.4L6.4 3.8h8.1V13z" : "M1.5 13V4.4h3.6L6.6 3h8V13z"
-				}), /* @__PURE__ */ (0, react_jsx_runtime.jsx)("path", {
-					fill: open ? "#e8c992" : "#d4b07a",
-					d: open ? "M1.5 6.2h13V13h-13z" : "M1.5 5.6h13V13h-13z"
-				})]
-			});
-			const ext = extOf(name);
-			if (ext === "gitignore") return /* @__PURE__ */ (0, react_jsx_runtime.jsx)("svg", {
-				viewBox: "0 0 16 16",
-				width: "16",
-				height: "16",
-				"aria-hidden": "true",
-				children: /* @__PURE__ */ (0, react_jsx_runtime.jsx)("path", {
-					fill: "#f05133",
-					d: "M8 1.6 14.2 8 8 14.4 1.8 8z"
-				})
-			});
-			const badge = {
-				ts: {
-					bg: "#3178c6",
-					text: "TS"
-				},
-				tsx: {
-					bg: "#3178c6",
-					text: "TS"
-				},
-				js: {
-					bg: "#cbcb41",
-					text: "JS",
-					fg: "#333"
-				},
-				jsx: {
-					bg: "#cbcb41",
-					text: "JS",
-					fg: "#333"
-				},
-				mjs: {
-					bg: "#cbcb41",
-					text: "JS",
-					fg: "#333"
-				},
-				json: {
-					bg: "#8bc34a",
-					text: "{}"
-				},
-				yml: {
-					bg: "#cb171e",
-					text: "Y"
-				},
-				yaml: {
-					bg: "#cb171e",
-					text: "Y"
-				},
-				md: {
-					bg: "#519aba",
-					text: "M"
-				},
-				css: {
-					bg: "#563d7c",
-					text: "#"
-				},
-				html: {
-					bg: "#e44d26",
-					text: "<>"
-				}
-			}[ext] ?? {
-				bg: "#6c7780",
-				text: "·"
-			};
-			return /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("svg", {
-				viewBox: "0 0 16 16",
-				width: "16",
-				height: "16",
-				"aria-hidden": "true",
-				children: [/* @__PURE__ */ (0, react_jsx_runtime.jsx)("rect", {
-					x: "1.5",
-					y: "1.5",
-					width: "13",
-					height: "13",
-					rx: "2",
-					fill: badge.bg
-				}), /* @__PURE__ */ (0, react_jsx_runtime.jsx)("text", {
-					x: "8",
-					y: "11",
-					textAnchor: "middle",
-					fill: badge.fg ?? "#fff",
-					fontSize: badge.text.length > 1 ? 6.5 : 8,
-					fontFamily: "ui-sans-serif, system-ui, sans-serif",
-					fontWeight: "700",
-					children: badge.text
-				})]
-			});
-		}
-		/** 右侧活动栏：两张叠着的纸，和 Cursor 文件树按钮同一类。 */
-		function FilesActivityIcon() {
-			return /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("svg", {
-				viewBox: "0 0 24 24",
-				width: "22",
-				height: "22",
-				fill: "none",
-				stroke: "currentColor",
-				strokeWidth: "1.6",
-				"aria-hidden": "true",
-				children: [/* @__PURE__ */ (0, react_jsx_runtime.jsx)("rect", {
-					x: "4",
-					y: "7",
-					width: "11",
-					height: "14",
-					rx: "1.4"
-				}), /* @__PURE__ */ (0, react_jsx_runtime.jsx)("path", { d: "M9 7V4.4A1.4 1.4 0 0 1 10.4 3H19.6A1.4 1.4 0 0 1 21 4.4V17.6A1.4 1.4 0 0 1 19.6 19H15" })]
-			});
-		}
-		/** 右侧活动栏：终端。 */
-		function TerminalActivityIcon() {
-			return /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("svg", {
-				viewBox: "0 0 24 24",
-				width: "22",
-				height: "22",
-				fill: "none",
-				stroke: "currentColor",
-				strokeWidth: "1.6",
-				"aria-hidden": "true",
-				children: [/* @__PURE__ */ (0, react_jsx_runtime.jsx)("rect", {
-					x: "3.5",
-					y: "5",
-					width: "17",
-					height: "14",
-					rx: "2"
-				}), /* @__PURE__ */ (0, react_jsx_runtime.jsx)("path", { d: "M7 10.5 10 13 7 15.5 M12.5 15.5H17" })]
-			});
-		}
-		/** 右侧活动栏：浏览器。 */
-		function BrowserActivityIcon() {
-			return /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("svg", {
-				viewBox: "0 0 24 24",
-				width: "22",
-				height: "22",
-				fill: "none",
-				stroke: "currentColor",
-				strokeWidth: "1.6",
-				"aria-hidden": "true",
-				children: [/* @__PURE__ */ (0, react_jsx_runtime.jsx)("circle", {
-					cx: "12",
-					cy: "12",
-					r: "8.2"
-				}), /* @__PURE__ */ (0, react_jsx_runtime.jsx)("path", { d: "M3.8 12h16.4 M12 3.8c2.2 2.4 3.4 4.9 3.4 8.2S14.2 17.8 12 20.2C9.8 17.8 8.6 15.3 8.6 12S9.8 6.2 12 3.8z" })]
-			});
-		}
-		function WorkbenchToggleIcon() {
-			return /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("svg", {
-				viewBox: "0 0 16 16",
-				width: "16",
-				height: "16",
-				fill: "none",
-				stroke: "currentColor",
-				strokeWidth: "1.3",
-				"aria-hidden": "true",
-				children: [/* @__PURE__ */ (0, react_jsx_runtime.jsx)("rect", {
-					x: "1.5",
-					y: "2.5",
-					width: "8.5",
-					height: "11",
-					rx: "1"
-				}), /* @__PURE__ */ (0, react_jsx_runtime.jsx)("rect", {
-					x: "11",
-					y: "2.5",
-					width: "3.5",
-					height: "11",
-					rx: "0.8"
-				})]
-			});
-		}
-		//#endregion
 		//#region src/client/CodeEditor.jsx
 		function languageFor(path) {
 			const ext = extOf(basename$1(path));
@@ -42694,66 +43708,9 @@ html[data-dsh-side-panels-dragging] [data-dsh-grip] {
 			})()));
 		}));
 		//#endregion
-		//#region src/client/prefs.js
+		//#region src/client/term-theme.js
 		var import_xterm = require_xterm();
 		var import_addon_fit = require_addon_fit();
-		const SETTINGS_NS = "dsh-side-panels";
-		const DEFAULT_PREFS = {
-			enabled: true,
-			terminalTheme: "follow",
-			startCollapsed: false,
-			shell: "auto",
-			customPath: ""
-		};
-		const listeners$1 = /* @__PURE__ */ new Set();
-		let bound;
-		const memory = { ...DEFAULT_PREFS };
-		let cached = { ...DEFAULT_PREFS };
-		function samePrefs(left, right) {
-			return left.enabled === right.enabled && left.terminalTheme === right.terminalTheme && left.startCollapsed === right.startCollapsed && left.shell === right.shell && left.customPath === right.customPath;
-		}
-		function emit$1() {
-			snapshotValue();
-			for (const listener of listeners$1) listener();
-		}
-		function snapshotValue() {
-			const snap = bound?.getSnapshot();
-			const next = snap?.status === "ready" && snap.value && typeof snap.value === "object" ? {
-				...DEFAULT_PREFS,
-				...snap.value
-			} : {
-				...DEFAULT_PREFS,
-				...memory
-			};
-			if (samePrefs(cached, next)) return cached;
-			cached = next;
-			return cached;
-		}
-		function attachPrefs(settingsScope) {
-			bound = settingsScope.bind({ namespace: SETTINGS_NS });
-			const stop = bound.subscribe(emit$1);
-			emit$1();
-			return () => {
-				stop();
-				bound = void 0;
-				emit$1();
-			};
-		}
-		function subscribePrefs(listener) {
-			listeners$1.add(listener);
-			return () => listeners$1.delete(listener);
-		}
-		function getPrefs() {
-			return snapshotValue();
-		}
-		function setPref(field, value) {
-			if ((bound?.getSnapshot())?.writable) return bound.set(field, value);
-			memory[field] = value;
-			emit$1();
-			return Promise.resolve();
-		}
-		//#endregion
-		//#region src/client/term-theme.js
 		function resolved(cssVar, fallback, channel) {
 			if (typeof document === "undefined") return fallback;
 			const probe = document.createElement("div");
@@ -45503,7 +46460,6 @@ html[data-dsh-side-panels-dragging] [data-dsh-grip] {
 					}),
 					/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", {
 						className: "dsh-sp-group",
-						style: { borderBottom: "none" },
 						children: [/* @__PURE__ */ (0, react_jsx_runtime.jsx)("div", {
 							className: "dsh-sp-title",
 							children: "终端配色"
@@ -45529,6 +46485,43 @@ html[data-dsh-side-panels-dragging] [data-dsh-grip] {
 								children: ["始终深色", /* @__PURE__ */ (0, react_jsx_runtime.jsx)("small", { children: "黑底亮字" })]
 							})]
 						})]
+					}),
+					/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", {
+						className: "dsh-sp-group",
+						style: { borderBottom: "none" },
+						children: [
+							/* @__PURE__ */ (0, react_jsx_runtime.jsx)("div", {
+								className: "dsh-sp-title",
+								children: "浏览器调试"
+							}),
+							/* @__PURE__ */ (0, react_jsx_runtime.jsx)("div", {
+								className: "dsh-sp-hint",
+								style: { marginBottom: 10 },
+								children: "点地址栏那个控制台图标时，调试区怎么出现。"
+							}),
+							/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", {
+								className: "dsh-sp-cubes",
+								role: "radiogroup",
+								"aria-label": "浏览器调试",
+								children: [/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("button", {
+									type: "button",
+									role: "radio",
+									className: "dsh-sp-cube",
+									"aria-checked": prefs.devtoolsMode !== "detach",
+									onMouseDown: (event) => event.preventDefault(),
+									onClick: () => void setPref("devtoolsMode", "bottom"),
+									children: ["贴在网页底下", /* @__PURE__ */ (0, react_jsx_runtime.jsx)("small", { children: "面板里官方调试器，和 Chrome 按 F12 同一套" })]
+								}), /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("button", {
+									type: "button",
+									role: "radio",
+									className: "dsh-sp-cube",
+									"aria-checked": prefs.devtoolsMode === "detach",
+									onMouseDown: (event) => event.preventDefault(),
+									onClick: () => void setPref("devtoolsMode", "detach"),
+									children: ["弹出窗口", /* @__PURE__ */ (0, react_jsx_runtime.jsx)("small", { children: "单独开一个调试窗" })]
+								})]
+							})
+						]
 					})
 				]
 			});

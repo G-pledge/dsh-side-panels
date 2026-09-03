@@ -86,6 +86,16 @@ export function TerminalActivityIcon() {
   )
 }
 
+/** 地址栏 F12：命令行提示符。 */
+export function ConsolePromptIcon() {
+  return (
+    <svg viewBox="0 0 16 16" width="14" height="14" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <path d="M3.5 4.2 7.2 8 3.5 11.8" />
+      <path d="M8.2 12.2h4.6" />
+    </svg>
+  )
+}
+
 /** 右侧活动栏：浏览器。 */
 export function BrowserActivityIcon() {
   return (

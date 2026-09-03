@@ -350,14 +350,29 @@ export const S = {
     background: '#fff',
     outline: 'none',
   },
-  browserFrame: {
+  browserBody: {
+    flex: 1,
+    minHeight: 0,
+    display: 'flex',
+    flexDirection: 'column',
+  },
+  browserDock: {
+    flex: '0 0 42%',
+    minHeight: 160,
+    borderTop: '1px solid #3c4043',
+    background: '#202124',
+    position: 'relative',
+    overflow: 'hidden',
+  },
+  browserLoading: {
     position: 'absolute',
-    inset: 0,
-    width: '100%',
-    height: '100%',
-    objectFit: 'fill',
+    top: 0,
+    left: 0,
+    right: 0,
+    height: 2,
+    background: 'rgb(0 122 204 / 70%)',
+    zIndex: 3,
     pointerEvents: 'none',
-    userSelect: 'none',
   },
   browserError: {
     position: 'absolute',
@@ -370,6 +385,120 @@ export const S = {
     color: '#fff',
     fontSize: 12,
     zIndex: 2,
+  },
+  browserTabBar: {
+    display: 'flex',
+    alignItems: 'center',
+    minHeight: 28,
+    padding: '2px 6px 0',
+    gap: 2,
+    overflowX: 'auto',
+    overflowY: 'hidden',
+    background: 'var(--dsw-alias-bg-subtle, #f3f3f3)',
+    borderBottom: '1px solid var(--dsw-alias-border, #ececec)',
+    flex: '0 0 auto',
+  },
+  browserTab: {
+    display: 'inline-flex',
+    alignItems: 'center',
+    gap: 4,
+    maxWidth: 180,
+    height: 24,
+    padding: '0 4px 0 10px',
+    borderRadius: '8px 8px 0 0',
+    fontSize: 12,
+    cursor: 'pointer',
+    opacity: 0.7,
+    flex: '0 0 auto',
+  },
+  browserTabActive: {
+    background: 'var(--dsw-alias-bg-base, #fff)',
+    opacity: 1,
+  },
+  browserTabName: {
+    overflow: 'hidden',
+    textOverflow: 'ellipsis',
+    whiteSpace: 'nowrap',
+    flex: 1,
+    minWidth: 0,
+  },
+  browserTabAdd: {
+    width: 24,
+    height: 24,
+    border: 'none',
+    background: 'transparent',
+    color: 'inherit',
+    borderRadius: 6,
+    cursor: 'pointer',
+    fontSize: 16,
+    lineHeight: 1,
+    flex: '0 0 24px',
+    opacity: 0.7,
+  },
+  browserDownloads: {
+    flex: '0 0 auto',
+    borderTop: '1px solid var(--dsw-alias-border, #ececec)',
+    background: 'var(--dsw-alias-bg-subtle, #f3f3f3)',
+    maxHeight: 120,
+    overflowY: 'auto',
+    padding: '6px 8px',
+    display: 'flex',
+    flexDirection: 'column',
+    gap: 6,
+  },
+  browserDlItem: {
+    display: 'grid',
+    gridTemplateColumns: 'minmax(0,1fr) auto',
+    gridTemplateRows: 'auto auto',
+    columnGap: 8,
+    rowGap: 4,
+    alignItems: 'center',
+  },
+  browserDlMeta: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: 8,
+    minWidth: 0,
+    gridColumn: '1 / 2',
+  },
+  browserDlName: {
+    overflow: 'hidden',
+    textOverflow: 'ellipsis',
+    whiteSpace: 'nowrap',
+    fontSize: 12,
+  },
+  browserDlPct: {
+    fontSize: 11,
+    opacity: 0.65,
+    flex: '0 0 auto',
+  },
+  browserDlTrack: {
+    gridColumn: '1 / 2',
+    height: 4,
+    borderRadius: 99,
+    background: 'rgb(0 0 0 / 10%)',
+    overflow: 'hidden',
+  },
+  browserDlFill: {
+    height: '100%',
+    background: 'rgb(0 122 204 / 80%)',
+    borderRadius: 99,
+  },
+  browserDlActions: {
+    gridColumn: '2 / 3',
+    gridRow: '1 / 3',
+    display: 'flex',
+    gap: 4,
+  },
+  browserDlBtn: {
+    border: 'none',
+    background: 'transparent',
+    color: 'inherit',
+    fontSize: 11,
+    cursor: 'pointer',
+    padding: '2px 6px',
+    borderRadius: 4,
+    opacity: 0.75,
   },
   previewBar: {
     display: 'flex',
@@ -751,6 +880,33 @@ html[data-dsh-side-panels-dragging] [data-dsh-grip] {
 [data-dsh-side-panels] [data-dsh-browser-url]:focus {
   border-color: rgb(0 122 204 / 45%);
   background: var(--dsw-alias-bg-base, #fff);
+}
+[data-dsh-side-panels] [data-dsh-browser-guest] {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  border: 0;
+  background: #fff;
+}
+[data-dsh-side-panels] [data-dsh-browser-devtools] {
+  position: absolute;
+  left: 0;
+  top: 0;
+  border: 0;
+  background: #202124;
+}
+[data-dsh-side-panels] [data-dsh-browser-tab]:hover {
+  background: rgb(127 127 127 / 10%);
+  opacity: 1;
+}
+[data-dsh-side-panels] [data-dsh-browser-tab-active] {
+  background: var(--dsw-alias-bg-base, #fff) !important;
+  opacity: 1;
+}
+[data-dsh-side-panels] button[data-dsh-browser-f12] {
+  font-size: 10px !important;
+  font-weight: 700;
 }
 [data-dsh-cm],
 [data-dsh-cm] .cm-editor {

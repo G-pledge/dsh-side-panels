@@ -8,6 +8,7 @@ export const Config = z.object({
   startCollapsed: z.boolean().default(false),
   shell: z.union(['auto', 'cmd', 'powershell', 'custom']).default('auto'),
   customPath: z.string().default(''),
+  devtoolsMode: z.union(['bottom', 'detach']).default('bottom'),
 })
 
 export function readShellChoice(ctx) {

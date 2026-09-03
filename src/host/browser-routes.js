@@ -59,7 +59,7 @@ export function registerBrowser(ctx) {
       return
     }
     try {
-      const runtime = await hub.get(session, { width: body.width, height: body.height })
+      const runtime = await hub.get(session)
       const value = await runtime.apply({ ...body, type: body.type ?? body.action })
       sendJson(response, 200, { ok: true, value })
     } catch (error) {
@@ -76,18 +76,15 @@ export function registerBrowser(ctx) {
       }
       const url = queryOf(request)
       const session = url.searchParams.get('session') ?? ''
-      const width = Number.parseInt(url.searchParams.get('width') ?? '900', 10)
-      const height = Number.parseInt(url.searchParams.get('height') ?? '640', 10)
       if (!session.trim()) {
         reject(socket, 400, 'Bad Request')
         return
       }
       browserWss.handleUpgrade(request, socket, head, (ws) => {
         let detach = () => {}
-        void hub.get(session, { width, height }).then((runtime) => {
+        void hub.get(session).then((runtime) => {
           if (ws.readyState !== 1) return
           detach = runtime.attach(ws)
-          sendFrame(ws, { type: 'ready' })
         }).catch((error) => {
           sendFrame(ws, { type: 'error', message: String(error.message ?? error) })
           try {
@@ -95,17 +92,6 @@ export function registerBrowser(ctx) {
           } catch {
             // 已经关了
           }
-        })
-        ws.on('message', (raw) => {
-          let frame
-          try {
-            frame = JSON.parse(String(raw))
-          } catch {
-            return
-          }
-          void hub.get(session, { width, height }).then((runtime) => runtime.apply(frame)).catch((error) => {
-            sendFrame(ws, { type: 'error', message: String(error.message ?? error) })
-          })
         })
         ws.on('close', () => detach())
         ws.on('error', () => detach())

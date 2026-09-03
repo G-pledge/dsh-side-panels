@@ -6,6 +6,7 @@ export const DEFAULT_PREFS = {
   startCollapsed: false,
   shell: 'auto',
   customPath: '',
+  devtoolsMode: 'bottom',
 }
 
 const listeners = new Set()
@@ -19,6 +20,7 @@ function samePrefs(left, right) {
     && left.startCollapsed === right.startCollapsed
     && left.shell === right.shell
     && left.customPath === right.customPath
+    && left.devtoolsMode === right.devtoolsMode
 }
 
 function emit() {
@@ -54,6 +56,10 @@ export function subscribePrefs(listener) {
 
 export function getPrefs() {
   return snapshotValue()
+}
+
+export function readDevtoolsMode(prefs = getPrefs()) {
+  return prefs.devtoolsMode === 'detach' ? 'detach' : 'bottom'
 }
 
 export function setPref(field, value) {
