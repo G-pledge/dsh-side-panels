@@ -155,6 +155,272 @@ window.__ModuleLoader__.load({ id: "dsh-side-panels", factory: (require) => {
 				}
 			}
 		};
+		const gitApi = {
+			snapshot(root) {
+				return post("/dsh-side-panels/git", {
+					root,
+					action: "snapshot"
+				});
+			},
+			diff(root, path, side, untracked, repo) {
+				return post("/dsh-side-panels/git", {
+					root,
+					action: "diff",
+					path,
+					side,
+					untracked: untracked === true,
+					repo: repo || ""
+				});
+			},
+			stage(root, paths, repo) {
+				return post("/dsh-side-panels/git", {
+					root,
+					action: "stage",
+					paths,
+					repo: repo || ""
+				});
+			},
+			unstage(root, paths, repo) {
+				return post("/dsh-side-panels/git", {
+					root,
+					action: "unstage",
+					paths,
+					repo: repo || ""
+				});
+			},
+			discard(root, paths, repo) {
+				return post("/dsh-side-panels/git", {
+					root,
+					action: "discard",
+					paths,
+					repo: repo || ""
+				});
+			},
+			commit(root, message, all, repo, extra) {
+				return post("/dsh-side-panels/git", {
+					root,
+					action: "commit",
+					message,
+					all: all === true,
+					repo: repo || "",
+					amend: extra?.amend === true,
+					push: extra?.push === true,
+					sync: extra?.sync === true
+				});
+			},
+			refs(root, repo) {
+				return post("/dsh-side-panels/git", {
+					root,
+					action: "refs",
+					repo: repo || ""
+				});
+			},
+			checkout(root, payload) {
+				return post("/dsh-side-panels/git", {
+					root,
+					action: "checkout",
+					...payload,
+					repo: payload?.repo || ""
+				});
+			},
+			graph(root, repo, all, limit) {
+				return post("/dsh-side-panels/git", {
+					root,
+					action: "graph",
+					repo: repo || "",
+					all: all !== false,
+					limit
+				});
+			},
+			commitFiles(root, repo, hash) {
+				return post("/dsh-side-panels/git", {
+					root,
+					action: "commitFiles",
+					repo: repo || "",
+					hash
+				});
+			},
+			commitDiff(root, repo, hash, path) {
+				return post("/dsh-side-panels/git", {
+					root,
+					action: "commitDiff",
+					repo: repo || "",
+					hash,
+					path
+				});
+			},
+			cherryPick(root, repo, hash) {
+				return post("/dsh-side-panels/git", {
+					root,
+					action: "cherryPick",
+					repo: repo || "",
+					hash
+				});
+			},
+			revert(root, repo, hash) {
+				return post("/dsh-side-panels/git", {
+					root,
+					action: "revert",
+					repo: repo || "",
+					hash
+				});
+			},
+			reset(root, repo, hash, mode) {
+				return post("/dsh-side-panels/git", {
+					root,
+					action: "reset",
+					repo: repo || "",
+					hash,
+					mode
+				});
+			},
+			tag(root, repo, name, hash) {
+				return post("/dsh-side-panels/git", {
+					root,
+					action: "tag",
+					repo: repo || "",
+					name,
+					hash
+				});
+			},
+			remote(root, repo, kind) {
+				return post("/dsh-side-panels/git", {
+					root,
+					action: "remote",
+					repo: repo || "",
+					kind
+				});
+			},
+			stash(root, repo, options) {
+				return post("/dsh-side-panels/git", {
+					root,
+					action: "stash",
+					repo: repo || "",
+					...options
+				});
+			},
+			merge(root, repo, options) {
+				return post("/dsh-side-panels/git", {
+					root,
+					action: "merge",
+					repo: repo || "",
+					...options
+				});
+			},
+			rebase(root, repo, options) {
+				return post("/dsh-side-panels/git", {
+					root,
+					action: "rebase",
+					repo: repo || "",
+					...options
+				});
+			},
+			continueOp(root, repo) {
+				return post("/dsh-side-panels/git", {
+					root,
+					action: "continueOp",
+					repo: repo || ""
+				});
+			},
+			abortOp(root, repo) {
+				return post("/dsh-side-panels/git", {
+					root,
+					action: "abortOp",
+					repo: repo || ""
+				});
+			},
+			hunk(root, repo, path, op, patch) {
+				return post("/dsh-side-panels/git", {
+					root,
+					action: "hunk",
+					repo: repo || "",
+					path,
+					op,
+					patch
+				});
+			},
+			take(root, repo, path, which) {
+				return post("/dsh-side-panels/git", {
+					root,
+					action: "take",
+					repo: repo || "",
+					path,
+					which
+				});
+			},
+			ignore(root, repo, path) {
+				return post("/dsh-side-panels/git", {
+					root,
+					action: "ignore",
+					repo: repo || "",
+					path
+				});
+			},
+			init(root) {
+				return post("/dsh-side-panels/git", {
+					root,
+					action: "init"
+				});
+			},
+			clone(root, url, name) {
+				return post("/dsh-side-panels/git", {
+					root,
+					action: "clone",
+					url,
+					name
+				});
+			},
+			branchOp(root, repo, options) {
+				return post("/dsh-side-panels/git", {
+					root,
+					action: "branchOp",
+					repo: repo || "",
+					...options
+				});
+			},
+			fileLog(root, repo, path) {
+				return post("/dsh-side-panels/git", {
+					root,
+					action: "fileLog",
+					repo: repo || "",
+					path
+				});
+			},
+			blame(root, repo, path) {
+				return post("/dsh-side-panels/git", {
+					root,
+					action: "blame",
+					repo: repo || "",
+					path
+				});
+			},
+			compare(root, repo, a, b) {
+				return post("/dsh-side-panels/git", {
+					root,
+					action: "compare",
+					repo: repo || "",
+					a,
+					b
+				});
+			},
+			compareDiff(root, repo, a, b, path) {
+				return post("/dsh-side-panels/git", {
+					root,
+					action: "compareDiff",
+					repo: repo || "",
+					a,
+					b,
+					path
+				});
+			},
+			submoduleUpdate(root, repo) {
+				return post("/dsh-side-panels/git", {
+					root,
+					action: "submoduleUpdate",
+					repo: repo || ""
+				});
+			}
+		};
 		//#endregion
 		//#region src/shared/browser-id.js
 		/** 对话钥匙和网址规则，浏览器端和电脑端共用。 */
@@ -713,7 +979,7 @@ window.__ModuleLoader__.load({ id: "dsh-side-panels", factory: (require) => {
 		function gitColor(letter) {
 			if (letter === "U" || letter === "A") return "#3ba55d";
 			if (letter === "M") return "#e2b53e";
-			if (letter === "D") return "#e05252";
+			if (letter === "D" || letter === "C") return "#e05252";
 			return "#6a9a73";
 		}
 		function FileKindIcon({ name, directory, open }) {
@@ -976,6 +1242,36 @@ window.__ModuleLoader__.load({ id: "dsh-side-panels", factory: (require) => {
 					cy: "12",
 					r: "8.2"
 				}), /* @__PURE__ */ (0, react_jsx_runtime.jsx)("path", { d: "M3.8 12h16.4 M12 3.8c2.2 2.4 3.4 4.9 3.4 8.2S14.2 17.8 12 20.2C9.8 17.8 8.6 15.3 8.6 12S9.8 6.2 12 3.8z" })]
+			});
+		}
+		/** 右侧活动栏：git 源代码管理。 */
+		function GitActivityIcon() {
+			return /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("svg", {
+				viewBox: "0 0 24 24",
+				width: "22",
+				height: "22",
+				fill: "none",
+				stroke: "currentColor",
+				strokeWidth: "1.6",
+				"aria-hidden": "true",
+				children: [
+					/* @__PURE__ */ (0, react_jsx_runtime.jsx)("circle", {
+						cx: "6.5",
+						cy: "6.5",
+						r: "2.1"
+					}),
+					/* @__PURE__ */ (0, react_jsx_runtime.jsx)("circle", {
+						cx: "6.5",
+						cy: "17.5",
+						r: "2.1"
+					}),
+					/* @__PURE__ */ (0, react_jsx_runtime.jsx)("circle", {
+						cx: "17.5",
+						cy: "12",
+						r: "2.1"
+					}),
+					/* @__PURE__ */ (0, react_jsx_runtime.jsx)("path", { d: "M6.5 8.6v6.8 M8.6 6.5h4.6c2.4 0 4.3 1.9 4.3 4.3 M8.6 17.5h4.6c2.4 0 4.3-1.9 4.3-4.3" })
+				]
 			});
 		}
 		function WorkbenchToggleIcon() {
@@ -1898,6 +2194,554 @@ window.__ModuleLoader__.load({ id: "dsh-side-panels", factory: (require) => {
 				textAlign: "center",
 				flex: "0 0 14px"
 			},
+			gitScm: {
+				display: "flex",
+				flexDirection: "column",
+				flex: 1,
+				minHeight: 0,
+				minWidth: 0,
+				background: "transparent"
+			},
+			gitHead: {
+				display: "flex",
+				alignItems: "center",
+				justifyContent: "space-between",
+				padding: "10px 8px 8px 16px",
+				fontWeight: 600,
+				fontSize: 11,
+				letterSpacing: "0.04em",
+				flex: "0 0 auto"
+			},
+			gitHeadTitle: {
+				overflow: "hidden",
+				textOverflow: "ellipsis",
+				whiteSpace: "nowrap"
+			},
+			gitRepo: {
+				display: "flex",
+				alignItems: "center",
+				gap: 4,
+				minWidth: 0,
+				padding: "2px 8px 6px 8px",
+				flex: "0 0 auto"
+			},
+			gitRepoBlock: {
+				paddingBottom: 10,
+				marginBottom: 8,
+				borderBottom: "1px solid var(--dsw-alias-border, #ececec)"
+			},
+			gitRepoBody: {
+				marginLeft: 16,
+				paddingLeft: 8,
+				borderLeft: "1px solid color-mix(in srgb, var(--dsw-alias-fg-default, #3c3c3c) 40%, transparent)",
+				minWidth: 0
+			},
+			gitRepoName: {
+				fontSize: 13,
+				fontWeight: 600,
+				overflow: "hidden",
+				textOverflow: "ellipsis",
+				whiteSpace: "nowrap",
+				flex: "0 1 auto",
+				minWidth: 0
+			},
+			gitHeadBranch: {
+				fontSize: 12,
+				color: "var(--dsw-alias-fg-secondary, #6b6b6b)",
+				overflow: "hidden",
+				textOverflow: "ellipsis",
+				whiteSpace: "nowrap",
+				flex: "1 1 0",
+				minWidth: 0,
+				textAlign: "start"
+			},
+			gitBranchBtn: {
+				display: "inline-flex",
+				alignItems: "center",
+				gap: 4,
+				minWidth: 0,
+				flex: "1 1 0",
+				margin: 0,
+				padding: "2px 4px",
+				border: "none",
+				background: "transparent",
+				color: "inherit",
+				cursor: "pointer",
+				borderRadius: 4
+			},
+			gitCommitRow: {
+				display: "flex",
+				flexDirection: "column",
+				alignItems: "stretch",
+				gap: 6,
+				margin: "0 10px 8px",
+				minWidth: 0
+			},
+			gitMessage: {
+				flex: "0 0 auto",
+				width: "100%",
+				minWidth: 0,
+				minHeight: 28,
+				maxHeight: 140,
+				height: 28,
+				margin: 0,
+				font: "inherit",
+				fontSize: 13,
+				lineHeight: "20px",
+				padding: "3px 8px",
+				border: "1px solid var(--dsw-alias-border, #d0d0d0)",
+				borderRadius: 2,
+				background: "var(--dsw-alias-bg-base, #fff)",
+				color: "inherit",
+				outline: "none",
+				boxSizing: "border-box",
+				resize: "none",
+				overflowX: "hidden",
+				overflowY: "hidden",
+				whiteSpace: "pre-wrap",
+				overflowWrap: "break-word",
+				wordBreak: "break-word"
+			},
+			gitCommitSplit: {
+				display: "flex",
+				width: "100%",
+				height: 28,
+				margin: 0,
+				borderRadius: 2,
+				overflow: "hidden",
+				boxSizing: "border-box"
+			},
+			gitCommit: {
+				flex: "1 1 auto",
+				width: "auto",
+				minWidth: 0,
+				maxHeight: 28,
+				alignSelf: "stretch",
+				margin: 0,
+				height: 28,
+				border: "none",
+				borderRadius: 0,
+				padding: "0 10px",
+				font: "inherit",
+				fontSize: 13,
+				fontWeight: 600,
+				cursor: "pointer",
+				color: "#fff",
+				background: "var(--dsw-alias-primary, #0078d4)",
+				display: "inline-flex",
+				alignItems: "center",
+				justifyContent: "center",
+				gap: 4,
+				whiteSpace: "nowrap",
+				boxSizing: "border-box"
+			},
+			gitCommitCaret: {
+				flex: "none",
+				width: 28,
+				height: 28,
+				margin: 0,
+				padding: 0,
+				border: "none",
+				borderLeft: "1px solid rgb(255 255 255 / 82%)",
+				borderRadius: 0,
+				background: "var(--dsw-alias-primary, #0078d4)",
+				color: "#fff",
+				cursor: "pointer",
+				display: "inline-flex",
+				alignItems: "center",
+				justifyContent: "center"
+			},
+			gitError: {
+				margin: "0 10px 8px",
+				fontSize: 12,
+				color: "var(--dsw-alias-fg-danger, #b42318)"
+			},
+			gitLists: {
+				flex: 1,
+				minHeight: 0,
+				overflow: "auto"
+			},
+			gitSection: {
+				display: "flex",
+				alignItems: "center",
+				gap: 4,
+				padding: "4px 8px 4px 8px",
+				minHeight: 22,
+				fontSize: 13,
+				fontWeight: 600,
+				color: "inherit"
+			},
+			gitSectionTree: {
+				marginLeft: 16,
+				paddingLeft: 8,
+				borderLeft: "1px solid color-mix(in srgb, var(--dsw-alias-fg-default, #3c3c3c) 40%, transparent)",
+				minWidth: 0
+			},
+			gitTwist: {
+				display: "inline-flex",
+				alignItems: "center",
+				gap: 4,
+				minWidth: 0,
+				flex: 1,
+				margin: 0,
+				padding: "0 2px",
+				border: "none",
+				background: "transparent",
+				color: "inherit",
+				font: "inherit",
+				fontWeight: 600,
+				fontSize: 13,
+				textAlign: "start",
+				cursor: "pointer",
+				borderRadius: 0
+			},
+			gitBadge: {
+				minWidth: 18,
+				height: 16,
+				padding: "0 5px",
+				marginLeft: 6,
+				borderRadius: 8,
+				fontSize: 11,
+				fontWeight: 600,
+				lineHeight: "16px",
+				textAlign: "center",
+				background: "rgb(127 127 127 / 18%)",
+				flex: "0 0 auto"
+			},
+			gitSectionActions: {
+				display: "inline-flex",
+				alignItems: "center",
+				gap: 0,
+				flex: "0 0 auto",
+				opacity: 0,
+				pointerEvents: "none"
+			},
+			gitRow: {
+				display: "flex",
+				alignItems: "center",
+				gap: 6,
+				width: "100%",
+				padding: "2px 8px 2px 10px",
+				minHeight: 22,
+				cursor: "pointer",
+				boxSizing: "border-box",
+				position: "relative"
+			},
+			gitRowActive: { background: "var(--dsw-alias-interactive-bg-hover, rgb(0 0 0 / 6%))" },
+			gitRowName: {
+				minWidth: 0,
+				flex: "0 1 auto",
+				overflow: "hidden",
+				textOverflow: "ellipsis",
+				whiteSpace: "nowrap",
+				fontSize: 13
+			},
+			gitRowDir: {
+				marginLeft: 0,
+				flex: "1 1 0",
+				minWidth: 0,
+				overflow: "hidden",
+				textOverflow: "ellipsis",
+				whiteSpace: "nowrap",
+				fontSize: 12,
+				color: "var(--dsw-alias-fg-secondary, #8a8a8a)"
+			},
+			gitRowActions: {
+				display: "inline-flex",
+				alignItems: "center",
+				gap: 0,
+				position: "absolute",
+				right: 24,
+				top: 0,
+				bottom: 0,
+				paddingLeft: 8,
+				background: "var(--dsw-alias-bg-base, #fff)",
+				opacity: 0,
+				pointerEvents: "none"
+			},
+			gitTiny: {
+				width: 22,
+				height: 22,
+				border: "none",
+				background: "transparent",
+				color: "inherit",
+				cursor: "pointer",
+				borderRadius: 4,
+				display: "inline-flex",
+				alignItems: "center",
+				justifyContent: "center",
+				padding: 0,
+				opacity: .7
+			},
+			gitDiffWrap: {
+				flex: "1 1 45%",
+				minHeight: 140,
+				display: "flex",
+				flexDirection: "column",
+				borderTop: "1px solid var(--dsw-alias-border, #ececec)",
+				minWidth: 0
+			},
+			gitDiffBar: {
+				display: "flex",
+				alignItems: "center",
+				gap: 8,
+				padding: "6px 10px",
+				fontSize: 12,
+				fontWeight: 600,
+				borderBottom: "1px solid var(--dsw-alias-border, #ececec)",
+				flex: "0 0 auto"
+			},
+			gitDiffKind: {
+				fontWeight: 500,
+				fontSize: 11,
+				color: "var(--dsw-alias-fg-secondary, #6b6b6b)"
+			},
+			gitDiff: {
+				margin: 0,
+				padding: "8px 10px 12px",
+				overflow: "auto",
+				flex: 1,
+				minHeight: 0,
+				fontFamily: "ui-monospace, SFMono-Regular, Menlo, Consolas, monospace",
+				fontSize: 12,
+				lineHeight: 1.45,
+				whiteSpace: "pre-wrap",
+				wordBreak: "break-word"
+			},
+			gitDiffEmpty: {
+				padding: "16px 12px",
+				fontSize: 12,
+				color: "var(--dsw-alias-fg-secondary, #6b6b6b)"
+			},
+			gitForm: {
+				display: "flex",
+				flexDirection: "column",
+				gap: 8,
+				padding: "8px 10px 16px"
+			},
+			gitGraphTools: {
+				display: "flex",
+				alignItems: "center",
+				gap: 4,
+				padding: "0 8px 6px",
+				minWidth: 0
+			},
+			gitGraphSearch: {
+				flex: 1,
+				minWidth: 0,
+				height: 24,
+				margin: 0,
+				padding: "0 8px",
+				border: "1px solid var(--dsw-alias-border, #d0d0d0)",
+				borderRadius: 2,
+				font: "inherit",
+				fontSize: 12,
+				outline: "none",
+				boxSizing: "border-box",
+				background: "var(--dsw-alias-bg-base, #fff)",
+				color: "inherit"
+			},
+			gitGraphToggle: {
+				flex: "none",
+				height: 22,
+				margin: 0,
+				padding: "0 8px",
+				border: "1px solid var(--dsw-alias-border, #d0d0d0)",
+				borderRadius: 2,
+				background: "transparent",
+				color: "inherit",
+				font: "inherit",
+				fontSize: 11,
+				cursor: "pointer",
+				whiteSpace: "nowrap"
+			},
+			gitGraphRow: {
+				display: "flex",
+				alignItems: "center",
+				gap: 6,
+				width: "100%",
+				padding: "0 8px 0 10px",
+				minHeight: 22,
+				cursor: "pointer",
+				boxSizing: "border-box"
+			},
+			gitGraphBody: {
+				minWidth: 0,
+				flex: 1,
+				overflow: "hidden",
+				display: "flex",
+				alignItems: "center",
+				gap: 6
+			},
+			gitGraphSubject: {
+				minWidth: 0,
+				flex: "1 1 0",
+				overflow: "hidden",
+				textOverflow: "ellipsis",
+				whiteSpace: "nowrap",
+				fontSize: 12
+			},
+			gitGraphAgo: {
+				flex: "0 0 auto",
+				fontSize: 11,
+				color: "var(--dsw-alias-fg-secondary, #8a8a8a)",
+				whiteSpace: "nowrap"
+			},
+			gitGraphPills: {
+				display: "inline-flex",
+				alignItems: "center",
+				gap: 4,
+				flex: "0 1 auto",
+				minWidth: 0,
+				overflow: "hidden"
+			},
+			gitPill: {
+				flex: "none",
+				fontSize: 10,
+				lineHeight: "14px",
+				padding: "0 5px",
+				borderRadius: 8,
+				whiteSpace: "nowrap",
+				maxWidth: 92,
+				overflow: "hidden",
+				textOverflow: "ellipsis"
+			},
+			gitGraphMore: {
+				display: "block",
+				width: "calc(100% - 16px)",
+				margin: "4px 8px 8px",
+				padding: "4px 8px",
+				border: "none",
+				borderRadius: 2,
+				background: "transparent",
+				color: "var(--dsw-alias-fg-secondary, #6b6b6b)",
+				font: "inherit",
+				fontSize: 12,
+				cursor: "pointer",
+				textAlign: "center"
+			},
+			gitGraphHint: {
+				padding: "6px 12px 10px",
+				fontSize: 12,
+				color: "var(--dsw-alias-fg-secondary, #6b6b6b)"
+			},
+			gitDiffAdd: { color: "#3ba55d" },
+			gitDiffDel: { color: "#e05252" },
+			gitDiffHunk: { color: "#6a9a73" },
+			gitDiffMeta: { color: "var(--dsw-alias-fg-secondary, #8a8a8a)" },
+			gitDiffCtx: { color: "inherit" },
+			gitCompare: {
+				display: "flex",
+				flex: 1,
+				minHeight: 0,
+				minWidth: 0
+			},
+			gitCompareCol: {
+				display: "flex",
+				flexDirection: "column",
+				flex: 1,
+				minWidth: 0,
+				minHeight: 0
+			},
+			gitCompareHead: {
+				flex: "0 0 auto",
+				padding: "6px 10px",
+				fontSize: 11,
+				fontWeight: 600,
+				color: "var(--dsw-alias-fg-secondary, #6b6b6b)",
+				borderBottom: "1px solid var(--dsw-alias-border, #ececec)",
+				overflow: "hidden",
+				textOverflow: "ellipsis",
+				whiteSpace: "nowrap"
+			},
+			gitHunkBar: {
+				flex: "0 0 auto",
+				maxHeight: 140,
+				overflow: "auto",
+				borderBottom: "1px solid var(--dsw-alias-border, #ececec)",
+				padding: "4px 8px 6px"
+			},
+			gitHunkRow: {
+				display: "flex",
+				alignItems: "center",
+				gap: 6,
+				padding: "3px 0",
+				fontSize: 11,
+				fontFamily: "ui-monospace, SFMono-Regular, Menlo, Consolas, monospace"
+			},
+			gitLinkBtn: {
+				margin: 0,
+				padding: "1px 6px",
+				border: "1px solid var(--dsw-alias-border, #d0d0d0)",
+				borderRadius: 2,
+				background: "transparent",
+				color: "inherit",
+				font: "inherit",
+				fontSize: 11,
+				cursor: "pointer"
+			},
+			gitBanner: {
+				margin: "0 10px 8px",
+				padding: "6px 8px",
+				fontSize: 12,
+				background: "rgb(209 154 32 / 16%)",
+				borderRadius: 2,
+				display: "flex",
+				alignItems: "center",
+				gap: 8,
+				flexWrap: "wrap"
+			},
+			gitSync: {
+				flex: "none",
+				margin: 0,
+				padding: "0 6px",
+				height: 22,
+				border: "none",
+				borderRadius: 2,
+				background: "transparent",
+				color: "inherit",
+				font: "inherit",
+				fontSize: 11,
+				cursor: "pointer",
+				whiteSpace: "nowrap"
+			},
+			gitCheck: {
+				display: "inline-flex",
+				alignItems: "center",
+				gap: 4,
+				margin: "0 10px 8px",
+				fontSize: 12,
+				color: "var(--dsw-alias-fg-secondary, #6b6b6b)",
+				userSelect: "none"
+			},
+			gitBlame: {
+				margin: 0,
+				padding: "8px 10px 16px",
+				overflow: "auto",
+				flex: 1,
+				minHeight: 0,
+				fontFamily: "ui-monospace, SFMono-Regular, Menlo, Consolas, monospace",
+				fontSize: 12,
+				lineHeight: 1.45
+			},
+			gitBlameLine: {
+				display: "flex",
+				gap: 12,
+				minWidth: 0
+			},
+			gitBlameMeta: {
+				flex: "none",
+				width: 160,
+				color: "var(--dsw-alias-fg-secondary, #6b6b6b)",
+				overflow: "hidden",
+				textOverflow: "ellipsis",
+				whiteSpace: "nowrap"
+			},
+			gitBlameText: {
+				flex: 1,
+				minWidth: 0,
+				whiteSpace: "pre"
+			},
 			search: {
 				margin: "0 8px 8px",
 				fontSize: 12,
@@ -2023,6 +2867,99 @@ window.__ModuleLoader__.load({ id: "dsh-side-panels", factory: (require) => {
 				fontFamily: "ui-sans-serif, system-ui, sans-serif",
 				flex: "0 0 auto"
 			},
+			gitPick: {
+				width: 560,
+				maxWidth: "100%",
+				maxHeight: "min(480px, 78%)",
+				display: "flex",
+				flexDirection: "column",
+				background: "var(--dsw-alias-bg-base, #fff)",
+				color: "var(--dsw-alias-fg-default, #3c3c3c)",
+				border: "1px solid var(--dsw-alias-border, #e5e5e5)",
+				borderRadius: 6,
+				boxShadow: "0 12px 40px rgb(0 0 0 / 22%)",
+				overflow: "hidden"
+			},
+			gitPickInput: {
+				display: "block",
+				width: "100%",
+				boxSizing: "border-box",
+				font: "inherit",
+				fontSize: 13,
+				padding: "8px 12px",
+				border: "none",
+				borderBottom: "1px solid var(--dsw-alias-border, #e5e5e5)",
+				background: "transparent",
+				color: "inherit",
+				outline: "1px solid var(--dsw-alias-primary, #0078d4)",
+				outlineOffset: -1
+			},
+			gitPickList: {
+				overflow: "auto",
+				flex: 1,
+				minHeight: 0,
+				padding: "4px 0 8px"
+			},
+			gitPickItem: {
+				display: "flex",
+				alignItems: "flex-start",
+				gap: 8,
+				padding: "6px 12px",
+				cursor: "pointer"
+			},
+			gitPickItemActive: {
+				background: "var(--dsw-alias-primary, #0078d4)",
+				color: "#fff"
+			},
+			gitPickIcon: {
+				flex: "0 0 16px",
+				marginTop: 2,
+				opacity: .85,
+				display: "inline-flex"
+			},
+			gitPickBody: {
+				minWidth: 0,
+				flex: 1
+			},
+			gitPickTop: {
+				display: "flex",
+				alignItems: "baseline",
+				gap: 8,
+				minWidth: 0
+			},
+			gitPickName: {
+				minWidth: 0,
+				overflow: "hidden",
+				textOverflow: "ellipsis",
+				whiteSpace: "nowrap",
+				fontSize: 13
+			},
+			gitPickAgo: {
+				marginLeft: "auto",
+				flex: "0 0 auto",
+				fontSize: 11,
+				opacity: .7,
+				whiteSpace: "nowrap"
+			},
+			gitPickKind: {
+				flex: "0 0 auto",
+				fontSize: 11,
+				opacity: .7,
+				whiteSpace: "nowrap"
+			},
+			gitPickMeta: {
+				marginTop: 2,
+				fontSize: 11,
+				opacity: .65,
+				overflow: "hidden",
+				textOverflow: "ellipsis",
+				whiteSpace: "nowrap"
+			},
+			gitPickError: {
+				padding: "8px 12px",
+				fontSize: 12,
+				color: "var(--dsw-alias-fg-danger, #b42318)"
+			},
 			overlay: {
 				position: "absolute",
 				inset: 0,
@@ -2136,6 +3073,27 @@ html[data-dsh-side-panels-dragging] [data-dsh-grip] {
 }
 [data-dsh-side-panels] button:hover:not(:disabled) {
   background: rgb(127 127 127 / 12%) !important;
+}
+[data-dsh-side-panels] button[data-dsh-git-commit]:hover:not(:disabled) {
+  background: var(--dsw-alias-primary, #0078d4) !important;
+  filter: brightness(1.08);
+}
+[data-dsh-side-panels] [data-dsh-git-pick] input:focus,
+[data-dsh-side-panels] [data-dsh-git-message]:focus {
+  outline: 1px solid var(--dsw-alias-primary, #0078d4);
+}
+[data-dsh-side-panels] [data-dsh-git-row]:hover {
+  background: var(--dsw-alias-interactive-bg-hover, rgb(0 0 0 / 6%));
+}
+[data-dsh-side-panels] [data-dsh-git-row]:hover [data-dsh-git-actions],
+[data-dsh-side-panels] [data-dsh-git-row][data-active="1"] [data-dsh-git-actions] {
+  opacity: 1;
+  pointer-events: auto;
+  background: var(--dsw-alias-interactive-bg-hover, rgb(0 0 0 / 6%));
+}
+[data-dsh-side-panels] [data-dsh-git-section]:hover [data-dsh-git-section-actions] {
+  opacity: 1;
+  pointer-events: auto;
 }
 [data-dsh-side-panels] [data-dsh-dialog] button:hover:not(:disabled) {
   background: rgb(127 127 127 / 10%) !important;
@@ -32282,8 +33240,9 @@ html[data-dsh-side-panels-dragging] [data-dsh-grip] {
 			".cm-activeLineGutter": { background: "transparent" },
 			"&.cm-focused": { outline: "none" }
 		});
-		function CodeEditor({ path, text, onChange, onSave }) {
+		function CodeEditor({ path, text, onChange, onSave, readOnly }) {
 			const parentRef = (0, react.useRef)(null);
+			const viewRef = (0, react.useRef)(null);
 			const onChangeRef = (0, react.useRef)(onChange);
 			const onSaveRef = (0, react.useRef)(onSave);
 			onChangeRef.current = onChange;
@@ -32300,7 +33259,7 @@ html[data-dsh-side-panels-dragging] [data-dsh-grip] {
 							highlightActiveLine(),
 							highlightActiveLineGutter(),
 							foldGutter(),
-							history(),
+							...readOnly ? [EditorState.readOnly.of(true), EditorView.editable.of(false)] : [history()],
 							indentOnInput(),
 							bracketMatching(),
 							highlightSelectionMatches(),
@@ -32308,30 +33267,53 @@ html[data-dsh-side-panels-dragging] [data-dsh-grip] {
 							syntaxHighlighting(defaultHighlightStyle, { fallback: true }),
 							languageFor(path),
 							keymap.of([
-								{
+								...readOnly ? [] : [{
 									key: "Mod-s",
 									preventDefault: true,
 									run: () => {
 										onSaveRef.current?.();
 										return true;
 									}
-								},
+								}],
 								...searchKeymap,
-								...historyKeymap,
+								...readOnly ? [] : historyKeymap,
 								...foldKeymap,
 								indentWithTab,
 								...defaultKeymap
 							]),
 							theme,
 							EditorView.updateListener.of((update) => {
-								if (update.docChanged) onChangeRef.current?.(update.state.doc.toString());
+								if (!readOnly && update.docChanged) onChangeRef.current?.(update.state.doc.toString());
 							})
 						]
 					})
 				});
-				queueMicrotask(() => view.focus());
-				return () => view.destroy();
-			}, [path]);
+				viewRef.current = view;
+				if (!readOnly) queueMicrotask(() => view.focus());
+				return () => {
+					viewRef.current = null;
+					view.destroy();
+				};
+			}, [
+				path,
+				readOnly,
+				readOnly ? text : null
+			]);
+			(0, react.useEffect)(() => {
+				if (readOnly) return;
+				const view = viewRef.current;
+				if (!view) return;
+				const next = text ?? "";
+				if (view.state.doc.toString() === next) return;
+				view.dispatch({
+					changes: {
+						from: 0,
+						to: view.state.doc.length,
+						insert: next
+					},
+					filter: false
+				});
+			}, [text, readOnly]);
 			return /* @__PURE__ */ (0, react_jsx_runtime.jsx)("div", {
 				ref: parentRef,
 				"data-dsh-cm": "",
@@ -32340,6 +33322,2561 @@ html[data-dsh-side-panels-dragging] [data-dsh-grip] {
 					minHeight: 0,
 					overflow: "hidden"
 				}
+			});
+		}
+		//#endregion
+		//#region src/client/GitCompare.jsx
+		function hunkPreview(hunk) {
+			const line = (hunk.lines ?? []).find((item) => item.startsWith("+") && !item.startsWith("+++")) || (hunk.lines ?? []).find((item) => item.startsWith("-") && !item.startsWith("---")) || hunk.hunkHeader;
+			return String(line || "").slice(0, 80);
+		}
+		function GitBlameView({ path, lines }) {
+			const rows = Array.isArray(lines) ? lines : [];
+			if (rows.length === 0) return /* @__PURE__ */ (0, react_jsx_runtime.jsx)("div", {
+				style: S$1.empty,
+				children: "没有归咎信息。文件可能还没提交过。"
+			});
+			return /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", {
+				style: {
+					display: "flex",
+					flexDirection: "column",
+					flex: 1,
+					minHeight: 0
+				},
+				children: [/* @__PURE__ */ (0, react_jsx_runtime.jsx)("div", {
+					style: S$1.gitCompareHead,
+					children: path
+				}), /* @__PURE__ */ (0, react_jsx_runtime.jsx)("div", {
+					style: S$1.gitBlame,
+					children: rows.map((line, index) => /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", {
+						style: S$1.gitBlameLine,
+						title: line.hash,
+						children: [/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("span", {
+							style: S$1.gitBlameMeta,
+							children: [
+								String(line.hash || "").slice(0, 7),
+								" ",
+								line.author || ""
+							]
+						}), /* @__PURE__ */ (0, react_jsx_runtime.jsx)("span", {
+							style: S$1.gitBlameText,
+							children: line.text ?? ""
+						})]
+					}, `${line.hash}:${index}`))
+				})]
+			});
+		}
+		function GitCompare({ path, before, after, leftTitle, rightTitle, binary, text, lfs, hunks, side, conflict, onStageHunk, onUnstageHunk, onDiscardHunk, onTakeOurs, onTakeTheirs }) {
+			if (lfs) return /* @__PURE__ */ (0, react_jsx_runtime.jsx)("div", {
+				style: S$1.empty,
+				children: "这是 Git LFS 指针文件，内容在 LFS 存储里"
+			});
+			if (binary) return /* @__PURE__ */ (0, react_jsx_runtime.jsx)("div", {
+				style: S$1.empty,
+				children: "二进制文件，不能比差异"
+			});
+			const left = typeof before === "string" ? before : "";
+			const right = typeof after === "string" ? after : typeof text === "string" ? text : "";
+			const list = Array.isArray(hunks) ? hunks : [];
+			const canHunk = list.length > 0 && (side === "worktree" || side === "index");
+			return /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", {
+				style: {
+					...S$1.gitCompare,
+					flexDirection: "column"
+				},
+				children: [
+					conflict ? /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", {
+						style: S$1.gitBanner,
+						children: [
+							/* @__PURE__ */ (0, react_jsx_runtime.jsx)("span", { children: "这个文件有冲突" }),
+							onTakeOurs ? /* @__PURE__ */ (0, react_jsx_runtime.jsx)("button", {
+								type: "button",
+								style: S$1.gitLinkBtn,
+								onClick: onTakeOurs,
+								children: "采用当前"
+							}) : null,
+							onTakeTheirs ? /* @__PURE__ */ (0, react_jsx_runtime.jsx)("button", {
+								type: "button",
+								style: S$1.gitLinkBtn,
+								onClick: onTakeTheirs,
+								children: "采用传入"
+							}) : null
+						]
+					}) : null,
+					canHunk ? /* @__PURE__ */ (0, react_jsx_runtime.jsx)("div", {
+						style: S$1.gitHunkBar,
+						children: list.map((hunk, index) => /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", {
+							style: S$1.gitHunkRow,
+							children: [
+								/* @__PURE__ */ (0, react_jsx_runtime.jsx)("span", {
+									style: {
+										flex: 1,
+										minWidth: 0,
+										overflow: "hidden",
+										textOverflow: "ellipsis",
+										whiteSpace: "nowrap"
+									},
+									children: hunkPreview(hunk)
+								}),
+								side === "worktree" && onStageHunk ? /* @__PURE__ */ (0, react_jsx_runtime.jsx)("button", {
+									type: "button",
+									style: S$1.gitLinkBtn,
+									onClick: () => onStageHunk(hunk),
+									children: "暂存这块"
+								}) : null,
+								side === "worktree" && onDiscardHunk ? /* @__PURE__ */ (0, react_jsx_runtime.jsx)("button", {
+									type: "button",
+									style: S$1.gitLinkBtn,
+									onClick: () => onDiscardHunk(hunk),
+									children: "丢弃这块"
+								}) : null,
+								side === "index" && onUnstageHunk ? /* @__PURE__ */ (0, react_jsx_runtime.jsx)("button", {
+									type: "button",
+									style: S$1.gitLinkBtn,
+									onClick: () => onUnstageHunk(hunk),
+									children: "取消暂存这块"
+								}) : null
+							]
+						}, `${hunk.hunkHeader}:${index}`))
+					}) : null,
+					/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", {
+						style: {
+							...S$1.gitCompare,
+							flex: 1,
+							minHeight: 0
+						},
+						children: [/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", {
+							style: S$1.gitCompareCol,
+							children: [/* @__PURE__ */ (0, react_jsx_runtime.jsx)("div", {
+								style: S$1.gitCompareHead,
+								children: leftTitle || "旧"
+							}), /* @__PURE__ */ (0, react_jsx_runtime.jsx)(CodeEditor, {
+								path,
+								text: left,
+								readOnly: true
+							}, `left:${path}`)]
+						}), /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", {
+							style: {
+								...S$1.gitCompareCol,
+								borderInlineStart: "1px solid var(--dsw-alias-border, #ececec)"
+							},
+							children: [/* @__PURE__ */ (0, react_jsx_runtime.jsx)("div", {
+								style: S$1.gitCompareHead,
+								children: rightTitle || "新"
+							}), /* @__PURE__ */ (0, react_jsx_runtime.jsx)(CodeEditor, {
+								path,
+								text: right,
+								readOnly: true
+							}, `right:${path}`)]
+						})]
+					})
+				]
+			});
+		}
+		//#endregion
+		//#region src/client/GitBranchPicker.jsx
+		function BranchGlyph() {
+			return /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("svg", {
+				viewBox: "0 0 16 16",
+				width: "14",
+				height: "14",
+				fill: "none",
+				stroke: "currentColor",
+				strokeWidth: "1.3",
+				"aria-hidden": "true",
+				children: [
+					/* @__PURE__ */ (0, react_jsx_runtime.jsx)("circle", {
+						cx: "4.5",
+						cy: "3.5",
+						r: "1.6"
+					}),
+					/* @__PURE__ */ (0, react_jsx_runtime.jsx)("circle", {
+						cx: "4.5",
+						cy: "12.5",
+						r: "1.6"
+					}),
+					/* @__PURE__ */ (0, react_jsx_runtime.jsx)("circle", {
+						cx: "11.5",
+						cy: "8",
+						r: "1.6"
+					}),
+					/* @__PURE__ */ (0, react_jsx_runtime.jsx)("path", { d: "M4.5 5.2v5.6 M4.5 8h5.2" })
+				]
+			});
+		}
+		function CloudGlyph() {
+			return /* @__PURE__ */ (0, react_jsx_runtime.jsx)("svg", {
+				viewBox: "0 0 16 16",
+				width: "14",
+				height: "14",
+				fill: "none",
+				stroke: "currentColor",
+				strokeWidth: "1.3",
+				"aria-hidden": "true",
+				children: /* @__PURE__ */ (0, react_jsx_runtime.jsx)("path", { d: "M4.5 12.2h7.2a2.4 2.4 0 0 0 .3-4.8 3.2 3.2 0 0 0-6.2-1 2.3 2.3 0 0 0-1.3 5.8z" })
+			});
+		}
+		function TagGlyph() {
+			return /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("svg", {
+				viewBox: "0 0 16 16",
+				width: "14",
+				height: "14",
+				fill: "none",
+				stroke: "currentColor",
+				strokeWidth: "1.3",
+				"aria-hidden": "true",
+				children: [/* @__PURE__ */ (0, react_jsx_runtime.jsx)("path", { d: "M2.8 8.8 8.7 2.9h4.4v4.4L7.2 13.2z" }), /* @__PURE__ */ (0, react_jsx_runtime.jsx)("circle", {
+					cx: "11.2",
+					cy: "4.8",
+					r: "0.7",
+					fill: "currentColor",
+					stroke: "none"
+				})]
+			});
+		}
+		function DetachGlyph() {
+			return /* @__PURE__ */ (0, react_jsx_runtime.jsx)("svg", {
+				viewBox: "0 0 16 16",
+				width: "14",
+				height: "14",
+				fill: "none",
+				stroke: "currentColor",
+				strokeWidth: "1.3",
+				"aria-hidden": "true",
+				children: /* @__PURE__ */ (0, react_jsx_runtime.jsx)("path", { d: "M4 10.5A3.5 3.5 0 1 1 8 5.2 M12 5.5A3.5 3.5 0 1 1 8 10.8" })
+			});
+		}
+		function kindLabel(kind) {
+			if (kind === "local") return "分支";
+			if (kind === "remote") return "远程分支";
+			if (kind === "tag") return "标记";
+			return "";
+		}
+		function syncText(item) {
+			if (!item || item.ahead === 0 && item.behind === 0) return "";
+			return `${item.behind}↓ ${item.ahead}↑`;
+		}
+		function haystack$1(item) {
+			return [
+				item.label,
+				item.name,
+				item.author,
+				item.sha,
+				item.subject
+			].filter(Boolean).join(" ").toLowerCase();
+		}
+		function placeholderFor(mode, from, intent) {
+			if (intent === "merge") return "选择要合并进来的分支或标记";
+			if (intent === "rebase") return "选择要变基到的分支或标记";
+			if (intent === "delete") return "选择要删除的分支";
+			if (mode === "create" || mode === "create-from-name") return from ? `请输入新分支名（依据 ${from}）` : "请输入新分支名";
+			if (mode === "create-from") return "选择起始分支或标记";
+			if (mode === "detach") return "选择要分离签出的分支或标记";
+			return "选择要签出的分支或标记";
+		}
+		function GitBranchPicker({ cwd, repo, intent = "checkout", onClose, onDone, onPick }) {
+			const [query, setQuery] = (0, react.useState)("");
+			const [refs, setRefs] = (0, react.useState)([]);
+			const [error, setError] = (0, react.useState)();
+			const [busy, setBusy] = (0, react.useState)(false);
+			const [mode, setMode] = (0, react.useState)("list");
+			const [from, setFrom] = (0, react.useState)("");
+			const [cursor, setCursor] = (0, react.useState)(0);
+			const inputRef = (0, react.useRef)(null);
+			const activeRef = (0, react.useRef)(null);
+			(0, react.useEffect)(() => {
+				let alive = true;
+				gitApi.refs(cwd, repo).then((result) => {
+					if (!alive) return;
+					if (!result.ok) {
+						setError(result.error?.message ?? "读不了分支列表");
+						return;
+					}
+					setRefs(result.value.refs ?? []);
+				});
+				return () => {
+					alive = false;
+				};
+			}, [cwd, repo]);
+			(0, react.useEffect)(() => {
+				inputRef.current?.focus();
+			}, [mode]);
+			const items = (0, react.useMemo)(() => {
+				const q = query.trim().toLowerCase();
+				if (mode === "create" || mode === "create-from-name") {
+					const name = query.trim();
+					return name ? [{
+						type: "confirm",
+						id: "confirm",
+						label: `创建并签出“${name}”`
+					}] : [];
+				}
+				const actions = mode === "list" && intent === "checkout" ? [
+					{
+						type: "action",
+						id: "create",
+						label: "+ 创建新分支..."
+					},
+					{
+						type: "action",
+						id: "create-from",
+						label: "+ 创建新分支依据..."
+					},
+					{
+						type: "action",
+						id: "detach",
+						label: "签出已分离..."
+					}
+				] : [];
+				const scoped = intent === "delete" ? refs.filter((item) => item.kind === "local" && !item.current) : refs;
+				const rows = [
+					...scoped.filter((item) => item.kind === "local").map((item) => ({
+						...item,
+						type: "ref",
+						id: `l:${item.name}`
+					})),
+					...scoped.filter((item) => item.kind === "remote").map((item) => ({
+						...item,
+						type: "ref",
+						id: `r:${item.name}`
+					})),
+					...scoped.filter((item) => item.kind === "tag").map((item) => ({
+						...item,
+						type: "ref",
+						id: `t:${item.name}`
+					}))
+				];
+				const filtered = q ? [...actions, ...rows].filter((item) => haystack$1(item).includes(q)) : [...actions, ...rows];
+				let seenLocal = false;
+				let seenRemote = false;
+				let seenTag = false;
+				return filtered.map((item) => {
+					if (item.type !== "ref") return item;
+					let group = "";
+					if (item.kind === "local" && !seenLocal) {
+						group = "local";
+						seenLocal = true;
+					} else if (item.kind === "remote" && !seenRemote) {
+						group = "remote";
+						seenRemote = true;
+					} else if (item.kind === "tag" && !seenTag) {
+						group = "tag";
+						seenTag = true;
+					}
+					return {
+						...item,
+						group
+					};
+				});
+			}, [
+				mode,
+				query,
+				refs,
+				intent
+			]);
+			(0, react.useEffect)(() => {
+				setCursor(0);
+			}, [
+				mode,
+				query,
+				items.length
+			]);
+			(0, react.useEffect)(() => {
+				activeRef.current?.scrollIntoView({ block: "nearest" });
+			}, [cursor]);
+			const runCheckout = async (payload) => {
+				if (busy) return;
+				setBusy(true);
+				setError(void 0);
+				try {
+					const result = await gitApi.checkout(cwd, {
+						...payload,
+						repo
+					});
+					if (!result.ok) {
+						setError(result.error?.message ?? "签出失败");
+						return;
+					}
+					onDone?.();
+					onClose();
+				} finally {
+					setBusy(false);
+				}
+			};
+			const activate = (item) => {
+				if (!item || busy) return;
+				if (item.type === "action") {
+					if (item.id === "create") {
+						setQuery("");
+						setFrom("");
+						setMode("create");
+						return;
+					}
+					if (item.id === "create-from") {
+						setQuery("");
+						setFrom("");
+						setMode("create-from");
+						return;
+					}
+					if (item.id === "detach") {
+						setQuery("");
+						setMode("detach");
+					}
+					return;
+				}
+				if (item.type === "confirm") {
+					const name = query.trim();
+					runCheckout({
+						create: true,
+						name,
+						from: from || void 0
+					});
+					return;
+				}
+				if (intent === "merge" || intent === "rebase" || intent === "delete") {
+					onPick?.(item);
+					onClose();
+					return;
+				}
+				if (mode === "create-from") {
+					setFrom(item.name);
+					setQuery("");
+					setMode("create-from-name");
+					return;
+				}
+				if (mode === "detach") {
+					runCheckout({
+						ref: item.name,
+						kind: item.kind,
+						detached: true
+					});
+					return;
+				}
+				if (item.current) {
+					onClose();
+					return;
+				}
+				runCheckout({
+					ref: item.name,
+					kind: item.kind
+				});
+			};
+			const onKeyDown = (event) => {
+				if (event.key === "Escape") {
+					event.preventDefault();
+					if (mode !== "list") {
+						setMode("list");
+						setQuery("");
+						setFrom("");
+						setError(void 0);
+						return;
+					}
+					onClose();
+					return;
+				}
+				if (event.key === "ArrowDown") {
+					event.preventDefault();
+					setCursor((value) => Math.min(items.length - 1, value + 1));
+					return;
+				}
+				if (event.key === "ArrowUp") {
+					event.preventDefault();
+					setCursor((value) => Math.max(0, value - 1));
+					return;
+				}
+				if (event.key === "Enter") {
+					event.preventDefault();
+					activate(items[cursor]);
+				}
+			};
+			const host = typeof document !== "undefined" ? document.querySelector("[data-dsh-side-panels]") : null;
+			const ui = /* @__PURE__ */ (0, react_jsx_runtime.jsx)("div", {
+				style: {
+					...S$1.overlay,
+					alignItems: "flex-start",
+					paddingTop: 48
+				},
+				onPointerDown: (event) => {
+					if (event.target === event.currentTarget) onClose();
+				},
+				children: /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", {
+					"data-dsh-git-pick": "",
+					"data-dsh-dialog": "",
+					style: S$1.gitPick,
+					onPointerDown: (event) => event.stopPropagation(),
+					children: [
+						/* @__PURE__ */ (0, react_jsx_runtime.jsx)("input", {
+							ref: inputRef,
+							style: S$1.gitPickInput,
+							value: query,
+							placeholder: placeholderFor(mode, from, intent),
+							disabled: busy,
+							onChange: (event) => setQuery(event.target.value),
+							onKeyDown
+						}),
+						error ? /* @__PURE__ */ (0, react_jsx_runtime.jsx)("div", {
+							style: S$1.gitPickError,
+							children: error
+						}) : null,
+						/* @__PURE__ */ (0, react_jsx_runtime.jsx)("div", {
+							style: S$1.gitPickList,
+							role: "listbox",
+							children: items.length === 0 ? /* @__PURE__ */ (0, react_jsx_runtime.jsx)("div", {
+								style: {
+									...S$1.gitPickItem,
+									opacity: .6,
+									cursor: "default"
+								},
+								children: mode === "create" || mode === "create-from-name" ? "输入新分支名" : "没有匹配项"
+							}) : items.map((item, index) => {
+								const active = index === cursor;
+								const icon = item.type !== "ref" ? item.id === "detach" ? /* @__PURE__ */ (0, react_jsx_runtime.jsx)(DetachGlyph, {}) : null : item.kind === "remote" ? /* @__PURE__ */ (0, react_jsx_runtime.jsx)(CloudGlyph, {}) : item.kind === "tag" ? /* @__PURE__ */ (0, react_jsx_runtime.jsx)(TagGlyph, {}) : /* @__PURE__ */ (0, react_jsx_runtime.jsx)(BranchGlyph, {});
+								const meta = item.type === "ref" ? [
+									item.author,
+									item.sha,
+									syncText(item),
+									item.subject
+								].filter(Boolean).join(" · ") : "";
+								return /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", {
+									ref: active ? activeRef : void 0,
+									role: "option",
+									"aria-selected": active,
+									"data-active": active ? "1" : void 0,
+									style: {
+										...S$1.gitPickItem,
+										...active ? S$1.gitPickItemActive : {}
+									},
+									onMouseEnter: () => setCursor(index),
+									onClick: () => activate(item),
+									children: [/* @__PURE__ */ (0, react_jsx_runtime.jsx)("span", {
+										style: S$1.gitPickIcon,
+										children: icon
+									}), /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", {
+										style: S$1.gitPickBody,
+										children: [/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", {
+											style: S$1.gitPickTop,
+											children: [
+												/* @__PURE__ */ (0, react_jsx_runtime.jsx)("span", {
+													style: S$1.gitPickName,
+													children: item.label || item.name
+												}),
+												item.ago ? /* @__PURE__ */ (0, react_jsx_runtime.jsx)("span", {
+													style: S$1.gitPickAgo,
+													children: item.ago
+												}) : null,
+												item.group ? /* @__PURE__ */ (0, react_jsx_runtime.jsx)("span", {
+													style: S$1.gitPickKind,
+													children: kindLabel(item.kind)
+												}) : null
+											]
+										}), meta ? /* @__PURE__ */ (0, react_jsx_runtime.jsx)("div", {
+											style: S$1.gitPickMeta,
+											children: meta
+										}) : null]
+									})]
+								}, item.id);
+							})
+						})
+					]
+				})
+			});
+			return host ? (0, react_dom.createPortal)(ui, host) : ui;
+		}
+		function BranchButton({ branch, dirty, disabled, onClick }) {
+			return /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("button", {
+				type: "button",
+				style: S$1.gitBranchBtn,
+				title: "签出分支",
+				disabled,
+				onClick,
+				children: [/* @__PURE__ */ (0, react_jsx_runtime.jsx)(BranchGlyph, {}), /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("span", {
+					style: S$1.gitHeadBranch,
+					children: [branch, dirty ? "*" : ""]
+				})]
+			});
+		}
+		//#endregion
+		//#region src/client/GitGraph.jsx
+		const LANE = 12;
+		const ROW_H = 22;
+		const COLORS = [
+			"#0078d4",
+			"#d18616",
+			"#b180d7",
+			"#13a10e",
+			"#00b7c3",
+			"#e74856",
+			"#c239b3",
+			"#4f6bed"
+		];
+		function laneX(index) {
+			return 6 + index * LANE;
+		}
+		function laneColor(index) {
+			return COLORS[(index % COLORS.length + COLORS.length) % COLORS.length];
+		}
+		function fileBase$2(path) {
+			const parts = String(path).split(/[/\\]/).filter(Boolean);
+			return parts[parts.length - 1] ?? path;
+		}
+		function fileDir$1(path) {
+			const posix = String(path).replace(/\\/g, "/");
+			const cut = posix.lastIndexOf("/");
+			return cut > 0 ? posix.slice(0, cut) : "";
+		}
+		function Chevron$2({ open }) {
+			return /* @__PURE__ */ (0, react_jsx_runtime.jsx)("svg", {
+				viewBox: "0 0 16 16",
+				width: "11",
+				height: "11",
+				fill: "currentColor",
+				"aria-hidden": "true",
+				style: {
+					transform: open ? "rotate(90deg)" : "none",
+					flex: "none",
+					opacity: .7
+				},
+				children: /* @__PURE__ */ (0, react_jsx_runtime.jsx)("path", { d: "M6 3.2 11.2 8 6 12.8z" })
+			});
+		}
+		function GraphCanvas({ cols, segs, head, uncommitted }) {
+			const width = Math.max(1, cols) * LANE + 8;
+			return /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("svg", {
+				width,
+				height: ROW_H,
+				viewBox: `0 0 ${width} ${ROW_H}`,
+				"aria-hidden": "true",
+				style: {
+					flex: "none",
+					display: "block"
+				},
+				children: [(segs ?? []).filter((item) => item.kind !== "node").map((seg, index) => {
+					if (seg.kind === "v") {
+						const x = laneX(seg.x);
+						return /* @__PURE__ */ (0, react_jsx_runtime.jsx)("line", {
+							x1: x,
+							y1: 0,
+							x2: x,
+							y2: ROW_H,
+							stroke: laneColor(seg.x),
+							strokeWidth: "1.6"
+						}, index);
+					}
+					if (seg.kind === "merge") {
+						const x1 = laneX(seg.x1);
+						const x2 = laneX(seg.x2);
+						return /* @__PURE__ */ (0, react_jsx_runtime.jsx)("path", {
+							d: `M ${x1} 0 C ${x1} 11, ${x2} 8, ${x2} 11`,
+							fill: "none",
+							stroke: laneColor(seg.x1),
+							strokeWidth: "1.6"
+						}, index);
+					}
+					if (seg.kind === "fork") {
+						const x1 = laneX(seg.x1);
+						const x2 = laneX(seg.x2);
+						return /* @__PURE__ */ (0, react_jsx_runtime.jsx)("path", {
+							d: `M ${x1} 11 C ${x1} 16, ${x2} 14, ${x2} ${ROW_H}`,
+							fill: "none",
+							stroke: laneColor(seg.x2),
+							strokeWidth: "1.6"
+						}, index);
+					}
+					return null;
+				}), (segs ?? []).filter((item) => item.kind === "node").map((seg, index) => {
+					const x = laneX(seg.x);
+					const fill = uncommitted ? "transparent" : laneColor(seg.x);
+					return /* @__PURE__ */ (0, react_jsx_runtime.jsx)("circle", {
+						cx: x,
+						cy: 11,
+						r: head || uncommitted ? 4 : 3.2,
+						fill,
+						stroke: uncommitted ? laneColor(seg.x) : head ? "#fff" : fill,
+						strokeWidth: uncommitted || head ? 1.6 : 0
+					}, `n${index}`);
+				})]
+			});
+		}
+		function pillStyle(kind, current) {
+			if (kind === "tag") return {
+				...S$1.gitPill,
+				background: "rgb(209 154 32 / 22%)",
+				color: "#8a6a12"
+			};
+			if (kind === "remote") return {
+				...S$1.gitPill,
+				background: "rgb(127 127 127 / 16%)",
+				color: "#6b6b6b"
+			};
+			if (current) return {
+				...S$1.gitPill,
+				background: "rgb(0 120 212 / 22%)",
+				color: "#005a9e"
+			};
+			return {
+				...S$1.gitPill,
+				background: "rgb(0 120 212 / 12%)",
+				color: "#0078d4"
+			};
+		}
+		function haystack(commit) {
+			const refs = (commit.refs ?? []).map((item) => item.name).join(" ");
+			return [
+				commit.subject,
+				commit.author,
+				commit.short,
+				commit.hash,
+				refs
+			].join(" ").toLowerCase();
+		}
+		function GraphFileRow({ item, selected, onOpen }) {
+			const dir = fileDir$1(item.path);
+			return /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", {
+				"data-dsh-git-row": "",
+				"data-active": selected ? "1" : void 0,
+				style: {
+					...S$1.gitRow,
+					...selected ? S$1.gitRowActive : {}
+				},
+				onClick: () => onOpen(item),
+				children: [
+					/* @__PURE__ */ (0, react_jsx_runtime.jsx)("span", {
+						style: {
+							flex: "none",
+							display: "inline-flex"
+						},
+						children: /* @__PURE__ */ (0, react_jsx_runtime.jsx)(FileKindIcon, { name: fileBase$2(item.path) })
+					}),
+					/* @__PURE__ */ (0, react_jsx_runtime.jsx)("span", {
+						style: S$1.gitRowName,
+						title: item.origPath ? `${item.origPath} → ${item.path}` : item.path,
+						children: fileBase$2(item.path)
+					}),
+					dir ? /* @__PURE__ */ (0, react_jsx_runtime.jsx)("span", {
+						style: S$1.gitRowDir,
+						title: dir,
+						children: dir
+					}) : /* @__PURE__ */ (0, react_jsx_runtime.jsx)("span", { style: S$1.gitRowDir }),
+					/* @__PURE__ */ (0, react_jsx_runtime.jsx)("span", {
+						style: {
+							...S$1.git,
+							color: gitColor(item.letter)
+						},
+						children: item.letter
+					})
+				]
+			});
+		}
+		function GraphMenu({ x, y, commit, onClose, onPick }) {
+			const boxRef = (0, react.useRef)(null);
+			(0, react.useEffect)(() => {
+				const onDown = (event) => {
+					if (boxRef.current?.contains(event.target)) return;
+					onClose();
+				};
+				const onKey = (event) => {
+					if (event.key === "Escape") onClose();
+				};
+				window.addEventListener("pointerdown", onDown);
+				window.addEventListener("keydown", onKey);
+				return () => {
+					window.removeEventListener("pointerdown", onDown);
+					window.removeEventListener("keydown", onKey);
+				};
+			}, [onClose]);
+			const left = Math.max(8, Math.min(x, window.innerWidth - 240));
+			const top = Math.max(8, Math.min(y, window.innerHeight - 360));
+			const items = [
+				{
+					id: "checkout",
+					label: "签出这次提交"
+				},
+				{
+					id: "branch",
+					label: "在此新建分支…"
+				},
+				{
+					id: "tag",
+					label: "在此打标记…"
+				},
+				{ id: "sep1" },
+				{
+					id: "merge",
+					label: "合并到当前分支"
+				},
+				{
+					id: "rebase",
+					label: "变基到这里"
+				},
+				{
+					id: "cherry",
+					label: "拣选到当前分支"
+				},
+				{
+					id: "compare-from",
+					label: "选为对比起点"
+				},
+				{
+					id: "compare-to",
+					label: "与对比起点比较"
+				},
+				{
+					id: "revert",
+					label: "还原这次提交"
+				},
+				{ id: "sep2" },
+				{
+					id: "reset-soft",
+					label: "软重置到这里（保留暂存）"
+				},
+				{
+					id: "reset-mixed",
+					label: "重置到这里（保留改动）"
+				},
+				{
+					id: "reset-hard",
+					label: "硬重置到这里（丢掉改动）"
+				},
+				...(commit.refs ?? []).filter((item) => item.kind === "local" && !item.current).flatMap((item) => [{
+					id: `delete-branch:${item.name}`,
+					label: `删除分支 ${item.name}`
+				}]),
+				{ id: "sep3" },
+				{
+					id: "copy-hash",
+					label: "复制完整哈希"
+				},
+				{
+					id: "copy-short",
+					label: "复制短哈希"
+				},
+				{
+					id: "copy-subject",
+					label: "复制说明"
+				}
+			];
+			return (0, react_dom.createPortal)(/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", {
+				ref: boxRef,
+				role: "menu",
+				style: {
+					...S$1.menu,
+					position: "fixed",
+					top,
+					left,
+					right: "auto",
+					marginTop: 0,
+					zIndex: 140
+				},
+				children: [/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", {
+					style: {
+						...S$1.gitGraphHint,
+						padding: "6px 14px 4px"
+					},
+					title: commit.hash,
+					children: [
+						commit.short,
+						" · ",
+						commit.author
+					]
+				}), items.map((item, index) => item.id.startsWith("sep") ? /* @__PURE__ */ (0, react_jsx_runtime.jsx)("div", { style: S$1.menuSep }, `${item.id}:${index}`) : /* @__PURE__ */ (0, react_jsx_runtime.jsx)("button", {
+					type: "button",
+					role: "menuitem",
+					style: S$1.menuItem,
+					onClick: () => {
+						onClose();
+						onPick(item.id);
+					},
+					children: /* @__PURE__ */ (0, react_jsx_runtime.jsx)("span", {
+						style: S$1.menuLabel,
+						children: item.label
+					})
+				}, item.id))]
+			}), document.querySelector("[data-dsh-side-panels]") || document.body);
+		}
+		function GitGraph({ cwd, repo, dirty, staged, changes, stashes, busy, activeKey, tick, onOpen, onOpenCommit, onCompare, onDone, onError }) {
+			const [open, setOpen] = (0, react.useState)(true);
+			const [all, setAll] = (0, react.useState)(true);
+			const [limit, setLimit] = (0, react.useState)(120);
+			const [query, setQuery] = (0, react.useState)("");
+			const [pack, setPack] = (0, react.useState)();
+			const [loading, setLoading] = (0, react.useState)(false);
+			const [expanded, setExpanded] = (0, react.useState)();
+			const [filesByHash, setFilesByHash] = (0, react.useState)({});
+			const [menu, setMenu] = (0, react.useState)();
+			const [acting, setActing] = (0, react.useState)(false);
+			const [compareFrom, setCompareFrom] = (0, react.useState)();
+			const repoRel = repo || "";
+			const load = async (nextAll = all, nextLimit = limit) => {
+				if (!cwd) return;
+				setLoading(true);
+				const result = await gitApi.graph(cwd, repoRel, nextAll, nextLimit);
+				setLoading(false);
+				if (!result.ok) {
+					onError?.(result.error?.message ?? "读不了提交图");
+					return;
+				}
+				setPack(result.value);
+			};
+			(0, react.useEffect)(() => {
+				setPack(void 0);
+				setExpanded(void 0);
+				setFilesByHash({});
+				setQuery("");
+				setLimit(120);
+				if (!cwd || !open) return void 0;
+				load(all, 120);
+			}, [
+				cwd,
+				repoRel,
+				open,
+				all,
+				tick
+			]);
+			const commits = pack?.commits ?? [];
+			const filtered = (0, react.useMemo)(() => {
+				const q = query.trim().toLowerCase();
+				if (!q) return commits;
+				return commits.filter((item) => haystack(item).includes(q));
+			}, [commits, query]);
+			const showUncommitted = dirty && (query.trim() === "" || "未提交的更改".includes(query.trim()));
+			const selectedCommit = (hash) => expanded === hash;
+			const selectedFile = (side, path) => activeKey === `gitdiff:${side}:${path}`;
+			const openCommit = async (commit) => {
+				const hash = commit.hash;
+				setExpanded((current) => current === hash ? void 0 : hash);
+				if (filesByHash[hash] || commit.uncommitted) return;
+				const result = await gitApi.commitFiles(cwd, repoRel, hash);
+				if (!result.ok) {
+					onError?.(result.error?.message ?? "读不了这次提交的文件");
+					return;
+				}
+				setFilesByHash((prev) => ({
+					...prev,
+					[hash]: result.value.files ?? []
+				}));
+			};
+			const run = async (work, files) => {
+				if (busy || acting) return;
+				setActing(true);
+				try {
+					const result = await work();
+					if (!result.ok) {
+						onError?.(result.error?.message ?? "操作失败");
+						return;
+					}
+					onError?.(void 0);
+					await load();
+					onDone?.(files === true);
+				} finally {
+					setActing(false);
+				}
+			};
+			const onMenu = async (id, commit) => {
+				const hash = commit.hash;
+				if (id === "copy-hash") {
+					try {
+						await navigator.clipboard.writeText(hash);
+					} catch {}
+					return;
+				}
+				if (id === "copy-short") {
+					try {
+						await navigator.clipboard.writeText(commit.short);
+					} catch {}
+					return;
+				}
+				if (id === "copy-subject") {
+					try {
+						await navigator.clipboard.writeText(commit.subject || "");
+					} catch {}
+					return;
+				}
+				if (id === "checkout") {
+					if (!window.confirm(`签出 ${commit.short} 会进入分离头状态。继续？`)) return;
+					await run(() => gitApi.checkout(cwd, {
+						ref: hash,
+						detached: true,
+						repo: repoRel
+					}), true);
+					return;
+				}
+				if (id === "branch") {
+					const name = window.prompt("新分支名");
+					if (!name || name.trim() === "") return;
+					await run(() => gitApi.checkout(cwd, {
+						create: true,
+						name: name.trim(),
+						from: hash,
+						repo: repoRel
+					}), true);
+					return;
+				}
+				if (id === "tag") {
+					const name = window.prompt("标记名");
+					if (!name || name.trim() === "") return;
+					await run(() => gitApi.tag(cwd, repoRel, name.trim(), hash), false);
+					return;
+				}
+				if (id === "merge") {
+					if (!window.confirm(`把 ${commit.short} 合并进当前分支？`)) return;
+					await run(() => gitApi.merge(cwd, repoRel, { ref: hash }), true);
+					return;
+				}
+				if (id === "rebase") {
+					if (!window.confirm(`当前分支会变基到 ${commit.short}。继续？`)) return;
+					await run(() => gitApi.rebase(cwd, repoRel, { ref: hash }), true);
+					return;
+				}
+				if (id === "compare-from") {
+					setCompareFrom(commit);
+					return;
+				}
+				if (id === "compare-to") {
+					if (!compareFrom) {
+						onError?.("先右键另一次提交，选「选为对比起点」");
+						return;
+					}
+					onCompare?.(compareFrom, commit);
+					return;
+				}
+				if (id === "cherry") {
+					if (!window.confirm(`把 ${commit.short} 拣选到当前分支？`)) return;
+					await run(() => gitApi.cherryPick(cwd, repoRel, hash), true);
+					return;
+				}
+				if (id === "revert") {
+					if (!window.confirm(`用一次新提交还原 ${commit.short}？`)) return;
+					await run(() => gitApi.revert(cwd, repoRel, hash), true);
+					return;
+				}
+				if (id === "reset-soft") {
+					if (!window.confirm("当前分支会移到这里，改动会留在暂存区。继续？")) return;
+					await run(() => gitApi.reset(cwd, repoRel, hash, "soft"), true);
+					return;
+				}
+				if (id === "reset-mixed") {
+					if (!window.confirm("当前分支会移到这里，已提交的内容会改，工作区改动会留下来。继续？")) return;
+					await run(() => gitApi.reset(cwd, repoRel, hash, "mixed"), true);
+					return;
+				}
+				if (id.startsWith("delete-branch:")) {
+					const name = id.slice(14);
+					if (!window.confirm(`删除分支 ${name}？未合并的提交可能找不到。`)) return;
+					await run(() => gitApi.branchOp(cwd, repoRel, {
+						op: "delete",
+						name
+					}), true);
+					return;
+				}
+				if (id === "reset-hard") {
+					if (!window.confirm("硬重置会丢掉工作区未提交的改动，找不回来。确定？")) return;
+					if (!window.confirm("再确认一次：硬重置到这次提交？")) return;
+					await run(() => gitApi.reset(cwd, repoRel, hash, "hard"), true);
+				}
+			};
+			const uncommittedFiles = [...staged ?? [], ...changes ?? []];
+			const uncommittedSegs = [{
+				kind: "v",
+				x: 0
+			}, {
+				kind: "node",
+				x: 0
+			}];
+			return /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("section", { children: [/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", {
+				"data-dsh-git-section": "",
+				style: S$1.gitSection,
+				children: [/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("button", {
+					type: "button",
+					style: S$1.gitTwist,
+					"aria-expanded": open,
+					onClick: () => setOpen((value) => !value),
+					children: [/* @__PURE__ */ (0, react_jsx_runtime.jsx)(Chevron$2, { open }), /* @__PURE__ */ (0, react_jsx_runtime.jsx)("span", {
+						style: {
+							overflow: "hidden",
+							textOverflow: "ellipsis",
+							whiteSpace: "nowrap"
+						},
+						children: "图表"
+					})]
+				}), commits.length > 0 ? /* @__PURE__ */ (0, react_jsx_runtime.jsx)("span", {
+					style: S$1.gitBadge,
+					children: query.trim() ? filtered.length : commits.length
+				}) : null]
+			}), open ? /* @__PURE__ */ (0, react_jsx_runtime.jsxs)(react_jsx_runtime.Fragment, { children: [
+				/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", {
+					style: S$1.gitGraphTools,
+					children: [/* @__PURE__ */ (0, react_jsx_runtime.jsx)("input", {
+						"data-dsh-git-message": "",
+						style: S$1.gitGraphSearch,
+						placeholder: "搜索提交、作者、分支、哈希",
+						value: query,
+						onChange: (event) => setQuery(event.target.value)
+					}), /* @__PURE__ */ (0, react_jsx_runtime.jsx)("button", {
+						type: "button",
+						style: {
+							...S$1.gitGraphToggle,
+							background: all ? "rgb(0 120 212 / 12%)" : "transparent"
+						},
+						title: all ? "正在看全部分支" : "正在看当前分支",
+						disabled: busy || loading,
+						onClick: () => setAll((value) => !value),
+						children: all ? "全部分支" : "当前分支"
+					})]
+				}),
+				loading && !pack ? /* @__PURE__ */ (0, react_jsx_runtime.jsx)("div", {
+					style: S$1.gitGraphHint,
+					children: "正在读取提交图…"
+				}) : null,
+				!loading && pack && commits.length === 0 ? /* @__PURE__ */ (0, react_jsx_runtime.jsx)("div", {
+					style: S$1.gitGraphHint,
+					children: "还没有提交"
+				}) : null,
+				compareFrom ? /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", {
+					style: S$1.gitGraphHint,
+					children: [
+						"对比起点 ",
+						compareFrom.short,
+						" · 再右键另一次提交选「与对比起点比较」"
+					]
+				}) : null,
+				(stashes ?? []).length > 0 && query.trim() === "" ? stashes.map((item) => /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", {
+					"data-dsh-git-row": "",
+					style: S$1.gitGraphRow,
+					title: item.subject,
+					children: [/* @__PURE__ */ (0, react_jsx_runtime.jsx)(GraphCanvas, {
+						cols: 1,
+						segs: [{
+							kind: "node",
+							x: 0
+						}]
+					}), /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", {
+						style: S$1.gitGraphBody,
+						children: [
+							/* @__PURE__ */ (0, react_jsx_runtime.jsx)("span", {
+								style: S$1.gitGraphPills,
+								children: /* @__PURE__ */ (0, react_jsx_runtime.jsx)("span", {
+									style: pillStyle("tag"),
+									children: item.ref
+								})
+							}),
+							/* @__PURE__ */ (0, react_jsx_runtime.jsx)("span", {
+								style: S$1.gitGraphSubject,
+								children: item.subject || item.ref
+							}),
+							/* @__PURE__ */ (0, react_jsx_runtime.jsx)("span", {
+								style: S$1.gitGraphAgo,
+								children: item.ago
+							})
+						]
+					})]
+				}, item.ref)) : null,
+				showUncommitted ? /* @__PURE__ */ (0, react_jsx_runtime.jsxs)(react_jsx_runtime.Fragment, { children: [/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", {
+					"data-dsh-git-row": "",
+					"data-active": selectedCommit("UNCOMMITTED") ? "1" : void 0,
+					style: {
+						...S$1.gitGraphRow,
+						...selectedCommit("UNCOMMITTED") ? S$1.gitRowActive : {}
+					},
+					onClick: () => setExpanded((current) => current === "UNCOMMITTED" ? void 0 : "UNCOMMITTED"),
+					children: [/* @__PURE__ */ (0, react_jsx_runtime.jsx)(GraphCanvas, {
+						cols: 1,
+						segs: uncommittedSegs,
+						uncommitted: true
+					}), /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", {
+						style: S$1.gitGraphBody,
+						children: [/* @__PURE__ */ (0, react_jsx_runtime.jsx)("span", {
+							style: {
+								...S$1.gitGraphSubject,
+								fontWeight: 600
+							},
+							children: "未提交的更改"
+						}), /* @__PURE__ */ (0, react_jsx_runtime.jsx)("span", {
+							style: S$1.gitGraphAgo,
+							children: uncommittedFiles.length
+						})]
+					})]
+				}), selectedCommit("UNCOMMITTED") ? /* @__PURE__ */ (0, react_jsx_runtime.jsxs)(react_jsx_runtime.Fragment, { children: [staged.map((item) => /* @__PURE__ */ (0, react_jsx_runtime.jsx)(GraphFileRow, {
+					item,
+					selected: selectedFile("index", item.path),
+					onOpen: () => onOpen(item, "index")
+				}, `us:${item.path}`)), changes.map((item) => /* @__PURE__ */ (0, react_jsx_runtime.jsx)(GraphFileRow, {
+					item,
+					selected: selectedFile("worktree", item.path),
+					onOpen: () => onOpen(item, "worktree")
+				}, `uc:${item.path}`))] }) : null] }) : null,
+				filtered.map((commit) => /* @__PURE__ */ (0, react_jsx_runtime.jsxs)(react.default.Fragment, { children: [
+					/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", {
+						"data-dsh-git-row": "",
+						"data-active": selectedCommit(commit.hash) ? "1" : void 0,
+						style: {
+							...S$1.gitGraphRow,
+							...selectedCommit(commit.hash) ? S$1.gitRowActive : {}
+						},
+						title: `${commit.subject}\n${commit.author} · ${commit.short}`,
+						onClick: () => void openCommit(commit),
+						onContextMenu: (event) => {
+							event.preventDefault();
+							event.stopPropagation();
+							setMenu({
+								x: event.clientX,
+								y: event.clientY,
+								commit
+							});
+						},
+						children: [/* @__PURE__ */ (0, react_jsx_runtime.jsx)(GraphCanvas, {
+							cols: commit.cols,
+							segs: commit.segs,
+							head: commit.head === true
+						}), /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", {
+							style: S$1.gitGraphBody,
+							children: [
+								(commit.refs ?? []).length > 0 ? /* @__PURE__ */ (0, react_jsx_runtime.jsx)("span", {
+									style: S$1.gitGraphPills,
+									children: commit.refs.map((item) => /* @__PURE__ */ (0, react_jsx_runtime.jsx)("span", {
+										style: pillStyle(item.kind, item.current),
+										title: item.name,
+										children: item.name
+									}, `${item.kind}:${item.name}`))
+								}) : null,
+								/* @__PURE__ */ (0, react_jsx_runtime.jsx)("span", {
+									style: {
+										...S$1.gitGraphSubject,
+										fontWeight: commit.head ? 600 : 400
+									},
+									children: commit.subject || "(无说明)"
+								}),
+								/* @__PURE__ */ (0, react_jsx_runtime.jsx)("span", {
+									style: S$1.gitGraphAgo,
+									children: commit.ago || commit.short
+								})
+							]
+						})]
+					}),
+					selectedCommit(commit.hash) ? (filesByHash[commit.hash] ?? []).map((item) => /* @__PURE__ */ (0, react_jsx_runtime.jsx)(GraphFileRow, {
+						item,
+						selected: selectedFile(`c.${commit.hash}`, item.path),
+						onOpen: () => onOpenCommit(item, commit.hash)
+					}, `c:${commit.hash}:${item.path}`)) : null,
+					selectedCommit(commit.hash) && filesByHash[commit.hash]?.length === 0 ? /* @__PURE__ */ (0, react_jsx_runtime.jsx)("div", {
+						style: S$1.gitGraphHint,
+						children: "这次提交没有文件改动"
+					}) : null
+				] }, commit.hash)),
+				pack?.hasMore && query.trim() === "" ? /* @__PURE__ */ (0, react_jsx_runtime.jsx)("button", {
+					type: "button",
+					style: S$1.gitGraphMore,
+					disabled: busy || loading,
+					onClick: () => {
+						const next = limit + 80;
+						setLimit(next);
+						load(all, next);
+					},
+					children: loading ? "正在加载…" : "加载更多"
+				}) : null,
+				menu ? /* @__PURE__ */ (0, react_jsx_runtime.jsx)(GraphMenu, {
+					x: menu.x,
+					y: menu.y,
+					commit: menu.commit,
+					onClose: () => setMenu(void 0),
+					onPick: (id) => void onMenu(id, menu.commit)
+				}) : null
+			] }) : null] });
+		}
+		//#endregion
+		//#region src/client/GitView.jsx
+		function fileBase$1(path) {
+			const parts = String(path).split(/[/\\]/).filter(Boolean);
+			return parts[parts.length - 1] ?? path;
+		}
+		function fileDir(path) {
+			const posix = String(path).replace(/\\/g, "/");
+			const cut = posix.lastIndexOf("/");
+			return cut > 0 ? posix.slice(0, cut) : "";
+		}
+		function PlusGlyph() {
+			return /* @__PURE__ */ (0, react_jsx_runtime.jsx)("svg", {
+				viewBox: "0 0 16 16",
+				width: "12",
+				height: "12",
+				fill: "none",
+				stroke: "currentColor",
+				strokeWidth: "1.6",
+				"aria-hidden": "true",
+				children: /* @__PURE__ */ (0, react_jsx_runtime.jsx)("path", { d: "M8 3.2v9.6M3.2 8h9.6" })
+			});
+		}
+		function MinusGlyph() {
+			return /* @__PURE__ */ (0, react_jsx_runtime.jsx)("svg", {
+				viewBox: "0 0 16 16",
+				width: "12",
+				height: "12",
+				fill: "none",
+				stroke: "currentColor",
+				strokeWidth: "1.6",
+				"aria-hidden": "true",
+				children: /* @__PURE__ */ (0, react_jsx_runtime.jsx)("path", { d: "M3.2 8h9.6" })
+			});
+		}
+		function DiscardGlyph() {
+			return /* @__PURE__ */ (0, react_jsx_runtime.jsx)("svg", {
+				viewBox: "0 0 16 16",
+				width: "12",
+				height: "12",
+				fill: "none",
+				stroke: "currentColor",
+				strokeWidth: "1.5",
+				"aria-hidden": "true",
+				children: /* @__PURE__ */ (0, react_jsx_runtime.jsx)("path", { d: "M4.2 4.2 11.8 11.8M11.8 4.2 4.2 11.8" })
+			});
+		}
+		function RefreshGlyph() {
+			return /* @__PURE__ */ (0, react_jsx_runtime.jsx)("svg", {
+				viewBox: "0 0 16 16",
+				width: "14",
+				height: "14",
+				fill: "none",
+				stroke: "currentColor",
+				strokeWidth: "1.3",
+				"aria-hidden": "true",
+				children: /* @__PURE__ */ (0, react_jsx_runtime.jsx)("path", { d: "M3 8a5 5 0 0 1 9-2.5 M13 3.5v3h-3 M13 8a5 5 0 0 1-9 2.5 M3 12.5v-3h3" })
+			});
+		}
+		function CheckGlyph() {
+			return /* @__PURE__ */ (0, react_jsx_runtime.jsx)("svg", {
+				viewBox: "0 0 16 16",
+				width: "14",
+				height: "14",
+				fill: "none",
+				stroke: "currentColor",
+				strokeWidth: "1.8",
+				"aria-hidden": "true",
+				children: /* @__PURE__ */ (0, react_jsx_runtime.jsx)("path", { d: "M3.2 8.2 6.6 11.6 12.8 4.4" })
+			});
+		}
+		function DownGlyph() {
+			return /* @__PURE__ */ (0, react_jsx_runtime.jsx)("svg", {
+				viewBox: "0 0 16 16",
+				width: "12",
+				height: "12",
+				fill: "currentColor",
+				"aria-hidden": "true",
+				children: /* @__PURE__ */ (0, react_jsx_runtime.jsx)("path", { d: "M4.2 6.2 8 10l3.8-3.8z" })
+			});
+		}
+		function Chevron$1({ open, size = 12 }) {
+			return /* @__PURE__ */ (0, react_jsx_runtime.jsx)("svg", {
+				viewBox: "0 0 16 16",
+				width: size,
+				height: size,
+				fill: "currentColor",
+				"aria-hidden": "true",
+				style: {
+					transform: open ? "rotate(90deg)" : "none",
+					flex: "none",
+					opacity: size < 12 ? .7 : 1
+				},
+				children: /* @__PURE__ */ (0, react_jsx_runtime.jsx)("path", { d: "M6 3.2 11.2 8 6 12.8z" })
+			});
+		}
+		function ChangeRow({ item, side, selected, busy, onOpen, onPrimary, onDiscard, onMenu, primaryTitle, discardTitle }) {
+			const dir = fileDir(item.path);
+			return /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", {
+				"data-dsh-git-row": "",
+				"data-active": selected ? "1" : void 0,
+				style: {
+					...S$1.gitRow,
+					...selected ? S$1.gitRowActive : {}
+				},
+				onClick: () => onOpen(item, side),
+				onContextMenu: (event) => {
+					if (!onMenu) return;
+					event.preventDefault();
+					event.stopPropagation();
+					onMenu(event, item, side);
+				},
+				children: [
+					/* @__PURE__ */ (0, react_jsx_runtime.jsx)("span", {
+						style: {
+							flex: "none",
+							display: "inline-flex"
+						},
+						children: /* @__PURE__ */ (0, react_jsx_runtime.jsx)(FileKindIcon, { name: fileBase$1(item.path) })
+					}),
+					/* @__PURE__ */ (0, react_jsx_runtime.jsx)("span", {
+						style: S$1.gitRowName,
+						title: item.origPath ? `${item.origPath} → ${item.path}` : item.path,
+						children: fileBase$1(item.path)
+					}),
+					dir ? /* @__PURE__ */ (0, react_jsx_runtime.jsx)("span", {
+						style: S$1.gitRowDir,
+						title: dir,
+						children: dir
+					}) : /* @__PURE__ */ (0, react_jsx_runtime.jsx)("span", { style: S$1.gitRowDir }),
+					/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("span", {
+						"data-dsh-git-actions": "",
+						style: S$1.gitRowActions,
+						onClick: (event) => event.stopPropagation(),
+						children: [onDiscard ? /* @__PURE__ */ (0, react_jsx_runtime.jsx)("button", {
+							type: "button",
+							style: S$1.gitTiny,
+							title: discardTitle,
+							disabled: busy,
+							onClick: () => onDiscard(item),
+							children: /* @__PURE__ */ (0, react_jsx_runtime.jsx)(DiscardGlyph, {})
+						}) : null, /* @__PURE__ */ (0, react_jsx_runtime.jsx)("button", {
+							type: "button",
+							style: S$1.gitTiny,
+							title: primaryTitle,
+							disabled: busy,
+							onClick: () => onPrimary(item),
+							children: side === "index" ? /* @__PURE__ */ (0, react_jsx_runtime.jsx)(MinusGlyph, {}) : /* @__PURE__ */ (0, react_jsx_runtime.jsx)(PlusGlyph, {})
+						})]
+					}),
+					/* @__PURE__ */ (0, react_jsx_runtime.jsx)("span", {
+						style: {
+							...S$1.git,
+							color: gitColor(item.letter)
+						},
+						children: item.letter
+					})
+				]
+			});
+		}
+		function SectionHead({ title, count, open, onToggle, children }) {
+			return /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", {
+				"data-dsh-git-section": "",
+				style: S$1.gitSection,
+				children: [
+					/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("button", {
+						type: "button",
+						style: S$1.gitTwist,
+						"aria-expanded": open,
+						onClick: onToggle,
+						children: [/* @__PURE__ */ (0, react_jsx_runtime.jsx)(Chevron$1, {
+							open,
+							size: 11
+						}), /* @__PURE__ */ (0, react_jsx_runtime.jsx)("span", {
+							style: {
+								overflow: "hidden",
+								textOverflow: "ellipsis",
+								whiteSpace: "nowrap"
+							},
+							children: title
+						})]
+					}),
+					children ? /* @__PURE__ */ (0, react_jsx_runtime.jsx)("span", {
+						"data-dsh-git-section-actions": "",
+						style: S$1.gitSectionActions,
+						onClick: (event) => event.stopPropagation(),
+						children
+					}) : null,
+					count > 0 ? /* @__PURE__ */ (0, react_jsx_runtime.jsx)("span", {
+						style: S$1.gitBadge,
+						children: count
+					}) : null
+				]
+			});
+		}
+		function FileMenu({ x, y, onClose, onPick }) {
+			const boxRef = (0, react.useRef)(null);
+			(0, react.useEffect)(() => {
+				const onDown = (event) => {
+					if (boxRef.current?.contains(event.target)) return;
+					onClose();
+				};
+				const onKey = (event) => {
+					if (event.key === "Escape") onClose();
+				};
+				window.addEventListener("pointerdown", onDown);
+				window.addEventListener("keydown", onKey);
+				return () => {
+					window.removeEventListener("pointerdown", onDown);
+					window.removeEventListener("keydown", onKey);
+				};
+			}, [onClose]);
+			const left = Math.max(8, Math.min(x, window.innerWidth - 200));
+			const top = Math.max(8, Math.min(y, window.innerHeight - 160));
+			const items = [
+				{
+					id: "history",
+					label: "查看文件历史"
+				},
+				{
+					id: "blame",
+					label: "查看归咎"
+				},
+				{
+					id: "ignore",
+					label: "加入忽略列表"
+				}
+			];
+			const host = typeof document !== "undefined" ? document.querySelector("[data-dsh-side-panels]") : null;
+			const ui = /* @__PURE__ */ (0, react_jsx_runtime.jsx)("div", {
+				ref: boxRef,
+				role: "menu",
+				style: {
+					...S$1.menu,
+					position: "fixed",
+					top,
+					left,
+					right: "auto",
+					marginTop: 0,
+					zIndex: 140
+				},
+				children: items.map((item) => /* @__PURE__ */ (0, react_jsx_runtime.jsx)("button", {
+					type: "button",
+					role: "menuitem",
+					style: S$1.menuItem,
+					onClick: () => {
+						onClose();
+						onPick(item.id);
+					},
+					children: /* @__PURE__ */ (0, react_jsx_runtime.jsx)("span", {
+						style: S$1.menuLabel,
+						children: item.label
+					})
+				}, item.id))
+			});
+			return host ? (0, react_dom.createPortal)(ui, host) : ui;
+		}
+		function MoreMenu$1({ x, y, ignoreRef, onClose, onPick }) {
+			const boxRef = (0, react.useRef)(null);
+			(0, react.useEffect)(() => {
+				const onDown = (event) => {
+					if (boxRef.current?.contains(event.target)) return;
+					if (ignoreRef?.current?.contains(event.target)) return;
+					onClose();
+				};
+				const onKey = (event) => {
+					if (event.key === "Escape") onClose();
+				};
+				window.addEventListener("pointerdown", onDown);
+				window.addEventListener("keydown", onKey);
+				return () => {
+					window.removeEventListener("pointerdown", onDown);
+					window.removeEventListener("keydown", onKey);
+				};
+			}, [onClose, ignoreRef]);
+			const width = 220;
+			const height = 360;
+			const left = Math.max(8, Math.min(x - width, window.innerWidth - width - 8));
+			const top = Math.max(8, Math.min(y, window.innerHeight - height - 8));
+			const items = [
+				["fetch", "获取"],
+				["pull", "拉取"],
+				["push", "推送"],
+				["publish", "发布当前分支"],
+				["sep"],
+				["stash", "储藏"],
+				["stash-u", "储藏（含未跟踪）"],
+				["merge", "合并…"],
+				["rebase", "变基…"],
+				["rename", "重命名当前分支…"],
+				["delete", "删除分支…"]
+			];
+			const host = typeof document !== "undefined" ? document.querySelector("[data-dsh-side-panels]") : null;
+			const ui = /* @__PURE__ */ (0, react_jsx_runtime.jsx)("div", {
+				ref: boxRef,
+				role: "menu",
+				style: {
+					...S$1.menu,
+					position: "fixed",
+					top,
+					left,
+					right: "auto",
+					marginTop: 0,
+					zIndex: 140,
+					minWidth: width
+				},
+				children: items.map((item, index) => item[0] === "sep" ? /* @__PURE__ */ (0, react_jsx_runtime.jsx)("div", { style: S$1.menuSep }, `s${index}`) : /* @__PURE__ */ (0, react_jsx_runtime.jsx)("button", {
+					type: "button",
+					role: "menuitem",
+					style: S$1.menuItem,
+					onClick: () => {
+						onClose();
+						onPick(item[0]);
+					},
+					children: /* @__PURE__ */ (0, react_jsx_runtime.jsx)("span", {
+						style: S$1.menuLabel,
+						children: item[1]
+					})
+				}, item[0]))
+			});
+			return host ? (0, react_dom.createPortal)(ui, host) : ui;
+		}
+		function CommitMenu({ x, y, ignoreRef, onClose, onPick }) {
+			const boxRef = (0, react.useRef)(null);
+			(0, react.useEffect)(() => {
+				const onDown = (event) => {
+					if (boxRef.current?.contains(event.target)) return;
+					if (ignoreRef?.current?.contains(event.target)) return;
+					onClose();
+				};
+				const onKey = (event) => {
+					if (event.key === "Escape") onClose();
+				};
+				window.addEventListener("pointerdown", onDown);
+				window.addEventListener("keydown", onKey);
+				return () => {
+					window.removeEventListener("pointerdown", onDown);
+					window.removeEventListener("keydown", onKey);
+				};
+			}, [onClose, ignoreRef]);
+			const width = 168;
+			const height = 168;
+			const left = Math.max(8, Math.min(x - width, window.innerWidth - width - 8));
+			const top = Math.max(8, Math.min(y, window.innerHeight - height - 8));
+			const items = [
+				["commit", "提交"],
+				["amend", "提交(修改)"],
+				["sep"],
+				["push", "提交和推送"],
+				["sync", "提交和同步"]
+			];
+			const host = typeof document !== "undefined" ? document.querySelector("[data-dsh-side-panels]") : null;
+			const ui = /* @__PURE__ */ (0, react_jsx_runtime.jsx)("div", {
+				ref: boxRef,
+				role: "menu",
+				style: {
+					...S$1.menu,
+					position: "fixed",
+					top,
+					left,
+					right: "auto",
+					marginTop: 0,
+					zIndex: 140,
+					minWidth: width
+				},
+				children: items.map((item, index) => item[0] === "sep" ? /* @__PURE__ */ (0, react_jsx_runtime.jsx)("div", { style: S$1.menuSep }, `s${index}`) : /* @__PURE__ */ (0, react_jsx_runtime.jsx)("button", {
+					type: "button",
+					role: "menuitem",
+					style: S$1.menuItem,
+					onClick: () => {
+						onClose();
+						onPick(item[0]);
+					},
+					children: /* @__PURE__ */ (0, react_jsx_runtime.jsx)("span", {
+						style: S$1.menuLabel,
+						children: item[1]
+					})
+				}, item[0]))
+			});
+			return host ? (0, react_dom.createPortal)(ui, host) : ui;
+		}
+		function folderFromCloneUrl(url) {
+			const text = String(url ?? "").trim().replace(/[\\/]+$/, "");
+			const cut = Math.max(text.lastIndexOf("/"), text.lastIndexOf(":"));
+			const base = (cut >= 0 ? text.slice(cut + 1) : text).split("\\").pop();
+			return String(base || "").replace(/\.git$/i, "");
+		}
+		function OverlayList({ title, hint, items, onClose, onPick }) {
+			const host = typeof document !== "undefined" ? document.querySelector("[data-dsh-side-panels]") : null;
+			const ui = /* @__PURE__ */ (0, react_jsx_runtime.jsx)("div", {
+				style: {
+					...S$1.overlay,
+					alignItems: "flex-start",
+					paddingTop: 48
+				},
+				onPointerDown: (event) => {
+					if (event.target === event.currentTarget) onClose();
+				},
+				children: /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", {
+					"data-dsh-dialog": "",
+					style: S$1.gitPick,
+					onPointerDown: (event) => event.stopPropagation(),
+					children: [
+						/* @__PURE__ */ (0, react_jsx_runtime.jsx)("div", {
+							style: {
+								...S$1.gitPickName,
+								display: "block",
+								padding: "10px 14px 4px"
+							},
+							children: title
+						}),
+						hint ? /* @__PURE__ */ (0, react_jsx_runtime.jsx)("div", {
+							style: S$1.gitGraphHint,
+							children: hint
+						}) : null,
+						/* @__PURE__ */ (0, react_jsx_runtime.jsx)("div", {
+							style: S$1.gitPickList,
+							role: "listbox",
+							children: (items ?? []).length === 0 ? /* @__PURE__ */ (0, react_jsx_runtime.jsx)("div", {
+								style: {
+									...S$1.gitPickItem,
+									opacity: .6,
+									cursor: "default"
+								},
+								children: "没有条目"
+							}) : items.map((item) => /* @__PURE__ */ (0, react_jsx_runtime.jsx)("button", {
+								type: "button",
+								style: {
+									...S$1.gitPickItem,
+									width: "100%",
+									border: 0,
+									background: "transparent",
+									textAlign: "start"
+								},
+								onClick: () => onPick(item),
+								children: /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", {
+									style: S$1.gitPickBody,
+									children: [/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", {
+										style: S$1.gitPickTop,
+										children: [/* @__PURE__ */ (0, react_jsx_runtime.jsx)("span", {
+											style: S$1.gitPickName,
+											children: item.title
+										}), item.ago ? /* @__PURE__ */ (0, react_jsx_runtime.jsx)("span", {
+											style: S$1.gitPickAgo,
+											children: item.ago
+										}) : null]
+									}), item.meta ? /* @__PURE__ */ (0, react_jsx_runtime.jsx)("div", {
+										style: S$1.gitPickMeta,
+										children: item.meta
+									}) : null]
+								})
+							}, item.id))
+						})
+					]
+				})
+			});
+			return host ? (0, react_dom.createPortal)(ui, host) : ui;
+		}
+		function syncLabel(repo) {
+			if (repo.detached) return "分离";
+			if (!repo.upstream) return repo.remotes?.length ? "发布" : "";
+			const ahead = repo.ahead || 0;
+			const behind = repo.behind || 0;
+			if (ahead === 0 && behind === 0) return "已同步";
+			return `${behind}↓ ${ahead}↑`;
+		}
+		function repoKey(rel) {
+			return rel || ".";
+		}
+		function reposFromSnap(snap) {
+			if (Array.isArray(snap?.repos) && snap.repos.length > 0) return snap.repos;
+			if (snap?.repo) return [{
+				rel: "",
+				name: snap.name,
+				branch: snap.branch,
+				detached: snap.detached,
+				empty: snap.empty,
+				ahead: snap.ahead,
+				behind: snap.behind,
+				staged: snap.staged ?? [],
+				changes: snap.changes ?? [],
+				conflicts: snap.conflicts ?? [],
+				stashes: snap.stashes ?? [],
+				submodules: snap.submodules ?? [],
+				remotes: snap.remotes ?? [],
+				upstream: snap.upstream ?? "",
+				op: snap.op ?? {
+					kind: "",
+					label: ""
+				},
+				ahead: snap.ahead,
+				behind: snap.behind
+			}];
+			return [];
+		}
+		function RepoPanel({ cwd, repo, message, busy, error, activeKey, many, tick, onMessage, onOpen, onOpenCommit, onStage, onUnstage, onDiscard, onCommit, onBranch, onDone, onError, onRemote, onStash, onPick, onBlame, onHistory, onIgnore, onContinue, onAbort, onSubmodule, onCompare, onRename }) {
+			const staged = repo.staged ?? [];
+			const changes = repo.changes ?? [];
+			const branch = repo.detached ? "分离头" : repo.branch || "未知分支";
+			const dirty = staged.length + changes.length > 0;
+			const placeholder = `消息（Ctrl+Enter 在“${repo.branch || branch}”提交）`;
+			const selected = (side, path) => activeKey === `gitdiff:${side}:${path}`;
+			const [openRepo, setOpenRepo] = (0, react.useState)(true);
+			const [openStaged, setOpenStaged] = (0, react.useState)(true);
+			const [openChanges, setOpenChanges] = (0, react.useState)(true);
+			const [openConflicts, setOpenConflicts] = (0, react.useState)(true);
+			const [openStashes, setOpenStashes] = (0, react.useState)(true);
+			const [openMods, setOpenMods] = (0, react.useState)(false);
+			const [more, setMore] = (0, react.useState)();
+			const [commitMenu, setCommitMenu] = (0, react.useState)();
+			const [fileMenu, setFileMenu] = (0, react.useState)();
+			const messageRef = (0, react.useRef)(null);
+			const moreBtnRef = (0, react.useRef)(null);
+			const commitCaretRef = (0, react.useRef)(null);
+			(0, react.useLayoutEffect)(() => {
+				const el = messageRef.current;
+				if (!el) return;
+				el.style.height = "auto";
+				const full = el.scrollHeight;
+				el.style.height = `${Math.min(full, 140)}px`;
+				el.style.overflowY = full > 140 ? "auto" : "hidden";
+			}, [message, openRepo]);
+			const dirtyCount = staged.length + changes.length;
+			const conflicts = repo.conflicts ?? [];
+			const stashes = repo.stashes ?? [];
+			const submodules = repo.submodules ?? [];
+			const op = repo.op ?? {
+				kind: "",
+				label: ""
+			};
+			const sync = syncLabel(repo);
+			const canCommit = message.trim() !== "";
+			const openFileMenu = (event, item, side) => {
+				setFileMenu({
+					x: event.clientX,
+					y: event.clientY,
+					item,
+					side
+				});
+			};
+			return /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", {
+				style: many ? S$1.gitRepoBlock : void 0,
+				children: [/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", {
+					style: S$1.gitRepo,
+					children: [
+						/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("button", {
+							type: "button",
+							style: S$1.gitTwist,
+							"aria-expanded": openRepo,
+							title: openRepo ? "收起这个仓库" : "展开这个仓库",
+							onClick: () => setOpenRepo((value) => !value),
+							children: [/* @__PURE__ */ (0, react_jsx_runtime.jsx)(Chevron$1, { open: openRepo }), /* @__PURE__ */ (0, react_jsx_runtime.jsx)("span", {
+								style: S$1.gitRepoName,
+								title: repo.rel || repo.name,
+								children: repo.name || "仓库"
+							})]
+						}),
+						/* @__PURE__ */ (0, react_jsx_runtime.jsx)(BranchButton, {
+							branch,
+							dirty,
+							disabled: busy,
+							onClick: onBranch
+						}),
+						sync ? /* @__PURE__ */ (0, react_jsx_runtime.jsx)("button", {
+							type: "button",
+							style: S$1.gitSync,
+							title: repo.upstream ? "同步远程" : "发布到远程",
+							disabled: busy || !repo.upstream && !(repo.remotes ?? []).length,
+							onClick: () => void onRemote(repo.upstream ? "sync" : "publish"),
+							children: sync
+						}) : null,
+						/* @__PURE__ */ (0, react_jsx_runtime.jsx)("button", {
+							ref: moreBtnRef,
+							type: "button",
+							style: S$1.gitTiny,
+							title: "更多",
+							disabled: busy,
+							onClick: (event) => {
+								event.stopPropagation();
+								if (more) {
+									setMore(void 0);
+									return;
+								}
+								const rect = event.currentTarget.getBoundingClientRect();
+								setMore({
+									x: rect.right,
+									y: rect.bottom + 4
+								});
+							},
+							children: "···"
+						}),
+						dirtyCount > 0 ? /* @__PURE__ */ (0, react_jsx_runtime.jsx)("span", {
+							style: S$1.gitBadge,
+							children: dirtyCount
+						}) : null
+					]
+				}), openRepo ? /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", {
+					style: S$1.gitRepoBody,
+					children: [
+						/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", {
+							style: S$1.gitCommitRow,
+							children: [
+								/* @__PURE__ */ (0, react_jsx_runtime.jsx)("textarea", {
+									ref: messageRef,
+									rows: 1,
+									"data-dsh-git-message": "",
+									style: S$1.gitMessage,
+									spellCheck: false,
+									placeholder,
+									value: message,
+									disabled: busy,
+									onChange: (event) => onMessage(event.target.value),
+									onKeyDown: (event) => {
+										if (event.key === "Enter" && (event.ctrlKey || event.metaKey)) {
+											event.preventDefault();
+											onCommit({});
+										}
+									}
+								}),
+								/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", {
+									style: S$1.gitCommitSplit,
+									children: [/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("button", {
+										type: "button",
+										"data-dsh-git-commit": "",
+										style: {
+											...S$1.gitCommit,
+											opacity: busy || !canCommit ? .45 : 1,
+											cursor: busy || !canCommit ? "default" : "pointer"
+										},
+										disabled: busy || !canCommit,
+										onClick: () => void onCommit({}),
+										children: [/* @__PURE__ */ (0, react_jsx_runtime.jsx)(CheckGlyph, {}), "提交"]
+									}), /* @__PURE__ */ (0, react_jsx_runtime.jsx)("button", {
+										ref: commitCaretRef,
+										type: "button",
+										style: S$1.gitCommitCaret,
+										title: "更多提交方式",
+										disabled: busy,
+										onClick: (event) => {
+											event.stopPropagation();
+											if (commitMenu) {
+												setCommitMenu(void 0);
+												return;
+											}
+											const rect = event.currentTarget.getBoundingClientRect();
+											setCommitMenu({
+												x: rect.right,
+												y: rect.bottom + 4
+											});
+										},
+										children: /* @__PURE__ */ (0, react_jsx_runtime.jsx)(DownGlyph, {})
+									})]
+								}),
+								commitMenu ? /* @__PURE__ */ (0, react_jsx_runtime.jsx)(CommitMenu, {
+									x: commitMenu.x,
+									y: commitMenu.y,
+									ignoreRef: commitCaretRef,
+									onClose: () => setCommitMenu(void 0),
+									onPick: (id) => {
+										if (id === "commit") onCommit({});
+										else if (id === "amend") onCommit({ amend: true });
+										else if (id === "push") onCommit({ push: true });
+										else if (id === "sync") onCommit({ sync: true });
+									}
+								}) : null
+							]
+						}),
+						error ? /* @__PURE__ */ (0, react_jsx_runtime.jsx)("div", {
+							style: S$1.gitError,
+							children: error
+						}) : null,
+						op.kind ? /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", {
+							style: S$1.gitBanner,
+							children: [
+								/* @__PURE__ */ (0, react_jsx_runtime.jsx)("span", { children: op.label || "操作未结束" }),
+								/* @__PURE__ */ (0, react_jsx_runtime.jsx)("button", {
+									type: "button",
+									style: S$1.gitLinkBtn,
+									disabled: busy,
+									onClick: () => void onContinue(),
+									children: "继续"
+								}),
+								/* @__PURE__ */ (0, react_jsx_runtime.jsx)("button", {
+									type: "button",
+									style: S$1.gitLinkBtn,
+									disabled: busy,
+									onClick: () => void onAbort(),
+									children: "放弃"
+								})
+							]
+						}) : null,
+						conflicts.length > 0 ? /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("section", { children: [/* @__PURE__ */ (0, react_jsx_runtime.jsx)(SectionHead, {
+							title: "冲突",
+							count: conflicts.length,
+							open: openConflicts,
+							onToggle: () => setOpenConflicts((value) => !value)
+						}), openConflicts ? /* @__PURE__ */ (0, react_jsx_runtime.jsx)("div", {
+							style: S$1.gitSectionTree,
+							children: conflicts.map((item) => /* @__PURE__ */ (0, react_jsx_runtime.jsx)(ChangeRow, {
+								item,
+								side: "worktree",
+								selected: selected("worktree", item.path),
+								busy,
+								onOpen,
+								onPrimary: (row) => void onStage([row.path]),
+								primaryTitle: "标记已解决",
+								onMenu: openFileMenu
+							}, `x:${item.path}`))
+						}) : null] }) : null,
+						staged.length > 0 ? /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("section", { children: [/* @__PURE__ */ (0, react_jsx_runtime.jsx)(SectionHead, {
+							title: "暂存的更改",
+							count: staged.length,
+							open: openStaged,
+							onToggle: () => setOpenStaged((value) => !value),
+							children: /* @__PURE__ */ (0, react_jsx_runtime.jsx)("button", {
+								type: "button",
+								style: S$1.gitTiny,
+								title: "全部取消暂存",
+								disabled: busy,
+								onClick: () => void onUnstage(staged.map((item) => item.path)),
+								children: /* @__PURE__ */ (0, react_jsx_runtime.jsx)(MinusGlyph, {})
+							})
+						}), openStaged ? /* @__PURE__ */ (0, react_jsx_runtime.jsx)("div", {
+							style: S$1.gitSectionTree,
+							children: staged.map((item) => /* @__PURE__ */ (0, react_jsx_runtime.jsx)(ChangeRow, {
+								item,
+								side: "index",
+								selected: selected("index", item.path),
+								busy,
+								onOpen,
+								onPrimary: (row) => void onUnstage([row.path]),
+								primaryTitle: "取消暂存",
+								onMenu: openFileMenu
+							}, `s:${item.path}`))
+						}) : null] }) : null,
+						/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("section", { children: [/* @__PURE__ */ (0, react_jsx_runtime.jsx)(SectionHead, {
+							title: "更改",
+							count: changes.length,
+							open: openChanges,
+							onToggle: () => setOpenChanges((value) => !value),
+							children: changes.length > 0 ? /* @__PURE__ */ (0, react_jsx_runtime.jsxs)(react_jsx_runtime.Fragment, { children: [/* @__PURE__ */ (0, react_jsx_runtime.jsx)("button", {
+								type: "button",
+								style: S$1.gitTiny,
+								title: "全部丢弃",
+								disabled: busy,
+								onClick: () => onDiscard(changes.map((item) => item.path), "确定丢弃全部未暂存的更改？丢掉的内容找不回来。"),
+								children: /* @__PURE__ */ (0, react_jsx_runtime.jsx)(DiscardGlyph, {})
+							}), /* @__PURE__ */ (0, react_jsx_runtime.jsx)("button", {
+								type: "button",
+								style: S$1.gitTiny,
+								title: "全部暂存",
+								disabled: busy,
+								onClick: () => void onStage(changes.map((item) => item.path)),
+								children: /* @__PURE__ */ (0, react_jsx_runtime.jsx)(PlusGlyph, {})
+							})] }) : null
+						}), openChanges ? /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", {
+							style: S$1.gitSectionTree,
+							children: [changes.length === 0 && staged.length === 0 ? /* @__PURE__ */ (0, react_jsx_runtime.jsx)("div", {
+								style: S$1.gitDiffEmpty,
+								children: "没有更改"
+							}) : null, changes.map((item) => /* @__PURE__ */ (0, react_jsx_runtime.jsx)(ChangeRow, {
+								item,
+								side: "worktree",
+								selected: selected("worktree", item.path),
+								busy,
+								onOpen,
+								onPrimary: (row) => void onStage([row.path]),
+								onDiscard: (row) => onDiscard([row.path], row.untracked ? `确定删除未跟踪的 ${fileBase$1(row.path)}？` : `确定丢弃 ${fileBase$1(row.path)} 的未暂存更改？`),
+								primaryTitle: "暂存",
+								discardTitle: "丢弃更改",
+								onMenu: openFileMenu
+							}, `c:${item.path}`))]
+						}) : null] }),
+						stashes.length > 0 ? /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("section", { children: [/* @__PURE__ */ (0, react_jsx_runtime.jsx)(SectionHead, {
+							title: "储藏",
+							count: stashes.length,
+							open: openStashes,
+							onToggle: () => setOpenStashes((value) => !value)
+						}), openStashes ? /* @__PURE__ */ (0, react_jsx_runtime.jsx)("div", {
+							style: S$1.gitSectionTree,
+							children: stashes.map((item) => /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", {
+								"data-dsh-git-row": "",
+								style: S$1.gitGraphRow,
+								title: item.subject,
+								children: [
+									/* @__PURE__ */ (0, react_jsx_runtime.jsx)("span", {
+										style: {
+											...S$1.gitGraphSubject,
+											paddingLeft: 12
+										},
+										children: item.subject || item.ref
+									}),
+									/* @__PURE__ */ (0, react_jsx_runtime.jsx)("span", {
+										style: S$1.gitGraphAgo,
+										children: item.ago
+									}),
+									/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("span", {
+										style: S$1.gitRowActions,
+										"data-dsh-git-actions": "",
+										children: [
+											/* @__PURE__ */ (0, react_jsx_runtime.jsx)("button", {
+												type: "button",
+												style: S$1.gitTiny,
+												title: "应用",
+												disabled: busy,
+												onClick: () => void onStash({
+													op: "apply",
+													ref: item.ref
+												}),
+												children: "应"
+											}),
+											/* @__PURE__ */ (0, react_jsx_runtime.jsx)("button", {
+												type: "button",
+												style: S$1.gitTiny,
+												title: "弹出",
+												disabled: busy,
+												onClick: () => void onStash({
+													op: "pop",
+													ref: item.ref
+												}),
+												children: "弹"
+											}),
+											/* @__PURE__ */ (0, react_jsx_runtime.jsx)("button", {
+												type: "button",
+												style: S$1.gitTiny,
+												title: "删除",
+												disabled: busy,
+												onClick: () => {
+													if (!window.confirm(`删除 ${item.ref}？`)) return;
+													onStash({
+														op: "drop",
+														ref: item.ref
+													});
+												},
+												children: "删"
+											})
+										]
+									})
+								]
+							}, item.ref))
+						}) : null] }) : null,
+						submodules.length > 0 ? /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("section", { children: [/* @__PURE__ */ (0, react_jsx_runtime.jsx)(SectionHead, {
+							title: "子模块",
+							count: submodules.length,
+							open: openMods,
+							onToggle: () => setOpenMods((value) => !value),
+							children: /* @__PURE__ */ (0, react_jsx_runtime.jsx)("button", {
+								type: "button",
+								style: S$1.gitTiny,
+								title: "更新子模块",
+								disabled: busy,
+								onClick: () => void onSubmodule(),
+								children: "更"
+							})
+						}), openMods ? /* @__PURE__ */ (0, react_jsx_runtime.jsx)("div", {
+							style: S$1.gitSectionTree,
+							children: submodules.map((item) => /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", {
+								style: S$1.gitGraphRow,
+								title: item.sha,
+								children: [/* @__PURE__ */ (0, react_jsx_runtime.jsx)("span", {
+									style: {
+										...S$1.gitGraphSubject,
+										paddingLeft: 12
+									},
+									children: item.path
+								}), /* @__PURE__ */ (0, react_jsx_runtime.jsx)("span", {
+									style: S$1.gitGraphAgo,
+									children: item.state === "ok" ? item.desc || "" : item.state
+								})]
+							}, item.path))
+						}) : null] }) : null,
+						/* @__PURE__ */ (0, react_jsx_runtime.jsx)(GitGraph, {
+							cwd,
+							repo: repo.rel,
+							dirty,
+							staged,
+							changes,
+							busy,
+							activeKey,
+							tick,
+							onOpen,
+							onOpenCommit,
+							onCompare,
+							stashes,
+							onDone,
+							onError
+						}),
+						more ? /* @__PURE__ */ (0, react_jsx_runtime.jsx)(MoreMenu$1, {
+							x: more.x,
+							y: more.y,
+							ignoreRef: moreBtnRef,
+							onClose: () => setMore(void 0),
+							onPick: (id) => {
+								if (id === "stash") onStash({ op: "push" });
+								else if (id === "stash-u") onStash({
+									op: "push",
+									includeUntracked: true
+								});
+								else if (id === "merge") onPick("merge");
+								else if (id === "rebase") onPick("rebase");
+								else if (id === "rename") onRename();
+								else if (id === "delete") onPick("delete");
+								else onRemote(id);
+							}
+						}) : null,
+						fileMenu ? /* @__PURE__ */ (0, react_jsx_runtime.jsx)(FileMenu, {
+							x: fileMenu.x,
+							y: fileMenu.y,
+							onClose: () => setFileMenu(void 0),
+							onPick: (id) => {
+								const item = fileMenu.item;
+								if (id === "ignore") onIgnore?.(item);
+								if (id === "history") onHistory?.(item);
+								if (id === "blame") onBlame?.(item);
+							}
+						}) : null
+					]
+				}) : null]
+			});
+		}
+		function GitView({ cwd, active, activeKey, reload, onTree, onFiles, onOpen, onBlame, onCompareDiff }) {
+			const [snap, setSnap] = (0, react.useState)();
+			const [error, setError] = (0, react.useState)();
+			const [busy, setBusy] = (0, react.useState)(false);
+			const [messages, setMessages] = (0, react.useState)({});
+			const [branchOpen, setBranchOpen] = (0, react.useState)();
+			const [pickIntent, setPickIntent] = (0, react.useState)("checkout");
+			const [tick, setTick] = (0, react.useState)(0);
+			const [cloneUrl, setCloneUrl] = (0, react.useState)("");
+			const [cloneName, setCloneName] = (0, react.useState)("");
+			const [history, setHistory] = (0, react.useState)();
+			const [comparePack, setComparePack] = (0, react.useState)();
+			const fpRef = (0, react.useRef)("");
+			const load = async (quiet = false) => {
+				if (!cwd) return;
+				const result = await gitApi.snapshot(cwd);
+				if (!result.ok) {
+					if (!quiet) {
+						setError(result.error?.message ?? "读不了 git 状态");
+						setSnap(void 0);
+					}
+					return;
+				}
+				setError(void 0);
+				const next = result.value;
+				const fp = JSON.stringify({
+					repo: next.repo,
+					repos: next.repos
+				});
+				if (quiet && fp === fpRef.current) return;
+				fpRef.current = fp;
+				setSnap(next);
+				setTick((value) => value + 1);
+				onTree?.();
+			};
+			(0, react.useEffect)(() => {
+				fpRef.current = "";
+				setMessages({});
+				setSnap(void 0);
+				setBranchOpen(void 0);
+				setPickIntent("checkout");
+				setHistory(void 0);
+				setComparePack(void 0);
+				if (!cwd) return void 0;
+				load();
+			}, [cwd]);
+			(0, react.useEffect)(() => {
+				if (active) load();
+			}, [active, cwd]);
+			(0, react.useEffect)(() => {
+				if (reload) load();
+			}, [reload]);
+			(0, react.useEffect)(() => {
+				if (!cwd || !active) return void 0;
+				const id = window.setInterval(() => {
+					load(true);
+				}, 5e3);
+				return () => window.clearInterval(id);
+			}, [cwd, active]);
+			const afterMutate = async (files) => {
+				await load();
+				if (files) onFiles?.();
+			};
+			const run = async (work, files) => {
+				if (busy) return;
+				setBusy(true);
+				try {
+					const result = await work();
+					if (!result.ok) {
+						setError(result.error?.message ?? "操作失败");
+						return;
+					}
+					setError(void 0);
+					await afterMutate(files);
+				} finally {
+					setBusy(false);
+				}
+			};
+			const stage = (paths, repo) => run(() => gitApi.stage(cwd, paths, repo), false);
+			const unstage = (paths, repo) => run(() => gitApi.unstage(cwd, paths, repo), false);
+			const discard = (paths, label, repo) => {
+				if (!window.confirm(label)) return;
+				run(() => gitApi.discard(cwd, paths, repo), true);
+			};
+			const commit = async (repo, extra = {}) => {
+				const key = repoKey(repo.rel);
+				const text = (messages[key] ?? "").trim();
+				const amend = extra.amend === true;
+				if (!text && !amend) {
+					setError("请填写提交说明");
+					return;
+				}
+				if (busy) return;
+				let all = false;
+				if (!amend && (repo.staged?.length ?? 0) === 0) {
+					if ((repo.changes?.length ?? 0) === 0) {
+						setError("没有可提交的更改");
+						return;
+					}
+					if (!window.confirm("没有暂存的更改。要把所有更改暂存并提交吗？")) return;
+					all = true;
+				}
+				setBusy(true);
+				try {
+					const result = await gitApi.commit(cwd, text, all, repo.rel, {
+						amend,
+						push: extra.push === true,
+						sync: extra.sync === true
+					});
+					if (!result.ok) {
+						setError(result.error?.message ?? "提交失败");
+						return;
+					}
+					setMessages((prev) => ({
+						...prev,
+						[key]: ""
+					}));
+					setError(void 0);
+					await load();
+					onFiles?.();
+				} finally {
+					setBusy(false);
+				}
+			};
+			const openHistory = async (repo, item) => {
+				const result = await gitApi.fileLog(cwd, repo.rel, item.path);
+				if (!result.ok) {
+					setError(result.error?.message ?? "读不了文件历史");
+					return;
+				}
+				setHistory({
+					repo: repo.rel,
+					path: item.path,
+					commits: result.value.commits ?? []
+				});
+			};
+			const openCompare = async (repoRel, from, to) => {
+				const result = await gitApi.compare(cwd, repoRel, from.hash, to.hash);
+				if (!result.ok) {
+					setError(result.error?.message ?? "两次提交对比失败");
+					return;
+				}
+				setComparePack({
+					repo: repoRel,
+					a: from.hash,
+					b: to.hash,
+					from,
+					to,
+					files: result.value.files ?? []
+				});
+			};
+			const head = () => /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", {
+				style: S$1.gitHead,
+				children: [/* @__PURE__ */ (0, react_jsx_runtime.jsx)("div", {
+					style: S$1.gitHeadTitle,
+					children: "源代码管理"
+				}), /* @__PURE__ */ (0, react_jsx_runtime.jsx)("button", {
+					type: "button",
+					style: S$1.iconBtn,
+					title: "刷新",
+					onClick: () => void load(),
+					disabled: busy,
+					children: /* @__PURE__ */ (0, react_jsx_runtime.jsx)(RefreshGlyph, {})
+				})]
+			});
+			const emptyActions = () => /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", {
+				style: S$1.gitForm,
+				children: [
+					error ? /* @__PURE__ */ (0, react_jsx_runtime.jsx)("div", {
+						style: S$1.gitError,
+						children: error
+					}) : null,
+					/* @__PURE__ */ (0, react_jsx_runtime.jsx)("div", {
+						style: S$1.gitDiffEmpty,
+						children: "工作目录里没有 git 仓库"
+					}),
+					/* @__PURE__ */ (0, react_jsx_runtime.jsx)("button", {
+						type: "button",
+						style: S$1.gitCommit,
+						disabled: busy,
+						onClick: () => void run(() => gitApi.init(cwd), true),
+						children: "在这里初始化"
+					}),
+					/* @__PURE__ */ (0, react_jsx_runtime.jsx)("input", {
+						style: S$1.gitMessage,
+						placeholder: "克隆地址（https / ssh）",
+						value: cloneUrl,
+						disabled: busy,
+						onChange: (event) => setCloneUrl(event.target.value)
+					}),
+					/* @__PURE__ */ (0, react_jsx_runtime.jsx)("input", {
+						style: S$1.gitMessage,
+						placeholder: "文件夹名",
+						value: cloneName,
+						disabled: busy,
+						onChange: (event) => setCloneName(event.target.value)
+					}),
+					/* @__PURE__ */ (0, react_jsx_runtime.jsx)("button", {
+						type: "button",
+						style: S$1.gitCommit,
+						disabled: busy || cloneUrl.trim() === "",
+						onClick: () => {
+							const name = cloneName.trim() || folderFromCloneUrl(cloneUrl);
+							if (!name) {
+								setError("请填写文件夹名");
+								return;
+							}
+							run(() => gitApi.clone(cwd, cloneUrl.trim(), name), true);
+						},
+						children: "克隆到工作目录"
+					})
+				]
+			});
+			if (!cwd) return /* @__PURE__ */ (0, react_jsx_runtime.jsx)("div", {
+				style: S$1.empty,
+				children: "这条对话还没有工作目录"
+			});
+			if (!snap) return /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", {
+				style: S$1.gitScm,
+				children: [head(), /* @__PURE__ */ (0, react_jsx_runtime.jsx)("div", {
+					style: S$1.empty,
+					children: error || "正在读取 git…"
+				})]
+			});
+			const repos = reposFromSnap(snap);
+			if (repos.length === 0) return /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", {
+				style: S$1.gitScm,
+				children: [head(), emptyActions()]
+			});
+			const many = repos.length > 1;
+			const branchRepo = repos.find((item) => repoKey(item.rel) === branchOpen);
+			return /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", {
+				style: S$1.gitScm,
+				children: [
+					head(),
+					error && many ? /* @__PURE__ */ (0, react_jsx_runtime.jsx)("div", {
+						style: S$1.gitError,
+						children: error
+					}) : null,
+					/* @__PURE__ */ (0, react_jsx_runtime.jsx)("div", {
+						style: S$1.gitLists,
+						children: repos.map((repo) => /* @__PURE__ */ (0, react_jsx_runtime.jsx)(RepoPanel, {
+							cwd,
+							repo,
+							message: messages[repoKey(repo.rel)] ?? "",
+							busy,
+							error: !many ? error : void 0,
+							activeKey,
+							many,
+							tick,
+							onMessage: (text) => setMessages((prev) => ({
+								...prev,
+								[repoKey(repo.rel)]: text
+							})),
+							onOpen: (item, side) => onOpen({
+								...item,
+								repo: repo.rel
+							}, side),
+							onOpenCommit: (item, hash) => onOpen({
+								...item,
+								repo: repo.rel,
+								commit: hash
+							}, "commit"),
+							onStage: (paths) => void stage(paths, repo.rel),
+							onUnstage: (paths) => void unstage(paths, repo.rel),
+							onDiscard: (paths, label) => discard(paths, label, repo.rel),
+							onCommit: (extra) => void commit(repo, extra),
+							onBranch: () => {
+								setPickIntent("checkout");
+								setBranchOpen(repoKey(repo.rel));
+							},
+							onRemote: (kind) => void run(() => gitApi.remote(cwd, repo.rel, kind), true),
+							onStash: (options) => void run(() => gitApi.stash(cwd, repo.rel, options), true),
+							onPick: (intent) => {
+								setPickIntent(intent);
+								setBranchOpen(repoKey(repo.rel));
+							},
+							onBlame: (item) => onBlame?.({
+								...item,
+								repo: repo.rel
+							}),
+							onHistory: (item) => void openHistory(repo, item),
+							onIgnore: (item) => {
+								if (!window.confirm(`把 ${fileBase$1(item.path)} 加入忽略列表？`)) return;
+								run(() => gitApi.ignore(cwd, repo.rel, item.path), true);
+							},
+							onContinue: () => void run(() => gitApi.continueOp(cwd, repo.rel), true),
+							onAbort: () => {
+								if (!window.confirm("放弃这次未完成的合并或变基？")) return;
+								run(() => gitApi.abortOp(cwd, repo.rel), true);
+							},
+							onSubmodule: () => void run(() => gitApi.submoduleUpdate(cwd, repo.rel), true),
+							onCompare: (from, to) => void openCompare(repo.rel, from, to),
+							onRename: () => {
+								const next = window.prompt("新分支名", repo.branch || "");
+								if (!next || next.trim() === "") return;
+								run(() => gitApi.branchOp(cwd, repo.rel, {
+									op: "rename",
+									newName: next.trim()
+								}), true);
+							},
+							onDone: (files) => {
+								load();
+								if (files) onFiles?.();
+							},
+							onError: (message) => setError(message)
+						}, repoKey(repo.rel)))
+					}),
+					branchRepo ? /* @__PURE__ */ (0, react_jsx_runtime.jsx)(GitBranchPicker, {
+						cwd,
+						repo: branchRepo.rel,
+						intent: pickIntent,
+						onClose: () => {
+							setBranchOpen(void 0);
+							setPickIntent("checkout");
+						},
+						onPick: (item) => {
+							if (pickIntent === "merge") run(() => gitApi.merge(cwd, branchRepo.rel, { ref: item.name }), true);
+							else if (pickIntent === "rebase") run(() => gitApi.rebase(cwd, branchRepo.rel, { ref: item.name }), true);
+							else if (pickIntent === "delete") {
+								if (!window.confirm(`删除分支 ${item.name}？`)) return;
+								run(() => gitApi.branchOp(cwd, branchRepo.rel, {
+									op: "delete",
+									name: item.name
+								}), true);
+							}
+						},
+						onDone: () => {
+							setBranchOpen(void 0);
+							setPickIntent("checkout");
+							load();
+							onFiles?.();
+						}
+					}) : null,
+					history ? /* @__PURE__ */ (0, react_jsx_runtime.jsx)(OverlayList, {
+						title: `${fileBase$1(history.path)} 的历史`,
+						hint: history.path,
+						items: (history.commits ?? []).map((item) => ({
+							id: item.hash,
+							title: item.subject || item.short,
+							ago: item.ago,
+							meta: `${item.author || ""} · ${item.short}`,
+							hash: item.hash
+						})),
+						onClose: () => setHistory(void 0),
+						onPick: (item) => {
+							setHistory(void 0);
+							onOpen?.({
+								path: history.path,
+								repo: history.repo,
+								commit: item.hash
+							}, "commit");
+						}
+					}) : null,
+					comparePack ? /* @__PURE__ */ (0, react_jsx_runtime.jsx)(OverlayList, {
+						title: `对比 ${comparePack.from?.short || comparePack.a.slice(0, 7)} → ${comparePack.to?.short || comparePack.b.slice(0, 7)}`,
+						items: (comparePack.files ?? []).map((item) => ({
+							id: item.path,
+							title: fileBase$1(item.path),
+							meta: `${item.letter || ""} ${fileDir(item.path)}`.trim(),
+							path: item.path,
+							letter: item.letter
+						})),
+						onClose: () => setComparePack(void 0),
+						onPick: (item) => {
+							setComparePack(void 0);
+							onCompareDiff?.({
+								path: item.path,
+								repo: comparePack.repo,
+								a: comparePack.a,
+								b: comparePack.b
+							});
+						}
+					}) : null
+				]
 			});
 		}
 		//#endregion
@@ -46175,7 +49712,7 @@ html[data-dsh-side-panels-dragging] [data-dsh-grip] {
 				Icon: PaneBrowserIcon
 			},
 			changes: {
-				label: "改动",
+				label: "git",
 				Icon: PaneChangesIcon
 			},
 			canvas: {
@@ -46515,20 +50052,29 @@ html[data-dsh-side-panels-dragging] [data-dsh-grip] {
 		}
 		function remapPane(pane, fix) {
 			if (pane.kind !== "file") return pane;
+			const remapKey = (key) => {
+				if (isGitBlameKey(key)) return gitBlameKey(fix(parseGitBlameKey(key)));
+				if (isGitDiffKey(key)) {
+					const parsed = parseGitDiffKey(key);
+					return gitDiffKey(parsed.side, fix(parsed.path));
+				}
+				return fix(key);
+			};
 			const contents = /* @__PURE__ */ new Map();
 			for (const [key, value] of pane.contents) {
-				const nextKey = fix(key);
+				const nextKey = remapKey(key);
+				const nextPath = filePathOf(nextKey);
 				contents.set(nextKey, value && typeof value === "object" ? {
 					...value,
-					path: nextKey
+					path: nextPath
 				} : value);
 			}
 			return {
 				...pane,
-				tabs: pane.tabs.map(fix),
-				active: pane.active ? fix(pane.active) : pane.active,
+				tabs: pane.tabs.map(remapKey),
+				active: pane.active ? remapKey(pane.active) : pane.active,
 				contents,
-				histStack: pane.histStack.map(fix)
+				histStack: pane.histStack.map(remapKey)
 			};
 		}
 		function joinFullPath(root, rel) {
@@ -46687,6 +50233,72 @@ html[data-dsh-side-panels-dragging] [data-dsh-grip] {
 			if (!git) return "";
 			return git[path] || git[`${path}/`] || "";
 		}
+		const GITDIFF = "gitdiff:";
+		const GITBLAME = "gitblame:";
+		function isGitDiffKey(key) {
+			return String(key ?? "").startsWith(GITDIFF);
+		}
+		function isGitBlameKey(key) {
+			return String(key ?? "").startsWith(GITBLAME);
+		}
+		function gitDiffKey(side, path) {
+			return `${GITDIFF}${side}:${path}`;
+		}
+		function gitBlameKey(path) {
+			return `${GITBLAME}${path}`;
+		}
+		function parseGitDiffKey(key) {
+			const rest = String(key ?? "").slice(8);
+			const cut = rest.indexOf(":");
+			if (cut <= 0) return {
+				side: "worktree",
+				path: rest
+			};
+			return {
+				side: rest.slice(0, cut),
+				path: rest.slice(cut + 1)
+			};
+		}
+		function parseGitBlameKey(key) {
+			return String(key ?? "").slice(9);
+		}
+		function parseCompareSide(side) {
+			const text = String(side ?? "");
+			if (!text.startsWith("k.")) return {};
+			const rest = text.slice(2);
+			const cut = rest.indexOf(".");
+			if (cut <= 0) return {};
+			return {
+				a: rest.slice(0, cut),
+				b: rest.slice(cut + 1)
+			};
+		}
+		function filePathOf(key) {
+			if (isGitDiffKey(key)) return parseGitDiffKey(key).path;
+			if (isGitBlameKey(key)) return parseGitBlameKey(key);
+			return key;
+		}
+		function gitDiffTabLabel(key) {
+			const { side, path } = parseGitDiffKey(key);
+			const name = basename(path);
+			if (side.startsWith("c.")) return `${name} (${side.slice(2, 9)})`;
+			if (side.startsWith("k.")) return `${name} (对比)`;
+			return side === "index" ? `${name} (暂存)` : `${name} (工作区)`;
+		}
+		function tabLabelOf(key) {
+			if (isGitBlameKey(key)) return `${basename(parseGitBlameKey(key))} (归咎)`;
+			if (isGitDiffKey(key)) return gitDiffTabLabel(key);
+			return basename(key);
+		}
+		function patchFromHunk(hunk) {
+			let out = [
+				...hunk?.fileHeader ?? [],
+				hunk?.hunkHeader,
+				...hunk?.lines ?? []
+			].filter((item) => item != null).join("\n");
+			if (!out.endsWith("\n")) out += "\n";
+			return out;
+		}
 		function revokePreview(file) {
 			if (file?.objectUrl) URL.revokeObjectURL(file.objectUrl);
 		}
@@ -46703,7 +50315,7 @@ html[data-dsh-side-panels-dragging] [data-dsh-grip] {
 			});
 		}
 		function isDirty(file) {
-			if (!file || file.binary || file.image || file.truncated || file.tooLarge || file.text === void 0) return false;
+			if (!file || file.diff || file.blame || file.binary || file.image || file.truncated || file.tooLarge || file.text === void 0) return false;
 			return file.text !== file.savedText;
 		}
 		function matchesFilter(name, filter) {
@@ -46863,6 +50475,8 @@ html[data-dsh-side-panels-dragging] [data-dsh-grip] {
 			const [filter, setFilter] = (0, react.useState)("");
 			const [searchOpen, setSearchOpen] = (0, react.useState)(false);
 			const [treeHidden, setTreeHidden] = (0, react.useState)(false);
+			const [sidebar, setSidebar] = (0, react.useState)("files");
+			const [gitReload, setGitReload] = (0, react.useState)(0);
 			const [panelWidth, setPanelWidth] = (0, react.useState)(() => readPanelWidth(session.id));
 			const [treeWidth, setTreeWidth] = (0, react.useState)(() => readTreeWidth(session.id, readPanelWidth(session.id)));
 			const panelRef = (0, react.useRef)(null);
@@ -46919,6 +50533,7 @@ html[data-dsh-side-panels-dragging] [data-dsh-grip] {
 				setError(void 0);
 				setGit({});
 				setFilter("");
+				setSidebar("files");
 				if (!root) return;
 				loadDir("");
 				loadGit();
@@ -46976,6 +50591,10 @@ html[data-dsh-side-panels-dragging] [data-dsh-grip] {
 				});
 			};
 			const addPane = (kind) => {
+				if (kind === "changes") {
+					openGitSidebar();
+					return;
+				}
 				const pane = makePane(kind);
 				setPanes((prev) => {
 					const next = [...prev, pane];
@@ -47004,6 +50623,11 @@ html[data-dsh-side-panels-dragging] [data-dsh-grip] {
 				return activePaneIdRef.current;
 			};
 			const ensureFilesPane = () => focusOrAddPane("file");
+			const openGitSidebar = () => {
+				ensureFilesPane();
+				setTreeHidden(false);
+				setSidebar("git");
+			};
 			const closePane = (id) => {
 				const prev = panesRef.current;
 				const doomed = prev.find((pane) => pane.id === id);
@@ -47028,6 +50652,53 @@ html[data-dsh-side-panels-dragging] [data-dsh-grip] {
 			};
 			const openPath = async (path, recordHistory = true) => {
 				if (!root) return;
+				if (isGitBlameKey(path)) {
+					const paneId = resolveFilesPaneId();
+					const pane = panesRef.current.find((item) => item.id === paneId);
+					if (pane?.contents.has(path)) {
+						patchPane(paneId, (current) => ({
+							...current,
+							active: path,
+							hexMode: false
+						}));
+						return;
+					}
+					await openGitBlame({
+						path: parseGitBlameKey(path),
+						repo: pane?.contents.get(path)?.repo
+					});
+					return;
+				}
+				if (isGitDiffKey(path)) {
+					const parsed = parseGitDiffKey(path);
+					const paneId = resolveFilesPaneId();
+					if (panesRef.current.find((item) => item.id === paneId)?.contents.has(path)) {
+						patchPane(paneId, (current) => ({
+							...current,
+							active: path,
+							hexMode: false
+						}));
+						return;
+					}
+					if (parsed.side.startsWith("c.")) {
+						await openGitDiff({
+							path: parsed.path,
+							commit: parsed.side.slice(2)
+						}, "commit");
+						return;
+					}
+					if (parsed.side.startsWith("k.")) {
+						const { a, b } = parseCompareSide(parsed.side);
+						await openGitDiff({
+							path: parsed.path,
+							a,
+							b
+						}, "compare");
+						return;
+					}
+					await openGitDiff({ path: parsed.path }, parsed.side);
+					return;
+				}
 				setSelected(path);
 				const paneId = resolveFilesPaneId();
 				const already = panesRef.current.find((item) => item.id === paneId)?.contents.has(path);
@@ -47072,6 +50743,130 @@ html[data-dsh-side-panels-dragging] [data-dsh-grip] {
 						contents
 					};
 				});
+			};
+			const openGitDiff = async (item, side, options = {}) => {
+				if (!root || !item?.path || item.directory) return;
+				const commit = item.commit || (typeof side === "string" && side.startsWith("c.") ? side.slice(2) : "");
+				const compare = side === "compare" || typeof side === "string" && side.startsWith("k.") ? {
+					a: item.a || parseCompareSide(side).a,
+					b: item.b || parseCompareSide(side).b
+				} : null;
+				const key = gitDiffKey(commit ? `c.${commit}` : compare ? `k.${compare.a}.${compare.b}` : side, item.path);
+				setSelected(item.path);
+				openGitSidebar();
+				const paneId = resolveFilesPaneId();
+				const existing = panesRef.current.find((entry) => entry.id === paneId)?.contents.get(key);
+				const already = options.force !== true && Boolean(existing?.diff) && (existing.binary === true || existing.lfs === true || typeof existing.before === "string" && existing.before !== "" || typeof existing.after === "string" && existing.after !== "" || typeof existing.text === "string" && existing.text !== "" || Array.isArray(existing.hunks) && existing.hunks.length > 0);
+				patchPane(paneId, (current) => {
+					const tabs = current.tabs.includes(key) ? current.tabs : [...current.tabs, key];
+					let histStack = current.histStack;
+					let histIndex = current.histIndex;
+					histStack = histStack.slice(0, histIndex + 1);
+					if (histStack[histStack.length - 1] !== key) histStack = [...histStack, key];
+					histIndex = histStack.length - 1;
+					return {
+						...current,
+						tabs,
+						active: key,
+						histStack,
+						histIndex,
+						hexMode: false
+					};
+				});
+				if (already) return;
+				const result = commit ? await gitApi.commitDiff(root, item.repo, commit, item.path) : compare ? await gitApi.compareDiff(root, item.repo, compare.a, compare.b, item.path) : await gitApi.diff(root, item.path, side, item.untracked === true, item.repo);
+				if (!result.ok) {
+					setError(result.error?.message ?? "打开差异失败");
+					return;
+				}
+				if (result.value.directory) {
+					setError("这是未跟踪的文件夹");
+					return;
+				}
+				patchPane(paneId, (current) => {
+					const contents = new Map(current.contents);
+					contents.set(key, {
+						diff: true,
+						...result.value
+					});
+					return {
+						...current,
+						contents
+					};
+				});
+			};
+			const openGitBlame = async (item) => {
+				if (!root || !item?.path) return;
+				const key = gitBlameKey(item.path);
+				setSelected(item.path);
+				openGitSidebar();
+				const paneId = resolveFilesPaneId();
+				patchPane(paneId, (current) => {
+					const tabs = current.tabs.includes(key) ? current.tabs : [...current.tabs, key];
+					let histStack = current.histStack;
+					let histIndex = current.histIndex;
+					histStack = histStack.slice(0, histIndex + 1);
+					if (histStack[histStack.length - 1] !== key) histStack = [...histStack, key];
+					histIndex = histStack.length - 1;
+					return {
+						...current,
+						tabs,
+						active: key,
+						histStack,
+						histIndex,
+						hexMode: false
+					};
+				});
+				const result = await gitApi.blame(root, item.repo, item.path);
+				if (!result.ok) {
+					setError(result.error?.message ?? "读不了归咎");
+					return;
+				}
+				patchPane(paneId, (current) => {
+					const contents = new Map(current.contents);
+					contents.set(key, {
+						blame: true,
+						path: item.path,
+						repo: item.repo,
+						lines: result.value.lines ?? []
+					});
+					return {
+						...current,
+						contents
+					};
+				});
+			};
+			const bumpGit = () => setGitReload((value) => value + 1);
+			const refreshGitDiff = async (viewing, key) => {
+				const parsed = parseGitDiffKey(key);
+				await openGitDiff({
+					path: viewing?.path || parsed.path,
+					repo: viewing?.repo,
+					untracked: viewing?.untracked,
+					commit: viewing?.commit,
+					a: viewing?.a,
+					b: viewing?.b
+				}, viewing?.side || parsed.side, { force: true });
+			};
+			const applyGitHunk = async (viewing, key, op, hunk) => {
+				if (!root || !viewing?.path) return;
+				const result = await gitApi.hunk(root, viewing.repo, viewing.path, op, patchFromHunk(hunk));
+				if (!result.ok) {
+					setError(result.error?.message ?? "这块操作失败");
+					return;
+				}
+				bumpGit();
+				await refreshGitDiff(viewing, key);
+			};
+			const takeGitSide = async (viewing, key, which) => {
+				if (!root || !viewing?.path) return;
+				const result = await gitApi.take(root, viewing.repo, viewing.path, which);
+				if (!result.ok) {
+					setError(result.error?.message ?? "采用失败");
+					return;
+				}
+				bumpGit();
+				await refreshGitDiff(viewing, key);
 			};
 			const goHistory = (delta) => {
 				const pane = panesRef.current.find((item) => item.id === activePaneIdRef.current);
@@ -47139,7 +50934,7 @@ html[data-dsh-side-panels-dragging] [data-dsh-grip] {
 			const updateDraft = (path, text) => {
 				patchPane(activePaneIdRef.current, (current) => {
 					const file = current.contents.get(path);
-					if (!file) return current;
+					if (!file || file.diff) return current;
 					const contents = new Map(current.contents);
 					contents.set(path, {
 						...file,
@@ -47155,7 +50950,7 @@ html[data-dsh-side-panels-dragging] [data-dsh-grip] {
 				if (!root) return;
 				const pane = panesRef.current.find((item) => item.id === activePaneIdRef.current);
 				const file = pane?.contents.get(path);
-				if (!file || file.binary || file.image || file.truncated || typeof file.text !== "string") return;
+				if (!file || file.diff || file.binary || file.image || file.truncated || typeof file.text !== "string") return;
 				if (file.text === file.savedText) return;
 				const result = await fileApi.write(root, path, file.text);
 				if (!result.ok) {
@@ -47235,7 +51030,7 @@ html[data-dsh-side-panels-dragging] [data-dsh-grip] {
 				for (const pane of panesRef.current) if (pane.kind === "file" && pane.contents.has(path)) return pane.contents.get(path);
 			};
 			const startRename = (path) => {
-				const target = path || selected || currentFileActive();
+				const target = filePathOf(path || selected || currentFileActive());
 				if (!target) return;
 				setCreating(void 0);
 				setCtxMenu(void 0);
@@ -47264,17 +51059,17 @@ html[data-dsh-side-panels-dragging] [data-dsh-grip] {
 			};
 			const failCopy = () => setError("复制失败，浏览器没允许写入剪贴板");
 			const copyRelative = async (path) => {
-				const target = path || selected || currentFileActive();
+				const target = filePathOf(path || selected || currentFileActive());
 				if (!target) return;
 				if (!await copyToClipboard(target)) failCopy();
 			};
 			const copyFull = async (path) => {
-				const target = path || selected || currentFileActive();
+				const target = filePathOf(path || selected || currentFileActive());
 				if (!root || !target) return;
 				if (!await copyToClipboard(joinFullPath(root, target))) failCopy();
 			};
 			const copyName = async (path) => {
-				const target = path || selected || currentFileActive();
+				const target = filePathOf(path || selected || currentFileActive());
 				if (!target) return;
 				if (!await copyToClipboard(basename(target))) failCopy();
 			};
@@ -47282,6 +51077,10 @@ html[data-dsh-side-panels-dragging] [data-dsh-grip] {
 				const target = path || selected || currentFileActive();
 				if (!root || !target) return;
 				let file = fileFromPanes(target);
+				if (file?.diff) {
+					if (!await copyToClipboard(file.after || file.text || "")) failCopy();
+					return;
+				}
 				if (!file || file.image && !file.bytes && !file.data) {
 					const result = await fileApi.read(root, target);
 					if (!result.ok) {
@@ -47332,10 +51131,17 @@ html[data-dsh-side-panels-dragging] [data-dsh-grip] {
 			const toggleTree = () => {
 				if (panesRef.current.find((pane) => pane.id === activePaneIdRef.current)?.kind !== "file") {
 					ensureFilesPane();
+					setSidebar("files");
+					setTreeHidden(false);
 					return;
 				}
-				if (!panesRef.current.some((pane) => pane.kind === "file") || treeHidden) {
-					ensureFilesPane();
+				if (sidebar === "git") {
+					setSidebar("files");
+					setTreeHidden(false);
+					return;
+				}
+				if (treeHidden) {
+					setTreeHidden(false);
 					return;
 				}
 				setTreeHidden(true);
@@ -47493,25 +51299,25 @@ html[data-dsh-side-panels-dragging] [data-dsh-grip] {
 												...S$1.tab,
 												...active === path ? S$1.tabActive : {}
 											},
-											title: path,
+											title: filePathOf(path),
 											onContextMenu: (event) => openTabMenu(event, path),
 											children: [
 												isDirty(contents.get(path)) ? /* @__PURE__ */ (0, react_jsx_runtime.jsx)("span", {
 													style: S$1.dirtyDot,
 													title: "未保存"
 												}) : null,
-												/* @__PURE__ */ (0, react_jsx_runtime.jsx)(FileKindIcon, { name: basename(path) }),
+												/* @__PURE__ */ (0, react_jsx_runtime.jsx)(FileKindIcon, { name: basename(filePathOf(path)) }),
 												/* @__PURE__ */ (0, react_jsx_runtime.jsx)("button", {
 													type: "button",
 													style: S$1.tabName,
 													onClick: () => void openPath(path),
-													children: basename(path)
+													children: tabLabelOf(path)
 												}),
 												/* @__PURE__ */ (0, react_jsx_runtime.jsx)("button", {
 													type: "button",
 													style: S$1.tabClose,
 													title: "关闭",
-													"aria-label": `关闭 ${basename(path)}`,
+													"aria-label": `关闭 ${tabLabelOf(path)}`,
 													onClick: (event) => {
 														event.stopPropagation();
 														closeTab(path);
@@ -47524,22 +51330,23 @@ html[data-dsh-side-panels-dragging] [data-dsh-grip] {
 									/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", {
 										style: S$1.chromeGroup,
 										children: [/* @__PURE__ */ (0, react_jsx_runtime.jsx)(MoreMenu, {
-											canRename: Boolean(selected || active),
-											canCopy: Boolean(selected || active),
-											canCopyContent: Boolean(selected || active) && !isDirectoryPath(selected || active, childrenMap),
+											canRename: Boolean(filePathOf(selected || active)),
+											canCopy: Boolean(filePathOf(selected || active)),
+											canCopyContent: Boolean(filePathOf(selected || active)) && !isDirectoryPath(filePathOf(selected || active), childrenMap),
 											busy,
 											onRename: startRename,
 											onCopyRelative: () => void copyRelative(),
 											onCopyFull: () => void copyFull(),
 											onCopyName: () => void copyName(),
 											onCopyContent: () => void copyContent(),
-											copyContentLabel: isImagePath(selected || active) ? "复制图片" : "复制内容",
+											copyContentLabel: isImagePath(filePathOf(selected || active)) ? "复制图片" : "复制内容",
 											onRefresh: () => void refreshAll()
 										}), /* @__PURE__ */ (0, react_jsx_runtime.jsx)("button", {
 											type: "button",
 											style: S$1.iconBtn,
 											title: "搜索文件",
 											onClick: () => {
+												setSidebar("files");
 												setTreeHidden(false);
 												setSearchOpen((open) => !open);
 											},
@@ -47557,7 +51364,36 @@ html[data-dsh-side-panels-dragging] [data-dsh-grip] {
 							}) : isFiles && !active ? /* @__PURE__ */ (0, react_jsx_runtime.jsx)("div", { style: {
 								flex: 1,
 								minHeight: 0
-							} }) : isFiles && viewing?.image ? /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", {
+							} }) : isFiles && viewing?.diff && viewing.directory ? /* @__PURE__ */ (0, react_jsx_runtime.jsx)("div", {
+								style: S$1.empty,
+								children: "这是未跟踪的文件夹"
+							}) : isFiles && viewing?.blame ? /* @__PURE__ */ (0, react_jsx_runtime.jsx)(GitBlameView, {
+								path: viewing.path || filePathOf(active),
+								lines: viewing.lines
+							}, active) : isFiles && viewing?.diff && (viewing.binary || viewing.lfs || typeof viewing.before === "string" || typeof viewing.after === "string" || typeof viewing.text === "string") ? /* @__PURE__ */ (0, react_jsx_runtime.jsx)(GitCompare, {
+								path: viewing.path || filePathOf(active),
+								before: viewing.before,
+								after: viewing.after,
+								leftTitle: viewing.leftTitle,
+								rightTitle: viewing.rightTitle,
+								binary: viewing.binary,
+								text: viewing.text,
+								lfs: viewing.lfs,
+								hunks: viewing.hunks,
+								side: viewing.side || parseGitDiffKey(active).side,
+								conflict: viewing.conflict === true,
+								onStageHunk: (hunk) => void applyGitHunk(viewing, active, "stage", hunk),
+								onUnstageHunk: (hunk) => void applyGitHunk(viewing, active, "unstage", hunk),
+								onDiscardHunk: (hunk) => {
+									if (!window.confirm("确定丢弃这块改动？丢掉的内容找不回来。")) return;
+									applyGitHunk(viewing, active, "discard", hunk);
+								},
+								onTakeOurs: () => void takeGitSide(viewing, active, "ours"),
+								onTakeTheirs: () => void takeGitSide(viewing, active, "theirs")
+							}, active) : isFiles && viewing?.diff ? /* @__PURE__ */ (0, react_jsx_runtime.jsx)("div", {
+								style: S$1.empty,
+								children: "正在打开…"
+							}) : isFiles && viewing?.image ? /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", {
 								style: S$1.mediaPane,
 								children: [
 									/* @__PURE__ */ (0, react_jsx_runtime.jsx)("div", {
@@ -47666,7 +51502,7 @@ html[data-dsh-side-panels-dragging] [data-dsh-grip] {
 							alignSelf: "stretch"
 						},
 						onPointerDown: onResizeTree
-					}), /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("aside", {
+					}), /* @__PURE__ */ (0, react_jsx_runtime.jsx)("aside", {
 						style: {
 							...S$1.tree,
 							gridColumn: 3,
@@ -47675,7 +51511,17 @@ html[data-dsh-side-panels-dragging] [data-dsh-grip] {
 							width: "auto"
 						},
 						onContextMenu: (event) => event.preventDefault(),
-						children: [
+						children: sidebar === "git" ? /* @__PURE__ */ (0, react_jsx_runtime.jsx)(GitView, {
+							cwd: root,
+							active: showTree && sidebar === "git",
+							activeKey: isFiles ? active : void 0,
+							reload: gitReload,
+							onTree: () => void loadGit(),
+							onFiles: () => void refreshAll(),
+							onOpen: (item, side) => void openGitDiff(item, side),
+							onBlame: (item) => void openGitBlame(item),
+							onCompareDiff: (item) => void openGitDiff(item, "compare")
+						}) : /* @__PURE__ */ (0, react_jsx_runtime.jsxs)(react_jsx_runtime.Fragment, { children: [
 							/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", {
 								style: S$1.header,
 								children: [/* @__PURE__ */ (0, react_jsx_runtime.jsx)("span", { children: rootName }), /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("span", {
@@ -47773,7 +51619,7 @@ html[data-dsh-side-panels-dragging] [data-dsh-grip] {
 									}
 								})
 							})
-						]
+						] })
 					})] }) : null,
 					ctxMenu ? /* @__PURE__ */ (0, react_jsx_runtime.jsx)("div", {
 						style: {
@@ -47835,13 +51681,25 @@ html[data-dsh-side-panels-dragging] [data-dsh-grip] {
 								type: "button",
 								title: "文件树",
 								"aria-label": "文件树",
-								"aria-pressed": showTree,
+								"aria-pressed": showTree && sidebar === "files",
 								style: {
 									...S$1.railBtn,
-									...showTree ? S$1.railBtnActive : {}
+									...showTree && sidebar === "files" ? S$1.railBtnActive : {}
 								},
 								onClick: toggleTree,
 								children: /* @__PURE__ */ (0, react_jsx_runtime.jsx)(FilesActivityIcon, {})
+							}),
+							/* @__PURE__ */ (0, react_jsx_runtime.jsx)("button", {
+								type: "button",
+								title: "git",
+								"aria-label": "git",
+								"aria-pressed": showTree && sidebar === "git",
+								style: {
+									...S$1.railBtn,
+									...showTree && sidebar === "git" ? S$1.railBtnActive : {}
+								},
+								onClick: openGitSidebar,
+								children: /* @__PURE__ */ (0, react_jsx_runtime.jsx)(GitActivityIcon, {})
 							}),
 							/* @__PURE__ */ (0, react_jsx_runtime.jsx)("button", {
 								type: "button",

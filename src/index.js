@@ -3,6 +3,7 @@
  */
 import { registerBrowser } from './host/browser-routes.js'
 import { createFsService } from './host/fs-service.js'
+import { createGitService } from './host/git-service.js'
 import { registerRoutes, workspacePaths } from './host/routes.js'
 import { readShellChoice, registerSettings } from './host/settings.js'
 import { registerTerminal } from './host/terminal-routes.js'
@@ -18,7 +19,8 @@ export function apply(ctx) {
   }
   ctx.inject(['webServer', 'workspaceRegistry'], (hostCtx) => {
     const fs = createFsService(() => workspacePaths(hostCtx))
-    hostCtx.effect(() => registerRoutes(hostCtx, fs), 'dsh-side-panels: file routes')
+    const git = createGitService((root) => fs.gateRoot(root))
+    hostCtx.effect(() => registerRoutes(hostCtx, fs, git), 'dsh-side-panels: file routes')
     hostCtx.effect(() => registerTerminal(hostCtx, fs, () => readShellChoice(ctx)), 'dsh-side-panels: terminal')
     hostCtx.effect(() => registerBrowser(hostCtx), 'dsh-side-panels: browser')
   })

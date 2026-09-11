@@ -316,7 +316,7 @@ export const PANE_META = {
   file: { label: 'Files', Icon: PaneFileIcon },
   terminal: { label: '终端', Icon: PaneTerminalIcon },
   browser: { label: '浏览器', Icon: PaneBrowserIcon },
-  changes: { label: '改动', Icon: PaneChangesIcon },
+  changes: { label: 'git', Icon: PaneChangesIcon },
   canvas: { label: '画布', Icon: PaneCanvasIcon },
   sidechat: { label: '侧边对话', Icon: PaneChatIcon },
 }

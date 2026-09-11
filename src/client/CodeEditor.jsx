@@ -61,8 +61,9 @@ const theme = EditorView.theme({
   },
 })
 
-export function CodeEditor({ path, text, onChange, onSave }) {
+export function CodeEditor({ path, text, onChange, onSave, readOnly }) {
   const parentRef = useRef(null)
+  const viewRef = useRef(null)
   const onChangeRef = useRef(onChange)
   const onSaveRef = useRef(onSave)
   onChangeRef.current = onChange
@@ -80,7 +81,7 @@ export function CodeEditor({ path, text, onChange, onSave }) {
           highlightActiveLine(),
           highlightActiveLineGutter(),
           foldGutter(),
-          history(),
+          ...(readOnly ? [EditorState.readOnly.of(true), EditorView.editable.of(false)] : [history()]),
           indentOnInput(),
           bracketMatching(),
           highlightSelectionMatches(),
@@ -88,23 +89,39 @@ export function CodeEditor({ path, text, onChange, onSave }) {
           syntaxHighlighting(defaultHighlightStyle, { fallback: true }),
           languageFor(path),
           keymap.of([
-            { key: 'Mod-s', preventDefault: true, run: () => { void onSaveRef.current?.(); return true } },
+            ...(readOnly ? [] : [{ key: 'Mod-s', preventDefault: true, run: () => { void onSaveRef.current?.(); return true } }]),
             ...searchKeymap,
-            ...historyKeymap,
+            ...(readOnly ? [] : historyKeymap),
             ...foldKeymap,
             indentWithTab,
             ...defaultKeymap,
           ]),
           theme,
           EditorView.updateListener.of((update) => {
-            if (update.docChanged) onChangeRef.current?.(update.state.doc.toString())
+            if (!readOnly && update.docChanged) onChangeRef.current?.(update.state.doc.toString())
           }),
         ],
       }),
     })
-    queueMicrotask(() => view.focus())
-    return () => view.destroy()
-  }, [path])
+    viewRef.current = view
+    if (!readOnly) queueMicrotask(() => view.focus())
+    return () => {
+      viewRef.current = null
+      view.destroy()
+    }
+  }, [path, readOnly, readOnly ? text : null])
+
+  useEffect(() => {
+    if (readOnly) return
+    const view = viewRef.current
+    if (!view) return
+    const next = text ?? ''
+    if (view.state.doc.toString() === next) return
+    view.dispatch({
+      changes: { from: 0, to: view.state.doc.length, insert: next },
+      filter: false,
+    })
+  }, [text, readOnly])
 
   return <div ref={parentRef} data-dsh-cm="" style={{ flex: 1, minHeight: 0, overflow: 'hidden' }} />
 }

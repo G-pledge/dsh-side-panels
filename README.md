@@ -1,6 +1,6 @@
 # dsh-side-panels
 
-DSH 会话工作台：每条对话旁边一套文件树和终端。
+DSH 会话工作台：每条对话旁边一套文件树、Git 源代码管理和终端。
 
 这是社区插件，不是 DeepSeek 官方项目。
 
@@ -12,7 +12,14 @@ DSH 会话工作台：每条对话旁边一套文件树和终端。
 dsh plugin --profile web add github:G-pledge/dsh-side-panels
 ```
 
-装完后完全退出桌面端再打开。设置左边会出现「工作台」。
+装完后完全退出桌面端再打开。设置左边会出现「工作台」。工作台最右侧一列有文件、Git、终端、浏览器。
+
+已经装过旧版的，先卸再装一次才能拿到 Git 按钮：
+
+```text
+dsh plugin --profile web remove dsh-side-panels
+dsh plugin --profile web add github:G-pledge/dsh-side-panels
+```
 
 卸载：
 

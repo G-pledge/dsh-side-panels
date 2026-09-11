@@ -11,7 +11,7 @@ export function extOf(name) {
 export function gitColor(letter) {
   if (letter === 'U' || letter === 'A') return '#3ba55d'
   if (letter === 'M') return '#e2b53e'
-  if (letter === 'D') return '#e05252'
+  if (letter === 'D' || letter === 'C') return '#e05252'
   return '#6a9a73'
 }
 
@@ -151,6 +151,18 @@ export function BrowserActivityIcon() {
     <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" strokeWidth="1.6" aria-hidden="true">
       <circle cx="12" cy="12" r="8.2" />
       <path d="M3.8 12h16.4 M12 3.8c2.2 2.4 3.4 4.9 3.4 8.2S14.2 17.8 12 20.2C9.8 17.8 8.6 15.3 8.6 12S9.8 6.2 12 3.8z" />
+    </svg>
+  )
+}
+
+/** 右侧活动栏：git 源代码管理。 */
+export function GitActivityIcon() {
+  return (
+    <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" strokeWidth="1.6" aria-hidden="true">
+      <circle cx="6.5" cy="6.5" r="2.1" />
+      <circle cx="6.5" cy="17.5" r="2.1" />
+      <circle cx="17.5" cy="12" r="2.1" />
+      <path d="M6.5 8.6v6.8 M8.6 6.5h4.6c2.4 0 4.3 1.9 4.3 4.3 M8.6 17.5h4.6c2.4 0 4.3-1.9 4.3-4.3" />
     </svg>
   )
 }

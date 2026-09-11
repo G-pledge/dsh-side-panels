@@ -1,10 +1,12 @@
 import React, { useEffect, useMemo, useRef, useState, useSyncExternalStore } from 'react'
-import { fileApi } from './api.js'
+import { fileApi, gitApi } from './api.js'
 import { BrowserView } from './BrowserView.jsx'
 import { CodeEditor } from './CodeEditor.jsx'
+import { GitBlameView, GitCompare } from './GitCompare.jsx'
+import { GitView } from './GitView.jsx'
 import { TerminalView } from './TerminalView.jsx'
 import { base64ToBytes, copyImageBytes, formatHexDump, formatSize } from './hex.js'
-import { BrowserActivityIcon, FileKindIcon, FilesActivityIcon, gitColor, TerminalActivityIcon, WorkbenchToggleIcon } from './icons.jsx'
+import { BrowserActivityIcon, FileKindIcon, FilesActivityIcon, GitActivityIcon, gitColor, TerminalActivityIcon, WorkbenchToggleIcon } from './icons.jsx'
 import { AddPaneMenu, FileContextMenu, MoreMenu, PANE_META, TabContextMenu } from './MoreMenu.jsx'
 import { S } from './styles.js'
 import { isCollapsed, subscribeVisibility, toggleCollapsed } from './visibility.js'
@@ -58,17 +60,26 @@ function makePane(kind) {
 
 function remapPane(pane, fix) {
   if (pane.kind !== 'file') return pane
+  const remapKey = (key) => {
+    if (isGitBlameKey(key)) return gitBlameKey(fix(parseGitBlameKey(key)))
+    if (isGitDiffKey(key)) {
+      const parsed = parseGitDiffKey(key)
+      return gitDiffKey(parsed.side, fix(parsed.path))
+    }
+    return fix(key)
+  }
   const contents = new Map()
   for (const [key, value] of pane.contents) {
-    const nextKey = fix(key)
-    contents.set(nextKey, value && typeof value === 'object' ? { ...value, path: nextKey } : value)
+    const nextKey = remapKey(key)
+    const nextPath = filePathOf(nextKey)
+    contents.set(nextKey, value && typeof value === 'object' ? { ...value, path: nextPath } : value)
   }
   return {
     ...pane,
-    tabs: pane.tabs.map(fix),
-    active: pane.active ? fix(pane.active) : pane.active,
+    tabs: pane.tabs.map(remapKey),
+    active: pane.active ? remapKey(pane.active) : pane.active,
     contents,
-    histStack: pane.histStack.map(fix),
+    histStack: pane.histStack.map(remapKey),
   }
 }
 
@@ -199,6 +210,72 @@ function gitLetter(path, git) {
   return git[path] || git[`${path}/`] || ''
 }
 
+const GITDIFF = 'gitdiff:'
+const GITBLAME = 'gitblame:'
+
+function isGitDiffKey(key) {
+  return String(key ?? '').startsWith(GITDIFF)
+}
+
+function isGitBlameKey(key) {
+  return String(key ?? '').startsWith(GITBLAME)
+}
+
+function gitDiffKey(side, path) {
+  return `${GITDIFF}${side}:${path}`
+}
+
+function gitBlameKey(path) {
+  return `${GITBLAME}${path}`
+}
+
+function parseGitDiffKey(key) {
+  const rest = String(key ?? '').slice(GITDIFF.length)
+  const cut = rest.indexOf(':')
+  if (cut <= 0) return { side: 'worktree', path: rest }
+  return { side: rest.slice(0, cut), path: rest.slice(cut + 1) }
+}
+
+function parseGitBlameKey(key) {
+  return String(key ?? '').slice(GITBLAME.length)
+}
+
+function parseCompareSide(side) {
+  const text = String(side ?? '')
+  if (!text.startsWith('k.')) return {}
+  const rest = text.slice(2)
+  const cut = rest.indexOf('.')
+  if (cut <= 0) return {}
+  return { a: rest.slice(0, cut), b: rest.slice(cut + 1) }
+}
+
+function filePathOf(key) {
+  if (isGitDiffKey(key)) return parseGitDiffKey(key).path
+  if (isGitBlameKey(key)) return parseGitBlameKey(key)
+  return key
+}
+
+function gitDiffTabLabel(key) {
+  const { side, path } = parseGitDiffKey(key)
+  const name = basename(path)
+  if (side.startsWith('c.')) return `${name} (${side.slice(2, 9)})`
+  if (side.startsWith('k.')) return `${name} (对比)`
+  return side === 'index' ? `${name} (暂存)` : `${name} (工作区)`
+}
+
+function tabLabelOf(key) {
+  if (isGitBlameKey(key)) return `${basename(parseGitBlameKey(key))} (归咎)`
+  if (isGitDiffKey(key)) return gitDiffTabLabel(key)
+  return basename(key)
+}
+
+function patchFromHunk(hunk) {
+  const parts = [...(hunk?.fileHeader ?? []), hunk?.hunkHeader, ...(hunk?.lines ?? [])].filter((item) => item != null)
+  let out = parts.join('\n')
+  if (!out.endsWith('\n')) out += '\n'
+  return out
+}
+
 function revokePreview(file) {
   if (file?.objectUrl) URL.revokeObjectURL(file.objectUrl)
 }
@@ -213,7 +290,7 @@ function TruncationNote({ file }) {
 }
 
 function isDirty(file) {
-  if (!file || file.binary || file.image || file.truncated || file.tooLarge || file.text === undefined) return false
+  if (!file || file.diff || file.blame || file.binary || file.image || file.truncated || file.tooLarge || file.text === undefined) return false
   return file.text !== file.savedText
 }
 
@@ -364,6 +441,8 @@ export function Workbench({ sessions }) {
   const [filter, setFilter] = useState('')
   const [searchOpen, setSearchOpen] = useState(false)
   const [treeHidden, setTreeHidden] = useState(false)
+  const [sidebar, setSidebar] = useState('files')
+  const [gitReload, setGitReload] = useState(0)
   const [panelWidth, setPanelWidth] = useState(() => readPanelWidth(session.id))
   const [treeWidth, setTreeWidth] = useState(() => readTreeWidth(session.id, readPanelWidth(session.id)))
   const panelRef = useRef(null)
@@ -428,6 +507,7 @@ export function Workbench({ sessions }) {
     setError(undefined)
     setGit({})
     setFilter('')
+    setSidebar('files')
     if (!root) return
     void loadDir('')
     void loadGit()
@@ -493,6 +573,10 @@ export function Workbench({ sessions }) {
   }
 
   const addPane = (kind) => {
+    if (kind === 'changes') {
+      openGitSidebar()
+      return
+    }
     const pane = makePane(kind)
     setPanes((prev) => {
       const next = [...prev, pane]
@@ -524,6 +608,12 @@ export function Workbench({ sessions }) {
 
   const ensureFilesPane = () => focusOrAddPane('file')
 
+  const openGitSidebar = () => {
+    ensureFilesPane()
+    setTreeHidden(false)
+    setSidebar('git')
+  }
+
   const closePane = (id) => {
     const prev = panesRef.current
     const doomed = prev.find((pane) => pane.id === id)
@@ -553,6 +643,36 @@ export function Workbench({ sessions }) {
 
   const openPath = async (path, recordHistory = true) => {
     if (!root) return
+    if (isGitBlameKey(path)) {
+      const paneId = resolveFilesPaneId()
+      const pane = panesRef.current.find((item) => item.id === paneId)
+      if (pane?.contents.has(path)) {
+        patchPane(paneId, (current) => ({ ...current, active: path, hexMode: false }))
+        return
+      }
+      await openGitBlame({ path: parseGitBlameKey(path), repo: pane?.contents.get(path)?.repo })
+      return
+    }
+    if (isGitDiffKey(path)) {
+      const parsed = parseGitDiffKey(path)
+      const paneId = resolveFilesPaneId()
+      const pane = panesRef.current.find((item) => item.id === paneId)
+      if (pane?.contents.has(path)) {
+        patchPane(paneId, (current) => ({ ...current, active: path, hexMode: false }))
+        return
+      }
+      if (parsed.side.startsWith('c.')) {
+        await openGitDiff({ path: parsed.path, commit: parsed.side.slice(2) }, 'commit')
+        return
+      }
+      if (parsed.side.startsWith('k.')) {
+        const { a, b } = parseCompareSide(parsed.side)
+        await openGitDiff({ path: parsed.path, a, b }, 'compare')
+        return
+      }
+      await openGitDiff({ path: parsed.path }, parsed.side)
+      return
+    }
     setSelected(path)
     const paneId = resolveFilesPaneId()
     const pane = panesRef.current.find((item) => item.id === paneId)
@@ -590,6 +710,120 @@ export function Workbench({ sessions }) {
       })
       return { ...current, contents }
     })
+  }
+
+  const openGitDiff = async (item, side, options = {}) => {
+    if (!root || !item?.path || item.directory) return
+    const commit = item.commit || (typeof side === 'string' && side.startsWith('c.') ? side.slice(2) : '')
+    const compare = side === 'compare' || (typeof side === 'string' && side.startsWith('k.'))
+      ? { a: item.a || parseCompareSide(side).a, b: item.b || parseCompareSide(side).b }
+      : null
+    const keySide = commit ? `c.${commit}` : (compare ? `k.${compare.a}.${compare.b}` : side)
+    const key = gitDiffKey(keySide, item.path)
+    setSelected(item.path)
+    openGitSidebar()
+    const paneId = resolveFilesPaneId()
+    const pane = panesRef.current.find((entry) => entry.id === paneId)
+    const existing = pane?.contents.get(key)
+    const already = options.force !== true && Boolean(existing?.diff) && (
+      existing.binary === true
+      || existing.lfs === true
+      || (typeof existing.before === 'string' && existing.before !== '')
+      || (typeof existing.after === 'string' && existing.after !== '')
+      || (typeof existing.text === 'string' && existing.text !== '')
+      || (Array.isArray(existing.hunks) && existing.hunks.length > 0)
+    )
+    patchPane(paneId, (current) => {
+      const tabs = current.tabs.includes(key) ? current.tabs : [...current.tabs, key]
+      let histStack = current.histStack
+      let histIndex = current.histIndex
+      histStack = histStack.slice(0, histIndex + 1)
+      if (histStack[histStack.length - 1] !== key) histStack = [...histStack, key]
+      histIndex = histStack.length - 1
+      return { ...current, tabs, active: key, histStack, histIndex, hexMode: false }
+    })
+    if (already) return
+    const result = commit
+      ? await gitApi.commitDiff(root, item.repo, commit, item.path)
+      : compare
+        ? await gitApi.compareDiff(root, item.repo, compare.a, compare.b, item.path)
+        : await gitApi.diff(root, item.path, side, item.untracked === true, item.repo)
+    if (!result.ok) {
+      setError(result.error?.message ?? '打开差异失败')
+      return
+    }
+    if (result.value.directory) {
+      setError('这是未跟踪的文件夹')
+      return
+    }
+    patchPane(paneId, (current) => {
+      const contents = new Map(current.contents)
+      contents.set(key, { diff: true, ...result.value })
+      return { ...current, contents }
+    })
+  }
+
+  const openGitBlame = async (item) => {
+    if (!root || !item?.path) return
+    const key = gitBlameKey(item.path)
+    setSelected(item.path)
+    openGitSidebar()
+    const paneId = resolveFilesPaneId()
+    patchPane(paneId, (current) => {
+      const tabs = current.tabs.includes(key) ? current.tabs : [...current.tabs, key]
+      let histStack = current.histStack
+      let histIndex = current.histIndex
+      histStack = histStack.slice(0, histIndex + 1)
+      if (histStack[histStack.length - 1] !== key) histStack = [...histStack, key]
+      histIndex = histStack.length - 1
+      return { ...current, tabs, active: key, histStack, histIndex, hexMode: false }
+    })
+    const result = await gitApi.blame(root, item.repo, item.path)
+    if (!result.ok) {
+      setError(result.error?.message ?? '读不了归咎')
+      return
+    }
+    patchPane(paneId, (current) => {
+      const contents = new Map(current.contents)
+      contents.set(key, { blame: true, path: item.path, repo: item.repo, lines: result.value.lines ?? [] })
+      return { ...current, contents }
+    })
+  }
+
+  const bumpGit = () => setGitReload((value) => value + 1)
+
+  const refreshGitDiff = async (viewing, key) => {
+    const parsed = parseGitDiffKey(key)
+    await openGitDiff({
+      path: viewing?.path || parsed.path,
+      repo: viewing?.repo,
+      untracked: viewing?.untracked,
+      commit: viewing?.commit,
+      a: viewing?.a,
+      b: viewing?.b,
+    }, viewing?.side || parsed.side, { force: true })
+  }
+
+  const applyGitHunk = async (viewing, key, op, hunk) => {
+    if (!root || !viewing?.path) return
+    const result = await gitApi.hunk(root, viewing.repo, viewing.path, op, patchFromHunk(hunk))
+    if (!result.ok) {
+      setError(result.error?.message ?? '这块操作失败')
+      return
+    }
+    bumpGit()
+    await refreshGitDiff(viewing, key)
+  }
+
+  const takeGitSide = async (viewing, key, which) => {
+    if (!root || !viewing?.path) return
+    const result = await gitApi.take(root, viewing.repo, viewing.path, which)
+    if (!result.ok) {
+      setError(result.error?.message ?? '采用失败')
+      return
+    }
+    bumpGit()
+    await refreshGitDiff(viewing, key)
   }
 
   const goHistory = (delta) => {
@@ -651,7 +885,7 @@ export function Workbench({ sessions }) {
   const updateDraft = (path, text) => {
     patchPane(activePaneIdRef.current, (current) => {
       const file = current.contents.get(path)
-      if (!file) return current
+      if (!file || file.diff) return current
       const contents = new Map(current.contents)
       contents.set(path, { ...file, text })
       return { ...current, contents }
@@ -662,7 +896,7 @@ export function Workbench({ sessions }) {
     if (!root) return
     const pane = panesRef.current.find((item) => item.id === activePaneIdRef.current)
     const file = pane?.contents.get(path)
-    if (!file || file.binary || file.image || file.truncated || typeof file.text !== 'string') return
+    if (!file || file.diff || file.binary || file.image || file.truncated || typeof file.text !== 'string') return
     if (file.text === file.savedText) return
     const result = await fileApi.write(root, path, file.text)
     if (!result.ok) {
@@ -746,7 +980,7 @@ export function Workbench({ sessions }) {
   }
 
   const startRename = (path) => {
-    const target = path || selected || currentFileActive()
+    const target = filePathOf(path || selected || currentFileActive())
     if (!target) return
     setCreating(undefined)
     setCtxMenu(undefined)
@@ -778,19 +1012,19 @@ export function Workbench({ sessions }) {
   const failCopy = () => setError('复制失败，浏览器没允许写入剪贴板')
 
   const copyRelative = async (path) => {
-    const target = path || selected || currentFileActive()
+    const target = filePathOf(path || selected || currentFileActive())
     if (!target) return
     if (!(await copyToClipboard(target))) failCopy()
   }
 
   const copyFull = async (path) => {
-    const target = path || selected || currentFileActive()
+    const target = filePathOf(path || selected || currentFileActive())
     if (!root || !target) return
     if (!(await copyToClipboard(joinFullPath(root, target)))) failCopy()
   }
 
   const copyName = async (path) => {
-    const target = path || selected || currentFileActive()
+    const target = filePathOf(path || selected || currentFileActive())
     if (!target) return
     if (!(await copyToClipboard(basename(target)))) failCopy()
   }
@@ -799,6 +1033,10 @@ export function Workbench({ sessions }) {
     const target = path || selected || currentFileActive()
     if (!root || !target) return
     let file = fileFromPanes(target)
+    if (file?.diff) {
+      if (!(await copyToClipboard(file.after || file.text || ''))) failCopy()
+      return
+    }
     if (!file || (file.image && !file.bytes && !file.data)) {
       const result = await fileApi.read(root, target)
       if (!result.ok) {
@@ -852,11 +1090,17 @@ export function Workbench({ sessions }) {
     const current = panesRef.current.find((pane) => pane.id === activePaneIdRef.current)
     if (current?.kind !== 'file') {
       ensureFilesPane()
+      setSidebar('files')
+      setTreeHidden(false)
       return
     }
-    const hasFiles = panesRef.current.some((pane) => pane.kind === 'file')
-    if (!hasFiles || treeHidden) {
-      ensureFilesPane()
+    if (sidebar === 'git') {
+      setSidebar('files')
+      setTreeHidden(false)
+      return
+    }
+    if (treeHidden) {
+      setTreeHidden(false)
       return
     }
     setTreeHidden(true)
@@ -973,19 +1217,19 @@ export function Workbench({ sessions }) {
                 data-dsh-file-tab=""
                 data-dsh-file-tab-active={active === path ? '' : undefined}
                 style={{ ...S.tab, ...(active === path ? S.tabActive : {}) }}
-                title={path}
+                title={filePathOf(path)}
                 onContextMenu={(event) => openTabMenu(event, path)}
               >
                 {isDirty(contents.get(path)) ? <span style={S.dirtyDot} title="未保存" /> : null}
-                <FileKindIcon name={basename(path)} />
+                <FileKindIcon name={basename(filePathOf(path))} />
                 <button type="button" style={S.tabName} onClick={() => void openPath(path)}>
-                  {basename(path)}
+                  {tabLabelOf(path)}
                 </button>
                 <button
                   type="button"
                   style={S.tabClose}
                   title="关闭"
-                  aria-label={`关闭 ${basename(path)}`}
+                  aria-label={`关闭 ${tabLabelOf(path)}`}
                   onClick={(event) => {
                     event.stopPropagation()
                     closeTab(path)
@@ -998,19 +1242,19 @@ export function Workbench({ sessions }) {
           </div>
           <div style={S.chromeGroup}>
             <MoreMenu
-              canRename={Boolean(selected || active)}
-              canCopy={Boolean(selected || active)}
-              canCopyContent={Boolean(selected || active) && !isDirectoryPath(selected || active, childrenMap)}
+              canRename={Boolean(filePathOf(selected || active))}
+              canCopy={Boolean(filePathOf(selected || active))}
+              canCopyContent={Boolean(filePathOf(selected || active)) && !isDirectoryPath(filePathOf(selected || active), childrenMap)}
               busy={busy}
               onRename={startRename}
               onCopyRelative={() => void copyRelative()}
               onCopyFull={() => void copyFull()}
               onCopyName={() => void copyName()}
               onCopyContent={() => void copyContent()}
-              copyContentLabel={isImagePath(selected || active) ? '复制图片' : '复制内容'}
+              copyContentLabel={isImagePath(filePathOf(selected || active)) ? '复制图片' : '复制内容'}
               onRefresh={() => void refreshAll()}
             />
-            <button type="button" style={S.iconBtn} title="搜索文件" onClick={() => { setTreeHidden(false); setSearchOpen((open) => !open) }}>
+            <button type="button" style={S.iconBtn} title="搜索文件" onClick={() => { setSidebar('files'); setTreeHidden(false); setSearchOpen((open) => !open) }}>
               <ChromeIcon title="搜索" d="M7 11.5a4.5 4.5 0 1 1 0-9 4.5 4.5 0 0 1 0 9zM10.2 10.2 13.5 13.5" />
             </button>
           </div>
@@ -1021,6 +1265,41 @@ export function Workbench({ sessions }) {
           <div style={S.empty}>这条对话还没有工作目录</div>
         ) : isFiles && !active ? (
           <div style={{ flex: 1, minHeight: 0 }} />
+        ) : isFiles && viewing?.diff && viewing.directory ? (
+          <div style={S.empty}>这是未跟踪的文件夹</div>
+        ) : isFiles && viewing?.blame ? (
+          <GitBlameView key={active} path={viewing.path || filePathOf(active)} lines={viewing.lines} />
+        ) : isFiles && viewing?.diff && (
+          viewing.binary
+          || viewing.lfs
+          || typeof viewing.before === 'string'
+          || typeof viewing.after === 'string'
+          || typeof viewing.text === 'string'
+        ) ? (
+          <GitCompare
+            key={active}
+            path={viewing.path || filePathOf(active)}
+            before={viewing.before}
+            after={viewing.after}
+            leftTitle={viewing.leftTitle}
+            rightTitle={viewing.rightTitle}
+            binary={viewing.binary}
+            text={viewing.text}
+            lfs={viewing.lfs}
+            hunks={viewing.hunks}
+            side={viewing.side || parseGitDiffKey(active).side}
+            conflict={viewing.conflict === true}
+            onStageHunk={(hunk) => void applyGitHunk(viewing, active, 'stage', hunk)}
+            onUnstageHunk={(hunk) => void applyGitHunk(viewing, active, 'unstage', hunk)}
+            onDiscardHunk={(hunk) => {
+              if (!window.confirm('确定丢弃这块改动？丢掉的内容找不回来。')) return
+              void applyGitHunk(viewing, active, 'discard', hunk)
+            }}
+            onTakeOurs={() => void takeGitSide(viewing, active, 'ours')}
+            onTakeTheirs={() => void takeGitSide(viewing, active, 'theirs')}
+          />
+        ) : isFiles && viewing?.diff ? (
+          <div style={S.empty}>正在打开…</div>
         ) : isFiles && viewing?.image ? (
           <div style={S.mediaPane}>
             <div style={S.previewBar}>
@@ -1117,6 +1396,20 @@ export function Workbench({ sessions }) {
             style={{ ...S.tree, gridColumn: 3, gridRow: 2, minWidth: 0, width: 'auto' }}
             onContextMenu={(event) => event.preventDefault()}
           >
+            {sidebar === 'git' ? (
+              <GitView
+                cwd={root}
+                active={showTree && sidebar === 'git'}
+                activeKey={isFiles ? active : undefined}
+                reload={gitReload}
+                onTree={() => void loadGit()}
+                onFiles={() => void refreshAll()}
+                onOpen={(item, side) => void openGitDiff(item, side)}
+                onBlame={(item) => void openGitBlame(item)}
+                onCompareDiff={(item) => void openGitDiff(item, 'compare')}
+              />
+            ) : (
+              <>
             <div style={S.header}>
               <span>{rootName}</span>
               <span style={{ display: 'flex', gap: 0 }}>
@@ -1174,6 +1467,8 @@ export function Workbench({ sessions }) {
                 />
               </div>
             )}
+              </>
+            )}
           </aside>
         </>
       ) : null}
@@ -1224,11 +1519,21 @@ export function Workbench({ sessions }) {
           type="button"
           title="文件树"
           aria-label="文件树"
-          aria-pressed={showTree}
-          style={{ ...S.railBtn, ...(showTree ? S.railBtnActive : {}) }}
+          aria-pressed={showTree && sidebar === 'files'}
+          style={{ ...S.railBtn, ...((showTree && sidebar === 'files') ? S.railBtnActive : {}) }}
           onClick={toggleTree}
         >
           <FilesActivityIcon />
+        </button>
+        <button
+          type="button"
+          title="git"
+          aria-label="git"
+          aria-pressed={showTree && sidebar === 'git'}
+          style={{ ...S.railBtn, ...((showTree && sidebar === 'git') ? S.railBtnActive : {}) }}
+          onClick={openGitSidebar}
+        >
+          <GitActivityIcon />
         </button>
         <button
           type="button"
